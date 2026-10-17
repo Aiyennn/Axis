@@ -92,3 +92,6 @@ Activity mode: [to be recorded during learning wrap-up]
 
 ## Revisions
 
+- Adapted dashboard layout to user-provided focus architecture: replaced 3 equal side-by-side columns with a primary 2-column layout featuring a prominent "YOUR FOCUS" hero card, streamlined "Coming Up" and "Later" rows, and right-column widgets for Today's Schedule, Capacity, and AI status to dramatically reduce cognitive overload.
+
+
