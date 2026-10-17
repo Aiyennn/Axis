@@ -1,7 +1,11 @@
+# Devpost Learn personal learner profile
+/devpost/learner-profile.md
 
+# Build output and dependencies
+node_modules/
+dist/
 
 # Local credential files
 .env
 .env.*
 !.env.example
-

@@ -1,6 +1,6 @@
 ---
 doc: checklist
-status: draft
+status: approved
 ---
 
 # Build Checklist
@@ -9,7 +9,7 @@ Build mode: learn
 
 ## Slices
 
-- [ ] **1. Scaffolding, Seed Store, and Tri-Bucket Columns**
+- [x] **1. Scaffolding, Seed Store, and Tri-Bucket Columns**
   Becomes usable: A running local web application at `http://localhost:5173` showing the command center desktop layout: left sidebar, central workspace with pre-seeded student-freelancer tasks in "Do Now," "Do Next," and "Do Later," and interactive task completion toggles that strike through items and persist in browser storage.
   Why now: Boots the project end-to-end (Vite, React, TypeScript, Tailwind CSS, AppContext, TaskCard components) so all subsequent engine logic has a real, responsive surface to land on.
   PRD ref: `prd.md > The Core Journey` (Steps 1–3), `prd.md > Screens and Layout`, `prd.md > Features and Behavior (2. Prioritized Task Columns)`
