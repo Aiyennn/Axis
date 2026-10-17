@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Axis — Project Scope Companion</title>
+  <style>
+    :root {
+      --bg-primary: #0b0f19;
+      --bg-secondary: #111827;
+      --bg-card: #1e293b;
+      --border-color: #334155;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --accent-cyan: #38bdf8;
+      --accent-indigo: #6366f1;
+      --accent-emerald: #10b981;
+      --accent-amber: #f59e0b;
+      --accent-rose: #f43f5e;
+      --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--bg-primary);
+      color: var(--text-main);
+      font-family: var(--font-family);
+      line-height: 1.6;
+      padding: 2rem 1rem;
+    }
+
+    .container {
+      max-width: 1040px;
+      margin: 0 auto;
+    }
+
+    header {
+      background: linear-gradient(135deg, rgba(30, 41, 59, 0.9), rgba(17, 24, 39, 0.95));
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 2.5rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+      position: relative;
+      overflow: hidden;
+    }
+
+    header::before {
+      content: "";
+      position: absolute;
+      top: -50px;
+      right: -50px;
+      width: 200px;
+      height: 200px;
+      background: radial-gradient(circle, rgba(99, 102, 241, 0.25) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 0.25rem 0.75rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      border-radius: 9999px;
+      margin-bottom: 0.75rem;
+      background: rgba(16, 185, 129, 0.2);
+      color: var(--accent-emerald);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      font-weight: 800;
+      letter-spacing: -0.025em;
+      margin-bottom: 0.5rem;
+      background: linear-gradient(to right, #ffffff, #94a3b8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .tagline {
+      font-size: 1.2rem;
+      color: var(--accent-cyan);
+      margin-bottom: 1rem;
+    }
+
+    .intro-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 1.5rem;
+      transition: border-color 0.2s ease;
+    }
+
+    .card:hover {
+      border-color: var(--accent-indigo);
+    }
+
+    .card h3 {
+      font-size: 1.1rem;
+      color: var(--accent-cyan);
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    /* Diagram Section */
+    .diagram-section {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      padding: 2rem;
+      margin-bottom: 2rem;
+    }
+
+    .diagram-section h2 {
+      font-size: 1.4rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .diagram-subtitle {
+      color: var(--text-muted);
+      margin-bottom: 1.5rem;
+      font-size: 0.95rem;
+    }
+
+    .svg-container {
+      width: 100%;
+      overflow-x: auto;
+      background: #070d18;
+      border-radius: 10px;
+      border: 1px solid #1e293b;
+      padding: 1.5rem 1rem;
+    }
+
+    /* Interactive Stepper */
+    .stepper-section {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      padding: 2rem;
+      margin-bottom: 2rem;
+    }
+
+    .step-tabs {
+      display: flex;
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+    }
+
+    .step-tab {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      color: var(--text-muted);
+      padding: 0.6rem 1.2rem;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.9rem;
+      transition: all 0.2s;
+    }
+
+    .step-tab:hover {
+      background: #27354a;
+      color: var(--text-main);
+    }
+
+    .step-tab.active {
+      background: var(--accent-indigo);
+      border-color: var(--accent-indigo);
+      color: #ffffff;
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+    }
+
+    .step-content {
+      display: none;
+      background: var(--bg-card);
+      border-radius: 10px;
+      padding: 1.5rem;
+      border-left: 4px solid var(--accent-indigo);
+    }
+
+    .step-content.active {
+      display: block;
+      animation: fadeIn 0.3s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Boundary Reveals */
+    .boundary-section {
+      margin-bottom: 2rem;
+    }
+
+    .boundary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .boundary-col {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 1.5rem;
+    }
+
+    .boundary-col.now { border-top: 4px solid var(--accent-emerald); }
+    .boundary-col.later { border-top: 4px solid var(--accent-amber); }
+    .boundary-col.cut { border-top: 4px solid var(--accent-rose); }
+
+    .boundary-col h3 {
+      font-size: 1.1rem;
+      margin-bottom: 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .pill-count {
+      font-size: 0.75rem;
+      padding: 0.15rem 0.5rem;
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .boundary-list {
+      list-style: none;
+    }
+
+    .boundary-list li {
+      margin-bottom: 0.75rem;
+      font-size: 0.9rem;
+      padding-left: 1.25rem;
+      position: relative;
+    }
+
+    .boundary-list li::before {
+      content: "•";
+      position: absolute;
+      left: 0;
+      color: var(--accent-cyan);
+      font-size: 1.2rem;
+      line-height: 1;
+    }
+
+    footer {
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      padding: 2rem 0;
+      border-top: 1px solid var(--border-color);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <span class="badge">Approved Scope</span>
+      <h1>Axis Command Center</h1>
+      <p class="tagline">Consolidating scattered responsibilities into a single, intelligently prioritized daily action plan.</p>
+      <p style="color: var(--text-muted); font-size: 0.95rem;">
+        Devpost Learn: Build With AI — Basics | Proof of Concept Blueprint
+      </p>
+    </header>
+
+    <div class="intro-grid">
+      <div class="card">
+        <h3>🎯 The Unique Kernel</h3>
+        <p>A multi-factor, explainable prioritization engine that scores tasks by deadlines, importance, urgency, duration, and calendar availability—grouping them into <strong>Do Now</strong>, <strong>Do Next</strong>, and <strong>Do Later</strong> with clear reasons and instant dialogue-driven rebalancing.</p>
+      </div>
+      <div class="card">
+        <h3>👤 Target User</h3>
+        <p><strong>Student Freelancers</strong> who juggle coursework, exams, client projects, and personal errands across disconnected platforms. They open Axis to replace morning overwhelm with immediate clarity.</p>
+      </div>
+      <div class="card">
+        <h3>✨ The Relief Beat</h3>
+        <p>Opening one unified dashboard that tells them exactly what to tackle first, explains <em>why</em>, reserves focused calendar blocks, and shows what can safely wait until tomorrow.</p>
+      </div>
+    </div>
+
+    <!-- User Flow & Architecture Diagram -->
+    <section class="diagram-section">
+      <h2>System & Interaction Flow</h2>
+      <p class="diagram-subtitle">From scattered multi-platform noise to an explainable, user-directed daily action plan.</p>
+      <div class="svg-container">
+        <svg viewBox="0 0 920 320" width="100%" height="auto" xmlns="http://www.w3.org/2000/svg">
+          <!-- Definitions -->
+          <defs>
+            <linearGradient id="gradIngest" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#1e293b"/>
+              <stop offset="100%" stop-color="#0f172a"/>
+            </linearGradient>
+            <linearGradient id="gradEngine" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#312e81"/>
+              <stop offset="100%" stop-color="#1e1b4b"/>
+            </linearGradient>
+            <linearGradient id="gradUI" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#064e3b"/>
+              <stop offset="100%" stop-color="#022c22"/>
+            </linearGradient>
+            <linearGradient id="gradChat" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#701a75"/>
+              <stop offset="100%" stop-color="#4a044e"/>
+            </linearGradient>
+            <marker id="arrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="#38bdf8"/>
+            </marker>
+            <marker id="arrowPurple" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="#c084fc"/>
+            </marker>
+          </defs>
+
+          <!-- Source Feeds (Mock Integrations) -->
+          <g transform="translate(20, 25)">
+            <rect width="180" height="260" rx="10" fill="url(#gradIngest)" stroke="#334155" stroke-width="1.5"/>
+            <text x="90" y="30" fill="#38bdf8" font-size="14" font-weight="bold" text-anchor="middle">MOCK INTEGRATIONS</text>
+            <text x="90" y="48" fill="#94a3b8" font-size="10" text-anchor="middle">(Platform Independent)</text>
+
+            <rect x="15" y="65" width="150" height="38" rx="6" fill="#1e293b" stroke="#475569"/>
+            <text x="25" y="82" fill="#f8fafc" font-size="11" font-weight="bold">📧 Client Email</text>
+            <text x="25" y="96" fill="#94a3b8" font-size="9">Urgent revisions req.</text>
+
+            <rect x="15" y="112" width="150" height="38" rx="6" fill="#1e293b" stroke="#475569"/>
+            <text x="25" y="129" fill="#f8fafc" font-size="11" font-weight="bold">🎓 Canvas Portal</text>
+            <text x="25" y="143" fill="#94a3b8" font-size="9">Exam & paper deadline</text>
+
+            <rect x="15" y="159" width="150" height="38" rx="6" fill="#1e293b" stroke="#475569"/>
+            <text x="25" y="176" fill="#f8fafc" font-size="11" font-weight="bold">📅 Calendar</text>
+            <text x="25" y="190" fill="#94a3b8" font-size="9">Lectures & client call</text>
+
+            <rect x="15" y="206" width="150" height="38" rx="6" fill="#1e293b" stroke="#475569"/>
+            <text x="25" y="223" fill="#f8fafc" font-size="11" font-weight="bold">✅ Task Tracker</text>
+            <text x="25" y="237" fill="#94a3b8" font-size="9">Personal errands</text>
+          </g>
+
+          <!-- Connecting Arrow 1 -->
+          <line x1="205" y1="155" x2="255" y2="155" stroke="#38bdf8" stroke-width="2" marker-end="url(#arrow)"/>
+
+          <!-- Prioritization Engine -->
+          <g transform="translate(265, 45)">
+            <rect width="200" height="220" rx="12" fill="url(#gradEngine)" stroke="#6366f1" stroke-width="2"/>
+            <text x="100" y="32" fill="#c7d2fe" font-size="14" font-weight="bold" text-anchor="middle">PRIORITIZATION ENGINE</text>
+            <text x="100" y="50" fill="#818cf8" font-size="11" text-anchor="middle">Multi-Factor Heuristics</text>
+
+            <rect x="15" y="65" width="170" height="26" rx="4" fill="rgba(255,255,255,0.06)"/>
+            <text x="25" y="82" fill="#e0e7ff" font-size="10">⏳ Proximity to Deadline</text>
+
+            <rect x="15" y="98" width="170" height="26" rx="4" fill="rgba(255,255,255,0.06)"/>
+            <text x="25" y="115" fill="#e0e7ff" font-size="10">⭐ Importance & Urgency</text>
+
+            <rect x="15" y="131" width="170" height="26" rx="4" fill="rgba(255,255,255,0.06)"/>
+            <text x="25" y="148" fill="#e0e7ff" font-size="10">⏱️ Task Duration vs. Slots</text>
+
+            <rect x="15" y="164" width="170" height="26" rx="4" fill="rgba(255,255,255,0.06)"/>
+            <text x="25" y="181" fill="#e0e7ff" font-size="10">💡 Explainable Rationale</text>
+          </g>
+
+          <!-- Connecting Arrow 2 -->
+          <line x1="470" y1="155" x2="520" y2="155" stroke="#38bdf8" stroke-width="2" marker-end="url(#arrow)"/>
+
+          <!-- Unified Command Center UI -->
+          <g transform="translate(530, 25)">
+            <rect width="180" height="260" rx="10" fill="url(#gradUI)" stroke="#10b981" stroke-width="1.5"/>
+            <text x="90" y="30" fill="#6ee7b7" font-size="13" font-weight="bold" text-anchor="middle">AXIS DASHBOARD</text>
+            <text x="90" y="48" fill="#a7f3d0" font-size="10" text-anchor="middle">Unified Action Plan</text>
+
+            <rect x="12" y="65" width="156" height="48" rx="6" fill="#064e3b" stroke="#059669"/>
+            <text x="20" y="83" fill="#34d399" font-size="11" font-weight="bold">🔴 DO NOW</text>
+            <text x="20" y="97" fill="#d1fae5" font-size="9">Urgent client fix (2h)</text>
+            <text x="20" y="108" fill="#6ee7b7" font-size="8">Reason: Due in 4 hrs</text>
+
+            <rect x="12" y="123" width="156" height="48" rx="6" fill="#064e3b" stroke="#059669"/>
+            <text x="20" y="141" fill="#fbbf24" font-size="11" font-weight="bold">🟡 DO NEXT</text>
+            <text x="20" y="155" fill="#d1fae5" font-size="9">Study for CS exam (3h)</text>
+            <text x="20" y="166" fill="#6ee7b7" font-size="8">Reason: Exam tomorrow 9am</text>
+
+            <rect x="12" y="181" width="156" height="48" rx="6" fill="#064e3b" stroke="#059669"/>
+            <text x="20" y="199" fill="#94a3b8" font-size="11" font-weight="bold">🟢 DO LATER</text>
+            <text x="20" y="213" fill="#d1fae5" font-size="9">Paper draft & errands</text>
+            <text x="20" y="224" fill="#6ee7b7" font-size="8">Reason: Due Thursday</text>
+          </g>
+
+          <!-- Connecting Arrow 3 (Two way for Dialogue/Override) -->
+          <path d="M 715 130 C 735 130, 735 110, 755 110" fill="none" stroke="#c084fc" stroke-width="2" marker-end="url(#arrowPurple)"/>
+          <path d="M 755 170 C 735 170, 735 180, 715 180" fill="none" stroke="#c084fc" stroke-width="2" marker-end="url(#arrowPurple)"/>
+
+          <!-- AI Assistant & Override Drawer -->
+          <g transform="translate(760, 45)">
+            <rect width="140" height="220" rx="10" fill="url(#gradChat)" stroke="#c084fc" stroke-width="1.5"/>
+            <text x="70" y="30" fill="#f0abfc" font-size="12" font-weight="bold" text-anchor="middle">AI ASSISTANT</text>
+            <text x="70" y="46" fill="#e879f9" font-size="9" text-anchor="middle">Dialogue & Override</text>
+
+            <rect x="10" y="65" width="120" height="42" rx="6" fill="rgba(0,0,0,0.3)"/>
+            <text x="16" y="80" fill="#fae8ff" font-size="8.5">"I want to study for</text>
+            <text x="16" y="93" fill="#fae8ff" font-size="8.5">the exam first."</text>
+
+            <rect x="10" y="115" width="120" height="52" rx="6" fill="rgba(0,0,0,0.4)"/>
+            <text x="16" y="130" fill="#f5d0fe" font-size="8.5">"Understood. Moving</text>
+            <text x="16" y="142" fill="#f5d0fe" font-size="8.5">exam prep to Do Now.</text>
+            <text x="16" y="154" fill="#f5d0fe" font-size="8.5">Client warned."</text>
+
+            <rect x="10" y="177" width="120" height="24" rx="4" fill="#a21caf"/>
+            <text x="70" y="193" fill="#ffffff" font-size="9" font-weight="bold" text-anchor="middle">Approve Changes</text>
+          </g>
+        </svg>
+      </div>
+    </section>
+
+    <!-- 60-Second Demo Storyboard -->
+    <section class="stepper-section">
+      <h2>60-Second Demo Walkthrough Plan</h2>
+      <p class="diagram-subtitle">Click each phase to see the exact on-screen actions planned for the video submission.</p>
+
+      <div class="step-tabs">
+        <button class="step-tab active" onclick="showStep(0)">Act 1: Scattered Workload (0–15s)</button>
+        <button class="step-tab" onclick="showStep(1)">Act 2: Intelligent Prioritization (15–40s)</button>
+        <button class="step-tab" onclick="showStep(2)">Act 3: Challenge & Adapt (40–60s)</button>
+      </div>
+
+      <div id="step-0" class="step-content active">
+        <h4 style="color: var(--accent-cyan); margin-bottom: 0.5rem;">Act 1: The Problem — Fragmented Responsibilities</h4>
+        <p><strong>What the viewer sees:</strong> The Mock Integrations view showing realistic unorganized feeds: an urgent client email asking for revisions by noon, a Canvas assignment due tomorrow morning, a scheduled afternoon seminar, and personal tasks.</p>
+        <p style="margin-top: 0.5rem; color: var(--text-muted);"><em>Demo takeaway:</em> Clearly demonstrates the pain of app-switching and decision fatigue for a student freelancer.</p>
+      </div>
+
+      <div id="step-1" class="step-content">
+        <h4 style="color: var(--accent-emerald); margin-bottom: 0.5rem;">Act 2: The Core Loop — Transparent AI Organization</h4>
+        <p><strong>What the viewer sees:</strong> Navigating to the Axis Dashboard and clicking "Generate Daily Action Plan." The incoming chaos instantly organizes into <strong>Do Now</strong>, <strong>Do Next</strong>, and <strong>Do Later</strong>. Each card clearly displays its estimated time, deadline proximity, and a badge explaining <em>why</em> it received that priority.</p>
+        <p style="margin-top: 0.5rem; color: var(--text-muted);"><em>Demo takeaway:</em> Proves that Axis is not a dumb sort-by-date list, but an intelligent scheduling copilot.</p>
+      </div>
+
+      <div id="step-2" class="step-content">
+        <h4 style="color: var(--accent-rose); margin-bottom: 0.5rem;">Act 3: The Kernel — Conversational Override & Trade-offs</h4>
+        <p><strong>What the viewer sees:</strong> The user opens the AI Assistant and types/clicks: <em>"I need to study for tomorrow's exam before touching the client revision."</em> The AI responds by explaining the trade-off (risk of client delay), recalculates the schedule, and places exam study into "Do Now" with the user in full control.</p>
+        <p style="margin-top: 0.5rem; color: var(--text-muted);"><em>Demo takeaway:</em> Shows that Axis empowers the human decision-maker rather than imposing an inflexible black box.</p>
+      </div>
+    </section>
+
+    <!-- Scope Boundaries -->
+    <section class="boundary-section">
+      <h2 style="margin-bottom: 1rem;">Project Boundaries</h2>
+      <div class="boundary-grid">
+        <div class="boundary-col now">
+          <h3>In for Proof of Concept <span class="pill-count">5 Areas</span></h3>
+          <ul class="boundary-list">
+            <li><strong>Responsive Command Center:</strong> Clean, dark-mode dashboard with Daily Briefing and Timeline.</li>
+            <li><strong>Mock Integrations Hub:</strong> Pre-seeded data feeds for Email, School Portal, Calendar, and Tasks with refresh/toggle controls.</li>
+            <li><strong>Explainable Prioritization:</strong> Multi-factor scoring engine (deadlines, urgency, duration, availability).</li>
+            <li><strong>Do Now / Next / Later:</strong> Dynamic categorizations with transparent rationale tags.</li>
+            <li><strong>AI Dialogue & Override:</strong> Conversational assistant that explains decisions and rebalances the plan.</li>
+          </ul>
+        </div>
+
+        <div class="boundary-col later">
+          <h3>Later Iterations <span class="pill-count">3 Features</span></h3>
+          <ul class="boundary-list">
+            <li><strong>Real OAuth Connections:</strong> Gmail, Google Calendar, Canvas LMS, Microsoft 365 APIs.</li>
+            <li><strong>Autonomous AI Delegation:</strong> Auto-drafting email replies, rescheduling conflicting calendar invites.</li>
+            <li><strong>Cross-Platform Sync:</strong> Native mobile apps and cloud database persistence.</li>
+          </ul>
+        </div>
+
+        <div class="boundary-col cut">
+          <h3>Explicitly Cut for Hackathon <span class="pill-count">3 Decisions</span></h3>
+          <ul class="boundary-list">
+            <li><strong>Live External APIs:</strong> Prevents auth friction, API quota issues, and network flakiness during testing.</li>
+            <li><strong>Multi-User Collaboration:</strong> Single-user focus keeps the proof of concept tight and fast.</li>
+            <li><strong>Complex Database Backend:</strong> Client-side / local storage eliminates deployment setup hurdles.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      Axis — Built for the Devpost Learn Hackathon | Canonical plan: <code>devpost/scope.md</code>
+    </footer>
+  </div>
+
+  <script>
+    function showStep(index) {
+      const tabs = document.querySelectorAll('.step-tab');
+      const contents = document.querySelectorAll('.step-content');
+      tabs.forEach((tab, i) => {
+        tab.classList.toggle('active', i === index);
+      });
+      contents.forEach((content, i) => {
+        content.classList.toggle('active', i === index);
+      });
+    }
+  </script>
+</body>
+</html>
+

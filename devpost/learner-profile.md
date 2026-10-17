@@ -39,7 +39,8 @@ Scaffolding an end-to-end app architecture from scratch, designing the mock inte
 
 ## Review Format
 
-not established
+html
+
 
 ## Notes and Open Questions
 Targeting a platform-independent prototype with realistic mock data and modular integration points for future real API connections.
