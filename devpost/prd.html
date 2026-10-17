@@ -1,0 +1,1217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Axis — Product Requirements (PRD)</title>
+  <style>
+    :root {
+      --bg-canvas: #09090b;
+      --bg-surface: #121215;
+      --bg-surface-elevated: #18181b;
+      --bg-surface-hover: #222226;
+      --border-subtle: #27272a;
+      --border-strong: #3f3f46;
+      --text-primary: #f4f4f5;
+      --text-secondary: #a1a1aa;
+      --text-tertiary: #71717a;
+      --accent-primary: #7c3aed;
+      --accent-primary-light: #a78bfa;
+      --accent-primary-glow: rgba(124, 58, 237, 0.15);
+      --status-now: #f43f5e;
+      --status-now-bg: rgba(244, 63, 94, 0.1);
+      --status-now-border: rgba(244, 63, 94, 0.25);
+      --status-next: #f59e0b;
+      --status-next-bg: rgba(245, 158, 11, 0.1);
+      --status-next-border: rgba(245, 158, 11, 0.25);
+      --status-later: #10b981;
+      --status-later-bg: rgba(16, 185, 129, 0.1);
+      --status-later-border: rgba(16, 185, 129, 0.25);
+      --font-stack: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--bg-canvas);
+      color: var(--text-primary);
+      font-family: var(--font-stack);
+      line-height: 1.5;
+      padding: 2.5rem 1.25rem;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .wrapper {
+      max-width: 1120px;
+      margin: 0 auto;
+    }
+
+    /* Top Metadata Bar */
+    .meta-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid var(--border-subtle);
+      flex-wrap: wrap;
+      gap: 0.75rem;
+    }
+
+    .breadcrumbs {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.82rem;
+      color: var(--text-tertiary);
+      font-family: var(--font-mono);
+    }
+
+    .breadcrumbs span.current {
+      color: var(--text-primary);
+      font-weight: 500;
+    }
+
+    .badge-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.2rem 0.65rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      border-radius: 9999px;
+      background: var(--accent-primary-glow);
+      color: var(--accent-primary-light);
+      border: 1px solid rgba(139, 92, 246, 0.3);
+    }
+
+    .badge-status::before {
+      content: "";
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent-primary-light);
+    }
+
+    /* Page Header */
+    .hero {
+      margin-bottom: 2.5rem;
+    }
+
+    .hero h1 {
+      font-size: 2.25rem;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      color: var(--text-primary);
+      margin-bottom: 0.5rem;
+    }
+
+    .hero p {
+      font-size: 1.05rem;
+      color: var(--text-secondary);
+      max-width: 720px;
+      line-height: 1.6;
+    }
+
+    /* Document Core Context Grid */
+    .context-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      margin-bottom: 2.5rem;
+    }
+
+    @media (max-width: 768px) {
+      .context-grid { grid-template-columns: 1fr; }
+    }
+
+    .context-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      padding: 1.25rem;
+    }
+
+    .context-label {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-tertiary);
+      margin-bottom: 0.5rem;
+      font-weight: 600;
+    }
+
+    .context-value {
+      font-size: 0.92rem;
+      color: var(--text-primary);
+      font-weight: 500;
+      line-height: 1.45;
+    }
+
+    /* Command Center Architecture Preview */
+    .section-title-wrap {
+      margin-bottom: 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+    }
+
+    .section-title {
+      font-size: 1.2rem;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      color: var(--text-primary);
+    }
+
+    .section-desc {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+    }
+
+    .window-frame {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+      overflow: hidden;
+      margin-bottom: 2.5rem;
+      box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.6);
+    }
+
+    .window-header {
+      background: #0f0f12;
+      border-bottom: 1px solid var(--border-subtle);
+      padding: 0.65rem 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .window-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #27272a;
+    }
+
+    .window-title {
+      font-size: 0.75rem;
+      color: var(--text-tertiary);
+      font-family: var(--font-mono);
+      margin-left: 0.5rem;
+    }
+
+    .cockpit {
+      display: grid;
+      grid-template-columns: 190px 1fr 290px;
+      min-height: 440px;
+      background: var(--bg-canvas);
+    }
+
+    @media (max-width: 980px) {
+      .cockpit { grid-template-columns: 1fr; }
+    }
+
+    /* Cockpit Sidebar */
+    .cockpit-sidebar {
+      background: var(--bg-surface);
+      border-right: 1px solid var(--border-subtle);
+      padding: 1.25rem 0.85rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+
+    .brand-mark {
+      font-size: 0.95rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0 0.4rem;
+    }
+
+    .brand-mark span {
+      color: var(--accent-primary-light);
+    }
+
+    .nav-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 0.45rem 0.6rem;
+      border-radius: 6px;
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-weight: 500;
+      transition: all 0.15s ease;
+    }
+
+    .nav-item.active {
+      background: var(--bg-surface-elevated);
+      color: var(--text-primary);
+      border: 1px solid var(--border-subtle);
+    }
+
+    .nav-item:hover:not(.active) {
+      background: var(--bg-surface-hover);
+      color: var(--text-primary);
+    }
+
+    .source-status {
+      margin-top: auto;
+      padding: 0.75rem;
+      background: var(--bg-surface-elevated);
+      border: 1px solid var(--border-subtle);
+      border-radius: 6px;
+      font-size: 0.72rem;
+    }
+
+    .source-status-header {
+      color: var(--text-tertiary);
+      text-transform: uppercase;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.4rem;
+    }
+
+    .source-pill-row {
+      display: flex;
+      gap: 0.35rem;
+      flex-wrap: wrap;
+    }
+
+    .source-pill {
+      font-size: 0.68rem;
+      padding: 0.1rem 0.4rem;
+      border-radius: 4px;
+      background: #27272a;
+      color: var(--text-secondary);
+    }
+
+    /* Cockpit Main Area */
+    .cockpit-main {
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      overflow-x: hidden;
+    }
+
+    /* Briefing Banner */
+    .briefing-banner {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      padding: 0.9rem 1.1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .briefing-stats {
+      display: flex;
+      gap: 1.25rem;
+    }
+
+    .stat-item {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .stat-num {
+      font-size: 1.1rem;
+      font-weight: 700;
+      font-family: var(--font-mono);
+      color: var(--text-primary);
+      letter-spacing: -0.02em;
+    }
+
+    .stat-name {
+      font-size: 0.7rem;
+      color: var(--text-tertiary);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-weight: 600;
+    }
+
+    .overload-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.3rem 0.65rem;
+      border-radius: 6px;
+      background: var(--status-now-bg);
+      border: 1px solid var(--status-now-border);
+      color: var(--status-now);
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    /* Priority Columns */
+    .priority-columns {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.75rem;
+    }
+
+    @media (max-width: 640px) {
+      .priority-columns { grid-template-columns: 1fr; }
+    }
+
+    .column-panel {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      padding: 0.85rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.65rem;
+    }
+
+    .column-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .column-title {
+      font-size: 0.76rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .column-title.now { color: var(--status-now); }
+    .column-title.next { color: var(--status-next); }
+    .column-title.later { color: var(--status-later); }
+
+    .column-count {
+      font-size: 0.7rem;
+      font-family: var(--font-mono);
+      color: var(--text-tertiary);
+      background: var(--bg-canvas);
+      padding: 0.1rem 0.4rem;
+      border-radius: 4px;
+    }
+
+    /* Task Card */
+    .task-card {
+      background: var(--bg-surface-elevated);
+      border: 1px solid var(--border-subtle);
+      border-radius: 6px;
+      padding: 0.75rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.45rem;
+      transition: border-color 0.15s ease, transform 0.15s ease;
+    }
+
+    .task-card:hover {
+      border-color: var(--border-strong);
+      transform: translateY(-1px);
+    }
+
+    .task-card-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.68rem;
+    }
+
+    .source-tag {
+      color: var(--text-tertiary);
+      text-transform: uppercase;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+    }
+
+    .deadline-tag {
+      font-family: var(--font-mono);
+      font-weight: 500;
+    }
+
+    .deadline-urgent { color: var(--status-now); }
+    .deadline-warning { color: var(--status-next); }
+    .deadline-normal { color: var(--text-tertiary); }
+
+    .task-title {
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      line-height: 1.35;
+    }
+
+    .task-reason {
+      font-size: 0.7rem;
+      color: var(--text-secondary);
+      background: var(--bg-canvas);
+      padding: 0.3rem 0.45rem;
+      border-radius: 4px;
+      border-left: 2px solid var(--border-strong);
+    }
+
+    .task-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.7rem;
+      color: var(--text-tertiary);
+      padding-top: 0.2rem;
+    }
+
+    /* Timeline Bar */
+    .timeline-strip {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      padding: 0.85rem;
+    }
+
+    .timeline-label-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.68rem;
+      color: var(--text-tertiary);
+      font-family: var(--font-mono);
+      margin-bottom: 0.5rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .timeline-track {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 3px;
+      background: var(--bg-canvas);
+      padding: 4px;
+      border-radius: 6px;
+      border: 1px solid var(--border-subtle);
+      height: 36px;
+      align-items: stretch;
+    }
+
+    .timeline-block {
+      border-radius: 4px;
+      font-size: 0.65rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      padding: 0 4px;
+    }
+
+    .block-fixed {
+      background: #27272a;
+      color: #d4d4d8;
+      border: 1px solid #3f3f46;
+    }
+
+    .block-focus {
+      background: rgba(124, 58, 237, 0.25);
+      color: var(--accent-primary-light);
+      border: 1px solid rgba(139, 92, 246, 0.4);
+    }
+
+    .block-free {
+      background: transparent;
+      border: 1px dashed #27272a;
+      color: #52525b;
+    }
+
+    /* AI Copilot Panel */
+    .cockpit-ai {
+      background: var(--bg-surface);
+      border-left: 1px solid var(--border-subtle);
+      padding: 1.25rem 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .ai-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 0.75rem;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .ai-title {
+      font-size: 0.82rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .ai-indicator {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--accent-primary-light);
+      box-shadow: 0 0 8px var(--accent-primary);
+    }
+
+    .chat-history {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      flex-grow: 1;
+      font-size: 0.78rem;
+    }
+
+    .chat-bubble-user {
+      align-self: flex-end;
+      background: var(--bg-surface-elevated);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-primary);
+      padding: 0.5rem 0.75rem;
+      border-radius: 8px 8px 2px 8px;
+      max-width: 90%;
+    }
+
+    .chat-bubble-ai {
+      align-self: flex-start;
+      background: var(--bg-canvas);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-secondary);
+      padding: 0.6rem 0.75rem;
+      border-radius: 8px 8px 8px 2px;
+      line-height: 1.45;
+    }
+
+    /* Signature Feature: Approve Plan Changes Card */
+    .approval-card {
+      background: #14111d;
+      border: 1px solid rgba(139, 92, 246, 0.35);
+      border-radius: 8px;
+      padding: 0.85rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+    }
+
+    .approval-header {
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--accent-primary-light);
+    }
+
+    .diff-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+      font-size: 0.72rem;
+    }
+
+    .diff-item {
+      display: flex;
+      justify-content: space-between;
+      color: #e4e4e7;
+      padding: 0.2rem 0;
+      border-bottom: 1px dashed rgba(255, 255, 255, 0.06);
+    }
+
+    .tradeoff-note {
+      font-size: 0.68rem;
+      color: var(--status-next);
+      background: var(--status-next-bg);
+      border: 1px solid var(--status-next-border);
+      padding: 0.35rem 0.5rem;
+      border-radius: 4px;
+      line-height: 1.35;
+    }
+
+    .btn-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.4rem;
+      margin-top: 0.2rem;
+    }
+
+    .btn-approve {
+      background: var(--accent-primary);
+      color: #ffffff;
+      border: none;
+      padding: 0.45rem 0.5rem;
+      border-radius: 5px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s ease;
+    }
+
+    .btn-approve:hover { background: #6d28d9; }
+
+    .btn-reject {
+      background: var(--bg-surface-elevated);
+      color: var(--text-secondary);
+      border: 1px solid var(--border-subtle);
+      padding: 0.45rem 0.5rem;
+      border-radius: 5px;
+      font-size: 0.72rem;
+      font-weight: 500;
+      cursor: pointer;
+    }
+
+    /* Specifications Detail Tabs */
+    .specs-section {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+      padding: 1.75rem;
+      margin-bottom: 2.5rem;
+    }
+
+    .tabs-nav {
+      display: flex;
+      gap: 0.4rem;
+      border-bottom: 1px solid var(--border-subtle);
+      padding-bottom: 0.75rem;
+      margin-bottom: 1.5rem;
+      overflow-x: auto;
+    }
+
+    .tab-trigger {
+      background: transparent;
+      border: 1px solid transparent;
+      color: var(--text-tertiary);
+      padding: 0.45rem 0.85rem;
+      border-radius: 6px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.15s ease;
+    }
+
+    .tab-trigger:hover {
+      color: var(--text-primary);
+    }
+
+    .tab-trigger.active {
+      background: var(--bg-surface-elevated);
+      color: var(--text-primary);
+      border-color: var(--border-subtle);
+    }
+
+    .tab-view {
+      display: none;
+    }
+
+    .tab-view.active {
+      display: block;
+      animation: fadeIn 0.2s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(3px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .tab-title {
+      font-size: 1.15rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 0.4rem;
+    }
+
+    .tab-summary {
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+      margin-bottom: 1.25rem;
+      max-width: 780px;
+    }
+
+    .criteria-box {
+      background: var(--bg-canvas);
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      padding: 1.25rem;
+    }
+
+    .criteria-heading {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-tertiary);
+      margin-bottom: 0.75rem;
+    }
+
+    .criteria-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.65rem;
+      padding: 0.4rem 0;
+      font-size: 0.85rem;
+      color: var(--text-primary);
+      line-height: 1.45;
+    }
+
+    .check-icon {
+      width: 16px;
+      height: 16px;
+      flex-shrink: 0;
+      color: var(--accent-primary-light);
+      margin-top: 2px;
+    }
+
+    /* Footer */
+    footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--border-subtle);
+      color: var(--text-tertiary);
+      font-size: 0.8rem;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+    }
+
+    footer code {
+      font-family: var(--font-mono);
+      color: var(--text-secondary);
+      background: var(--bg-surface);
+      padding: 0.15rem 0.4rem;
+      border-radius: 4px;
+      border: 1px solid var(--border-subtle);
+    }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    
+    <!-- Meta Bar -->
+    <div class="meta-bar">
+      <div class="breadcrumbs">
+        <span>devpost</span> / <span>specifications</span> / <span class="current">prd.html</span>
+      </div>
+      <div class="badge-status">
+        PRD Specification • Review Ready
+      </div>
+    </div>
+
+    <!-- Hero Header -->
+    <header class="hero">
+      <h1>Axis Command Center</h1>
+      <p>
+        Product definition for an intelligent productivity cockpit that unifies multi-platform inputs into an actionable daily schedule with explainable prioritization and conversational human control.
+      </p>
+    </header>
+
+    <!-- Context Card Grid -->
+    <div class="context-grid">
+      <div class="context-card">
+        <div class="context-label">Primary Persona</div>
+        <div class="context-value">Student Freelancer juggling coursework, exam deadlines, and client deliverables across fragmented tools.</div>
+      </div>
+      <div class="context-card">
+        <div class="context-label">The Unique Kernel</div>
+        <div class="context-value">Multi-factor heuristic engine scoring deadline proximity, urgency, duration, and open calendar blocks with transparent rationale.</div>
+      </div>
+      <div class="context-card">
+        <div class="context-label">POC Demonstration</div>
+        <div class="context-value">A 60-second walkthrough: multi-source ingest → unified 3-bucket schedule → dialogic plan override with trade-off approval.</div>
+      </div>
+    </div>
+
+    <!-- Command Center Screen Layout Visual -->
+    <div class="section-title-wrap">
+      <div>
+        <h2 class="section-title">Surface & Layout Architecture</h2>
+        <p class="section-desc">Responsive desktop workspace with persistent side navigation, central triaging board, and conversational assistant.</p>
+      </div>
+    </div>
+
+    <div class="window-frame">
+      <div class="window-header">
+        <div class="window-dot"></div>
+        <div class="window-dot"></div>
+        <div class="window-dot"></div>
+        <span class="window-title">axis.app/dashboard — Command Center</span>
+      </div>
+
+      <div class="cockpit">
+        <!-- Sidebar Navigation -->
+        <aside class="cockpit-sidebar">
+          <div class="brand-mark">
+            <span>◆</span> AXIS
+          </div>
+
+          <div class="nav-group">
+            <a href="#" class="nav-item active">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+              Dashboard
+            </a>
+            <a href="#" class="nav-item">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
+              My Tasks
+            </a>
+            <a href="#" class="nav-item">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+              Timeline
+            </a>
+            <a href="#" class="nav-item">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 16v1a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v1"></path><path d="M18 8h4a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-4"></path></svg>
+              Integrations
+            </a>
+          </div>
+
+          <div class="source-status">
+            <div class="source-status-header">Active Feeds</div>
+            <div class="source-pill-row">
+              <span class="source-pill">Gmail</span>
+              <span class="source-pill">Canvas</span>
+              <span class="source-pill">Cal</span>
+              <span class="source-pill">Tasks</span>
+            </div>
+          </div>
+        </aside>
+
+        <!-- Main Workspace -->
+        <main class="cockpit-main">
+          <!-- Daily Briefing Bar -->
+          <div class="briefing-banner">
+            <div class="briefing-stats">
+              <div class="stat-item">
+                <span class="stat-num">5</span>
+                <span class="stat-name">Active Tasks</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-num">6.0h</span>
+                <span class="stat-name">Est. Workload</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-num">4.5h</span>
+                <span class="stat-name">Open Hours</span>
+              </div>
+            </div>
+
+            <div class="overload-tag">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+              Schedule Overload: 1.5h Deficit
+            </div>
+          </div>
+
+          <!-- Priority Columns Grid -->
+          <div class="priority-columns">
+            <!-- DO NOW -->
+            <div class="column-panel">
+              <div class="column-header">
+                <span class="column-title now">● Do Now</span>
+                <span class="column-count">1</span>
+              </div>
+
+              <div class="task-card">
+                <div class="task-card-meta">
+                  <span class="source-tag">Email • Client</span>
+                  <span class="deadline-tag deadline-urgent">Today, 12:00 PM</span>
+                </div>
+                <div class="task-title">Revise Homepage Hero Section</div>
+                <div class="task-reason">High urgency: Hard deadline in 3.5h; blocking invoice sign-off.</div>
+                <div class="task-footer">
+                  <span>⏱ 2.0h</span>
+                  <span>Priority 98/100</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- DO NEXT -->
+            <div class="column-panel">
+              <div class="column-header">
+                <span class="column-title next">● Do Next</span>
+                <span class="column-count">2</span>
+              </div>
+
+              <div class="task-card">
+                <div class="task-card-meta">
+                  <span class="source-tag">Canvas • School</span>
+                  <span class="deadline-tag deadline-warning">Tomorrow, 9:00 AM</span>
+                </div>
+                <div class="task-title">CS401 Midterm Exam Preparation</div>
+                <div class="task-reason">Critical exam: Scheduled focus block recommended after afternoon class.</div>
+                <div class="task-footer">
+                  <span>⏱ 3.0h</span>
+                  <span>Priority 84/100</span>
+                </div>
+              </div>
+
+              <div class="task-card">
+                <div class="task-card-meta">
+                  <span class="source-tag">Tracker</span>
+                  <span class="deadline-tag deadline-warning">Today, 5:00 PM</span>
+                </div>
+                <div class="task-title">Submit Timesheet & Invoices</div>
+                <div class="task-reason">Quick turnaround: Can fill 30m gap between lectures.</div>
+                <div class="task-footer">
+                  <span>⏱ 0.5h</span>
+                  <span>Priority 76/100</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- DO LATER -->
+            <div class="column-panel">
+              <div class="column-header">
+                <span class="column-title later">● Do Later</span>
+                <span class="column-count">2</span>
+              </div>
+
+              <div class="task-card">
+                <div class="task-card-meta">
+                  <span class="source-tag">Canvas • School</span>
+                  <span class="deadline-tag deadline-normal">Friday, 11:59 PM</span>
+                </div>
+                <div class="task-title">Draft Literature Review Outline</div>
+                <div class="task-reason">Flexible deadline: Safe to defer until tomorrow morning.</div>
+                <div class="task-footer">
+                  <span>⏱ 1.5h</span>
+                  <span>Priority 42/100</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bottom Timeline -->
+          <div class="timeline-strip">
+            <div class="timeline-label-row">
+              <span>08:00</span>
+              <span>10:00 Lecture</span>
+              <span>12:00 Client Fix</span>
+              <span>14:00 Standup</span>
+              <span>16:00 Exam Study</span>
+              <span>20:00</span>
+            </div>
+            <div class="timeline-track">
+              <div class="timeline-block block-free" style="grid-column: span 2;">Free</div>
+              <div class="timeline-block block-fixed" style="grid-column: span 2;">CS Class</div>
+              <div class="timeline-block block-focus" style="grid-column: span 3;">Client Hero Revision</div>
+              <div class="timeline-block block-fixed" style="grid-column: span 1;">Call</div>
+              <div class="timeline-block block-focus" style="grid-column: span 4;">Exam Study Block</div>
+            </div>
+          </div>
+        </main>
+
+        <!-- Right Side AI Copilot -->
+        <aside class="cockpit-ai">
+          <div class="ai-header">
+            <div class="ai-title">
+              <div class="ai-indicator"></div>
+              Axis Assistant
+            </div>
+            <span style="font-size: 0.68rem; color: var(--text-tertiary);">Active Copilot</span>
+          </div>
+
+          <div class="chat-history">
+            <div class="chat-bubble-user">
+              "I want to study for my CS exam before doing the client revision."
+            </div>
+
+            <div class="chat-bubble-ai">
+              I can rebalance that. However, pushing the client revision reduces your buffer before their 12:00 PM deadline.
+            </div>
+
+            <!-- Approve Plan Changes Card -->
+            <div class="approval-card">
+              <div class="approval-header">Proposed Schedule Changes</div>
+              <div class="diff-list">
+                <div class="diff-item">
+                  <span>CS Exam Prep</span>
+                  <span style="color: var(--status-now);">Do Next → Do Now</span>
+                </div>
+                <div class="diff-item">
+                  <span>Client Hero Revision</span>
+                  <span style="color: var(--status-next);">Do Now → Do Next</span>
+                </div>
+              </div>
+              <div class="tradeoff-note">
+                ⚠️ Client revision pushed to 14:30 PM (Deadline: 12:00 PM). Requires client notice.
+              </div>
+              <div class="btn-row">
+                <button class="btn-approve">Approve Changes</button>
+                <button class="btn-reject">Keep Current</button>
+              </div>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </div>
+
+    <!-- Specifications Detail Tabs -->
+    <section class="specs-section">
+      <div class="tabs-nav">
+        <button class="tab-trigger active" onclick="selectTab('overload')">1. Overload Detection</button>
+        <button class="tab-trigger" onclick="selectTab('prioritization')">2. Priority Buckets</button>
+        <button class="tab-trigger" onclick="selectTab('timeline')">3. Daily Timeline</button>
+        <button class="tab-trigger" onclick="selectTab('dialogue')">4. AI Trade-off Approval</button>
+        <button class="tab-trigger" onclick="selectTab('controls')">5. Mock Demo Controls</button>
+      </div>
+
+      <!-- Tab 1 -->
+      <div id="tab-overload" class="tab-view active">
+        <h3 class="tab-title">Schedule Overload & Capacity Triage</h3>
+        <p class="tab-summary">
+          Axis balances total estimated workload duration against actual free calendar windows between scheduled commitments, surfacing transparent deficit warnings when time is oversubscribed.
+        </p>
+        <div class="criteria-box">
+          <div class="criteria-heading">Acceptance Criteria</div>
+          <div class="criteria-item">
+            <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            <span>Briefing calculates total workload hours vs. open calendar hours dynamically upon task or calendar changes.</span>
+          </div>
+          <div class="criteria-item">
+            <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            <span>Overload alert triggers when required hours exceed available time, displaying exact deficit in hours.</span>
+          </div>
+          <div class="criteria-item">
+            <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            <span>Identifies at-risk hard deadlines and recommends specific flexible tasks to defer rather than silently truncating schedules.</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab 2 -->
+      <div id="tab-prioritization" class="tab-view">
+        <h3 class="tab-title">Tri-Bucket Task Columns</h3>
+        <p class="tab-summary">
+          Tasks are grouped into Do Now, Do Next, and Do Later columns with multi-factor scoring and instant direct card controls.
+        </p>
+        <div class="criteria-box">
+          <div class="criteria-heading">Acceptance Criteria</div>
+          <div class="criteria-item">
+            <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            <span>Cards display title, source integration tag, duration estimate, and proximity-based deadline badge.</span>
+          </div>
+          <div class="criteria-item">
+            <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            <span>Marking a task complete immediately strikes through the item and recalculates briefing capacity hours.</span>
+          </div>
+          <div class="criteria-item">
+            <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            <span>Clicking a card expands detailed AI reasoning detailing why the task sits at its current priority rank.</span>
+          </div>
+          <div class="criteria-item">
+            <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            <span>Manual priority dropdown allows shifting a card to another bucket with immediate schedule recalculation.</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab 3 -->
+      <div id="tab-timeline" class="tab-view">
+        <h3 class="tab-title">Interactive Daily Timeline</h3>
+        <p class="tab-summary">
+          Continuous single-day visualizer mapping scheduled commitments (classes, meetings) against AI-allocated focus blocks.
+        </p>
+        <div class="criteria-box">
+          <div class="criteria-heading">Acceptance Criteria</div>
+          <div class="criteria-item">
+            <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            <span>Fixed calendar events are visually distinct from allocated task focus blocks.</span>
+          </div>
+          <div class="criteria-item">
+            <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            <span>Allocates Do Now tasks into the earliest feasible open calendar intervals.</span>
+          </div>
+          <div class="criteria-item">
+            <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            <span>Reordering tasks or completing work instantly adjusts the timeline visualization.</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab 4 -->
+      <div id="tab-dialogue" class="tab-view">
+        <h3 class="tab-title">AI Assistant Dialogue & Approve Plan Changes</h3>
+        <p class="tab-summary">
+          Ensures the AI assistant remains a transparent partner: major re-schedules surface explicit trade-offs and require user approval before applying changes.
+        </p>
+        <div class="criteria-box">
+          <div class="criteria-heading">Acceptance Criteria</div>
+          <div class="criteria-item">
+            <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            <span>Natural language challenges trigger an inline Approve Plan Changes card before board state changes.</span>
+          </div>
+          <div class="criteria-item">
+            <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            <span>Card highlights modified tasks and explicitly flags risks or deadline impacts.</span>
+          </div>
+          <div class="criteria-item">
+            <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            <span>Clicking Approve moves target tasks and updates timeline; clicking Keep Current preserves existing layout.</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab 5 -->
+      <div id="tab-controls" class="tab-view">
+        <h3 class="tab-title">Mock Integrations & Rehearsal Controls</h3>
+        <p class="tab-summary">
+          Pre-seeded feeds for email, school portals, calendars, and to-do lists, coupled with quick reset and mock creation controls.
+        </p>
+        <div class="criteria-box">
+          <div class="criteria-heading">Acceptance Criteria</div>
+          <div class="criteria-item">
+            <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            <span>Pre-populated with student-freelancer seed scenario ready for immediate 60-second video demo recording.</span>
+          </div>
+          <div class="criteria-item">
+            <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            <span>Reset Demo Data button with confirmation modal restores baseline state and clears test mutations.</span>
+          </div>
+          <div class="criteria-item">
+            <svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            <span>Add Mock Task modal enables creating custom tasks with title, source, deadline, duration, and importance.</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+      <span>Axis Product Requirements</span>
+      <span>Canonical specification: <code>devpost/prd.md</code></span>
+    </footer>
+
+  </div>
+
+  <script>
+    function selectTab(tabId) {
+      document.querySelectorAll('.tab-trigger').forEach(btn => btn.classList.remove('active'));
+      document.querySelectorAll('.tab-view').forEach(view => view.classList.remove('active'));
+
+      event.target.classList.add('active');
+      const targetView = document.getElementById('tab-' + tabId);
+      if (targetView) targetView.classList.add('active');
+    }
+  </script>
+</body>
+</html>
