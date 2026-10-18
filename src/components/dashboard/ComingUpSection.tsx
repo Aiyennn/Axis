@@ -77,3 +77,4 @@ export const ComingUpSection: React.FC = () => {
     </div>
   );
 };
+

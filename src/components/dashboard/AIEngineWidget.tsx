@@ -47,3 +47,4 @@ export const AIEngineWidget: React.FC<AIEngineWidgetProps> = ({ onOpenAssistant 
     </div>
   );
 };
+

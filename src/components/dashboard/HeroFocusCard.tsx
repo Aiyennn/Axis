@@ -122,3 +122,4 @@ export const HeroFocusCard: React.FC = () => {
     </div>
   );
 };
+

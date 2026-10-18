@@ -70,3 +70,4 @@ export const TodayFocusCapacityWidget: React.FC = () => {
     </div>
   );
 };
+
