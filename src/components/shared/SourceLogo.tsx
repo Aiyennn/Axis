@@ -8,7 +8,6 @@
  */
 
 import React from 'react';
-import { CheckSquare } from 'lucide-react';
 import type { SourceType } from '../../types';
 
 import canvasLogoUrl from '../../assets/canvas-logo-svgrepo-com.svg';
@@ -22,28 +21,25 @@ interface SourceLogoProps {
   className?: string;
 }
 
-const LOGO_URLS: Partial<Record<SourceType, string>> = {
+const LOGO_URLS: Record<SourceType, string> = {
   email: gmailLogoUrl,
   canvas: canvasLogoUrl,
   calendar: calendarLogoUrl,
+  task: calendarLogoUrl,
 };
 
 export const SourceLogo: React.FC<SourceLogoProps> = ({ source, size = 20, className = '' }) => {
-  const url = LOGO_URLS[source];
+  const url = LOGO_URLS[source] || calendarLogoUrl;
 
-  if (url) {
-    return (
-      <img
-        src={url}
-        alt={source}
-        width={size}
-        height={size}
-        className={`object-contain ${className}`}
-        draggable={false}
-      />
-    );
-  }
-
-  // Fallback for 'task' (no real logo uploaded)
-  return <CheckSquare size={size} className={`text-emerald-500 ${className}`} />;
+  return (
+    <img
+      src={url}
+      alt={source}
+      width={size}
+      height={size}
+      className={`object-contain ${className}`}
+      draggable={false}
+    />
+  );
 };
+
