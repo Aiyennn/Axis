@@ -82,22 +82,22 @@ export function calculatePriorityScore(
     bucket = 'later';
   }
 
-  // Generate explainable reasoning strings
+  // Generate explainable reasoning strings (AI Definition of the task)
   let reasoning = '';
   let consequencesOfDelay = '';
 
   if (task.isHardDeadline && lowerDeadline.includes('today')) {
-    reasoning = `Critical hard deadline today (${task.deadline}). Directly blocks project progress and external commitments.`;
-    consequencesOfDelay = 'High risk: Missing this deliverable damages client or academic standing.';
+    reasoning = `This task is extremely urgent, with only 3.5 hours remaining before the deadline. It is a critical priority because the client cannot approve or finalize the invoice until this task is completed. Delays may directly impact the billing process.`;
+    consequencesOfDelay = 'Misses client review window; postpones milestone payout and damages client trust.';
   } else if (lowerTitle.includes('exam') || lowerTitle.includes('midterm')) {
-    reasoning = 'High-stake university examination. Optimal focus block recommended before evening.';
-    consequencesOfDelay = 'Insufficient preparation window before tomorrow morning examination.';
+    reasoning = `High-stakes university midterm exam scheduled for tomorrow morning. Axis recommends an uninterrupted multi-hour study session right now to consolidate core concepts and avoid cognitive panic tonight.`;
+    consequencesOfDelay = 'Insufficient review time before the exam, resulting in lower test performance.';
   } else if (task.estimatedHours <= 1.0) {
-    reasoning = `Quick turnaround task (~${task.estimatedHours}h) that fits cleanly between classes or before end-of-day.`;
-    consequencesOfDelay = 'Delayed administrative or milestone turnaround.';
+    reasoning = `This is a quick, high-leverage turnaround task requiring approximately ${task.estimatedHours}h. Completing it now prevents small administrative backlogs from compounding into later workflow friction.`;
+    consequencesOfDelay = 'Delayed payment processing cycle or administrative bottleneck.';
   } else {
-    reasoning = `Flexible deadline (${task.deadline}). Safe to postpone while higher urgency deliverables are active.`;
-    consequencesOfDelay = 'Minimal impact today; can be scheduled tomorrow.';
+    reasoning = `This assignment has a flexible timeline with low immediate urgency. Axis determined it can be safely deferred without compromising critical client commitments or grade milestones today.`;
+    consequencesOfDelay = 'Minimal immediate consequence; safe to progress over the upcoming days.';
   }
 
   return {

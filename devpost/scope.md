@@ -34,11 +34,11 @@ A compelling 60-second walkthrough with three verifiable beats:
 3. **Challenge & Adapt (40–60s):** Prompt the AI assistant to prioritize exam prep before client work; Axis recalculates priorities, surfaces the trade-offs, and updates the daily plan under user control.
 
 ## The POC Boundary
-- Functional single-page/web command center with responsive layout.
+- Functional web command center with responsive modern dark UI.
+- Python FastAPI backend serving as the intelligent orchestration API and LLM bridge.
+- LLM-powered assistant & prioritization engine that generates contextual task definitions, evaluates trade-offs, and powers the conversational override drawer.
 - Mock integrations manager with rich pre-loaded presets (School Portal, Freelance Email, Calendar, Tasks) and toggle/refresh controls.
-- Explainable AI prioritization engine calculating priority scores based on deadline proximity, importance, urgency weight, estimated duration, and calendar conflicts.
 - Interactive Dashboard with Daily Briefing summary, "Do Now / Do Next / Do Later" task cards, and visual Daily Timeline.
-- AI Assistant chat modal/drawer that explains prioritization reasons, answers workload questions, and executes user overrides/re-weighting.
 
 ## Later
 - Real OAuth integrations (Google Workspace, Canvas LMS, Microsoft 365, Notion, Slack).
@@ -46,7 +46,6 @@ A compelling 60-second walkthrough with three verifiable beats:
 - Cross-device sync and native mobile applications.
 
 ## Explicitly Cut
-- **Live external APIs / OAuth:** Avoids authentication friction, API rate limits, and external network failures during rapid hackathon evaluation.
+- **Live external third-party OAuth flows:** Avoids authentication friction and rate limits during hackathon evaluation.
 - **Multi-user collaboration & team accounts:** Unnecessary for single-user student/freelancer proof of concept.
-- **Complex database backend setup:** In-memory or local persistent storage ensures the prototype runs reliably and instantly anywhere.
 

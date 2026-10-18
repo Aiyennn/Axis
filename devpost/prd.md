@@ -112,16 +112,18 @@ A three-part desktop layout with a responsive left navigation sidebar, central w
 - **Default Seeded State (Demo Ready):** Pre-populated with a realistic student-freelancer profile: 1 urgent client email revision due today, 1 university exam tomorrow morning, 1 flexible essay due in 4 days, 2 scheduled lectures, and 1 client call.
 - **Schedule Overload State:** Triggered when urgent tasks exceed free calendar hours; flags deficit and highlights high-risk hard deadlines.
 - **All-Tasks-Complete State:** When all Do Now/Next tasks are completed, the briefing displays a congratulatory all-clear state with available leisure/recovery hours.
-- **Persistence:** State persists in browser `localStorage` across page reloads.
+- **Persistence & API:** The application integrates a Python FastAPI backend to coordinate LLM orchestration, structured prompt chaining, and plan generation, with browser state caching for instant local resilience.
 
 ## Product Decisions
 - **Pre-approval for AI Plan Changes:** The AI never silently alters the user's schedule; every major re-weighting surfaces an "Approve Plan Changes" card with explicit trade-off explanations.
+- **LLM-Driven Context & Reasoning:** An LLM generates natural language task definitions, priority explanations, and intelligent trade-off analyses rather than static rule-based templates.
 - **Mock Over Real OAuth:** Cut live third-party APIs to guarantee instant, 100% reliable execution during hackathon video recording without token expiration or auth hurdles.
 - **Capacity Deficit Transparency:** Overload situations are directly communicated as capacity gaps rather than compressing impossible tasks into unavailable time.
 
 ## What We're Building
-- Desktop-first responsive single-page application with sidebar, central dashboard, right AI assistant, and integrations view.
-- Multi-factor heuristic prioritization engine.
+- Desktop-first responsive web command center with sidebar, central dashboard, right AI assistant, and integrations view.
+- Python FastAPI backend powering LLM completions, task analysis, and proposal generations.
+- Multi-factor prioritization engine calibrated with LLM insights.
 - Interactive timeline with task block mapping.
 - Chat copilot with structured trade-off approval cards.
 - Mock integrations manager with reset and task creation controls.

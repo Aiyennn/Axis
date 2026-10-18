@@ -6,7 +6,7 @@ export const INITIAL_TASKS: Task[] = [
     title: 'Revise Homepage Hero Section for Client',
     description: 'Client sent feedback requesting new copy and responsive mobile adjustments before final invoice approval.',
     source: 'email',
-    sourceLabel: 'Client Email',
+    sourceLabel: 'Email from Client',
     deadline: 'Today, 12:00 PM',
     isHardDeadline: true,
     estimatedHours: 2.0,
@@ -20,12 +20,12 @@ export const INITIAL_TASKS: Task[] = [
       calendarFit: 20,
       importanceScore: 15
     },
-    reasoning: 'Critical hard deadline in 3.5 hours. Directly blocks client invoice sign-off.',
+    reasoning: 'This task is extremely urgent, with only 3.5 hours remaining before the deadline. It is a critical priority because the client cannot approve or finalize the invoice until this task is completed. Delays may directly impact the billing process.',
     consequencesOfDelay: 'Misses client review window; postpones milestone payout.'
   },
   {
     id: 'task-2',
-    title: 'CS401 Midterm Exam Preparation',
+    title: 'CS-401 Midterm Exam Preparation',
     description: 'Review chapters 4 through 7 on distributed algorithms and concurrency patterns.',
     source: 'canvas',
     sourceLabel: 'Canvas Portal',

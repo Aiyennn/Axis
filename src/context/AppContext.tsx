@@ -21,7 +21,7 @@ interface AppContextType {
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
-const TASKS_STORAGE_KEY = 'axis_tasks_v1';
+const TASKS_STORAGE_KEY = 'axis_tasks_v3';
 const CALENDAR_STORAGE_KEY = 'axis_calendar_v1';
 const CHAT_STORAGE_KEY = 'axis_chat_v1';
 

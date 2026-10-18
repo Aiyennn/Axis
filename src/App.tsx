@@ -12,7 +12,6 @@ import { TaskReasonModal } from './components/dashboard/TaskReasonModal';
 import { AIAssistantDrawer } from './components/assistant/AIAssistantDrawer';
 import DailyBriefing from './components/dashboard/DailyBriefing';
 import GraphView from './components/dashboard/GraphView';
-import { LayoutList, Network } from 'lucide-react';
 
 export const App: React.FC = () => {
   const { activeView } = useApp();
@@ -29,49 +28,26 @@ export const App: React.FC = () => {
         <main className="flex-1 overflow-y-auto p-8 max-w-7xl mx-auto w-full">
           {activeView === 'dashboard' ? (
             <>
-              {/* Calm Header + view mode toggle */}
-              <div className="flex items-start justify-between mb-1">
-                <CalmHeader />
-                {/* List / Graph toggle pills */}
-                <div className="flex items-center gap-1 p-1 rounded-xl bg-zinc-900 border border-zinc-800 shrink-0 mt-1">
-                  <button
-                    onClick={() => setDashView('list')}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                      dashView === 'list'
-                        ? 'bg-zinc-700 text-white'
-                        : 'text-zinc-500 hover:text-zinc-300'
-                    }`}
-                  >
-                    <LayoutList size={13} />
-                    List
-                  </button>
-                  <button
-                    onClick={() => setDashView('graph')}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                      dashView === 'graph'
-                        ? 'bg-zinc-700 text-white'
-                        : 'text-zinc-500 hover:text-zinc-300'
-                    }`}
-                  >
-                    <Network size={13} />
-                    Graph
-                  </button>
-                </div>
-              </div>
+              {/* Calm Header containing top utility status, toggle, greeting & summary */}
+              <CalmHeader dashView={dashView} setDashView={setDashView} />
 
               {dashView === 'graph' ? (
                 /* ── Graph / orbit view ──────────────────────────────── */
-                <GraphView />
+                <div className="animate-fade-scale">
+                  <GraphView />
+                </div>
               ) : (
                 /* ── List view (default) ─────────────────────────────── */
-                <>
-                  {/* Daily Briefing Banner — workload vs capacity + overload alert */}
-                  <DailyBriefing />
+                <div className="flex flex-col">
+                  {/* Daily Briefing Banner — slide in */}
+                  <div className="animate-slide-left">
+                    <DailyBriefing />
+                  </div>
 
                   {/* 2-Column Dashboard Layout matching user design */}
                   <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-                    {/* Left Primary Focus & Task Lists Column (8 cols) */}
-                    <div className="lg:col-span-7 flex flex-col gap-6">
+                    {/* Left Primary Focus & Task Lists Column (slide in from left) */}
+                    <div className="lg:col-span-7 flex flex-col gap-6 animate-slide-left [animation-delay:60ms]">
                       {/* Hero "YOUR FOCUS" Card */}
                       <HeroFocusCard />
 
@@ -82,8 +58,8 @@ export const App: React.FC = () => {
                       <LaterSection />
                     </div>
 
-                    {/* Right Context & Schedule Column (4 cols) */}
-                    <div className="lg:col-span-5 flex flex-col gap-6">
+                    {/* Right Context & Schedule Column (slide in from right) */}
+                    <div className="lg:col-span-5 flex flex-col gap-6 animate-slide-right [animation-delay:100ms]">
                       {/* Today's Schedule Timeline Widget */}
                       <TodayScheduleWidget />
 
@@ -94,7 +70,7 @@ export const App: React.FC = () => {
                       <AIEngineWidget onOpenAssistant={() => setIsAssistantOpen(true)} />
                     </div>
                   </div>
-                </>
+                </div>
               )}
             </>
           ) : (

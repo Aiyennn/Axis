@@ -23,14 +23,23 @@ export const HeroFocusCard: React.FC = () => {
   }
 
   return (
-    <div className="relative bg-[#121215] border border-[#27272a] hover:border-zinc-700 transition-all rounded-2xl p-6 shadow-xl shadow-black/40">
-      {/* Top Tag Row */}
-      <div className="flex items-center justify-between mb-4">
-        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-zinc-800/80 border border-zinc-700 text-zinc-200 text-xs font-semibold uppercase tracking-wider">
-          <Target className="w-3.5 h-3.5 text-zinc-300" />
-          <span>YOUR FOCUS</span>
+    <div className="relative bg-[#121215] border border-[#27272a] hover:border-zinc-700/80 transition-all rounded-3xl p-7 shadow-xl shadow-black/40">
+      {/* Top Header Row: Integration Logo + Pill badge on left, Estimated hours on right */}
+      <div className="flex items-center justify-between mb-5">
+        <div className="flex items-center gap-3">
+          {/* Large prominent source logo */}
+          <div className="w-10 h-10 flex items-center justify-center">
+            <SourceLogo source={focusTask.source} size={36} />
+          </div>
+
+          {/* Minimal rounded pill: Source label */}
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#1c1c21] border border-zinc-800 text-zinc-300 text-xs font-medium">
+            <Target className="w-3.5 h-3.5 text-zinc-400" />
+            <span>{focusTask.sourceLabel || (focusTask.source === 'email' ? 'Email from Client' : 'Task')}</span>
+          </div>
         </div>
 
+        {/* Time estimate right-aligned */}
         <div className="flex items-center gap-1.5 text-zinc-400 font-mono text-xs">
           <Clock className="w-3.5 h-3.5 text-zinc-500" />
           <span>~ {focusTask.estimatedHours} hours</span>
@@ -38,33 +47,20 @@ export const HeroFocusCard: React.FC = () => {
       </div>
 
       {/* Task Title */}
-      <h2 className="text-2xl font-bold tracking-tight text-white mb-3 leading-snug">
+      <h2 className="text-2xl font-bold tracking-tight text-white mb-4 leading-snug">
         {focusTask.title}
       </h2>
 
-      {/* Meta Source & Deadline badges */}
-      <div className="flex items-center gap-2 mb-3">
-        <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-zinc-800/60 border border-zinc-700/50">
-          <SourceLogo source={focusTask.source} size={14} />
-          <span className="text-xs text-zinc-300 font-medium">{focusTask.sourceLabel}</span>
-        </div>
-        {focusTask.isHardDeadline && (
-          <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-rose-950/80 text-rose-400 border border-rose-800/50">
-            HARD
-          </span>
-        )}
-      </div>
-
-      {/* Reassuring Rationale */}
-      <p className="text-sm text-zinc-400 mb-6 leading-relaxed">
+      {/* AI Definition & Rationale */}
+      <p className="text-sm text-zinc-400 mb-7 leading-relaxed font-normal">
         {focusTask.reasoning}
       </p>
 
-      {/* Primary Action Button */}
+      {/* Action Buttons Row matching screenshot */}
       <div className="flex items-center gap-3">
         <button
           onClick={() => setInFocusSession(!inFocusSession)}
-          className={`flex-1 py-3 px-5 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 transition-all shadow-md ${
+          className={`flex-1 py-3.5 px-6 rounded-full font-semibold text-sm flex items-center justify-center gap-2 transition-all ${
             inFocusSession
               ? 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-emerald-900/30'
               : 'bg-white hover:bg-zinc-200 text-zinc-950 shadow-white/5'
@@ -77,7 +73,7 @@ export const HeroFocusCard: React.FC = () => {
             </>
           ) : (
             <>
-              <Play className="w-4 h-4 fill-zinc-950" />
+              <Play className="w-3.5 h-3.5 fill-zinc-950 text-zinc-950" />
               <span>Start focus session</span>
             </>
           )}
@@ -85,28 +81,27 @@ export const HeroFocusCard: React.FC = () => {
 
         <button
           onClick={() => toggleTaskComplete(focusTask.id)}
-          className="py-3 px-4 rounded-xl border border-zinc-700 hover:border-emerald-500 text-zinc-300 hover:text-emerald-400 text-sm font-medium transition-colors"
-          title="Mark complete"
+          className="py-3.5 px-7 rounded-full border border-zinc-800 bg-[#16161a] hover:bg-[#202026] text-zinc-200 hover:text-white text-sm font-medium transition-all"
         >
           Complete
         </button>
       </div>
 
-      {/* View Details Accordion Trigger */}
-      <div className="mt-4 pt-3 border-t border-[#27272a]/60">
+      {/* Accordion Toggle */}
+      <div className="mt-5 pt-3">
         <button
           onClick={() => {
             setShowDetails(!showDetails);
             setSelectedTaskForReason(focusTask);
           }}
-          className="text-xs text-zinc-400 hover:text-zinc-200 flex items-center gap-1.5 transition-colors font-medium"
+          className="text-xs text-zinc-500 hover:text-zinc-300 flex items-center gap-1.5 transition-colors font-normal"
         >
           <span>View details & AI score breakdown</span>
           {showDetails ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
         </button>
 
         {showDetails && (
-          <div className="mt-3 p-3.5 bg-[#09090b] border border-[#27272a] rounded-xl text-xs text-zinc-300 flex flex-col gap-2">
+          <div className="mt-3 p-4 bg-[#09090b] border border-[#27272a] rounded-2xl text-xs text-zinc-300 flex flex-col gap-2">
             <div className="flex justify-between items-center text-zinc-400">
               <span>Overall Priority Score</span>
               <span className="font-mono font-bold text-zinc-100 text-sm">{focusTask.priorityScore} / 100</span>

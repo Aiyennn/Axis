@@ -5,42 +5,46 @@ status: approved
 
 # Axis — Technical Specification
 
-A platform-independent, desktop-first command center built with Vite, React, TypeScript, and Tailwind CSS. Axis consolidates scattered mock feeds (emails, school portal, calendar, tasks) into an explainable, prioritized daily plan with conversational override controls.
+A platform-independent, desktop-first command center built with React, TypeScript, Tailwind CSS, and a Python FastAPI backend. Axis consolidates scattered mock feeds (emails, school portal, calendar, tasks) into an explainable, prioritized daily plan powered by an LLM with conversational override controls.
 
 ## How This Works, In Plain Language
-Axis is a single-page application that runs entirely in the user's browser. It is organized into three connected engines:
-1. **The Ingestion & Store Engine (`AppContext`):** Holds the current state of tasks, calendar commitments, and integration feeds in browser memory and syncs them to `localStorage`. It starts pre-loaded with a realistic student-freelancer scenario (urgent client email revision, Canvas exam & paper, lecture schedule).
-2. **The Prioritization & Timeline Engine (`prioritizer.ts`, `scheduler.ts`):** Evaluates every task using a multi-factor 0–100 heuristic scoring model. It calculates proximity to deadline, hard vs. flexible consequences, duration, and open time slots between calendar events. It groups tasks into "Do Now" (score ≥ 80), "Do Next" (50–79), and "Do Later" (< 50), and checks if total work hours exceed available free hours to trigger the Schedule Overload warning.
-3. **The Dialogic Assistant Engine (`assistant.ts`):** A conversational copilot that parses natural language challenges (e.g., *"I need to study for the CS exam first"*). Rather than silently rearranging tasks, it generates a structured **"Approve Plan Changes"** proposal card detailing the score shifts and trade-offs (e.g., client revision pushed back, risk of missing noon deadline), requiring user approval before updating the board and timeline.
-
-This client-side architecture was chosen deliberately over a containerized Docker/database setup to eliminate reviewer friction, prevent external network or port failures, and ensure the 60-second video walkthrough is 100% reliable and instantaneous.
+Axis is organized into three connected engines across a frontend client and a Python FastAPI backend service:
+1. **The Ingestion & Store Engine (`AppContext`):** Manages the live state of tasks, calendar commitments, and integration feeds in browser memory, backed by local state persistence and synchronization with the FastAPI backend. It starts pre-loaded with a realistic student-freelancer scenario (urgent client email revision, Canvas exam & paper, lecture schedule).
+2. **The Prioritization & Timeline Engine (`prioritizer.ts`, `scheduler.ts`):** Evaluates every task using a multi-factor scoring model combined with LLM-generated contextual reasoning. It calculates deadline proximity, consequence weight, duration, and calendar slot fit, grouping tasks into "Do Now", "Do Next", and "Do Later".
+3. **The Dialogic LLM Assistant Engine (FastAPI + LLM API):** A conversational copilot powered by a Large Language Model via a Python FastAPI service. When the user challenges their schedule (e.g., *"I need to study for the CS exam first"*), the LLM analyzes trade-offs, generates a structured **"Approve Plan Changes"** proposal card with human-readable rationale, and requires user approval before updating the board and timeline.
 
 ## The Core Journey Through the System
-1. **Load:** The app initializes from `localStorage` (or falls back to `seedData.ts`), loading mock feeds from Email, Canvas, Calendar, and Tasks into `AppContext`.
+1. **Load:** The app initializes from local storage or the FastAPI backend, loading mock feeds from Email, Canvas, Calendar, and Tasks into `AppContext`.
    *PRD ref:* `prd.md > The Core Journey (Step 1)`.
 2. **Score & Triage:** `prioritizer.ts` runs on all active tasks, calculating scores and sorting them into `Do Now`, `Do Next`, and `Do Later`. `scheduler.ts` maps calendar events and calculates `availableFreeHours` vs. `totalWorkloadHours`.
    *PRD ref:* `prd.md > Features and Behavior (1. Daily Briefing & Schedule Overload Detection)`.
-3. **Display:** `DailyBriefing.tsx` renders the top summary with capacity metrics and overload alert. `PriorityColumns.tsx` renders the task cards with duration chips and deadline badges. `DailyTimeline.tsx` plots fixed events and focus blocks.
+3. **Display:** `DailyBriefing.tsx` renders the top summary with capacity metrics and overload alert. Priority sections render task cards with duration chips and deadline badges. `DailyTimeline.tsx` plots fixed events and focus blocks.
    *PRD ref:* `prd.md > Screens and Layout`, `prd.md > Features and Behavior (2. Prioritized Task Columns & 3. Daily Timeline Visualizer)`.
 4. **Card Interactions:** The user checks a task complete (updates state and recalculates capacity immediately) or clicks to open `TaskReasonModal.tsx` showing the mathematical breakdown of why the task was prioritized.
    *PRD ref:* `prd.md > Features and Behavior (2. Prioritized Task Columns)`.
-5. **AI Dialogue Challenge:** The user sends a prompt in `AIAssistant.tsx`. `assistant.ts` computes an alternative plan and returns an inline `ApprovePlanCard.tsx`. Clicking "Approve" dispatches an update to `AppContext`, shifting the cards and timeline; clicking "Reject" preserves the existing layout.
+5. **AI Dialogue Challenge:** The user sends a prompt in the AI assistant. The FastAPI backend queries the LLM to compute an alternative plan and returns an inline `ApprovePlanCard.tsx`. Clicking "Approve" dispatches an update to `AppContext`, shifting the cards and timeline; clicking "Reject" preserves the existing layout.
    *PRD ref:* `prd.md > Features and Behavior (4. AI Assistant Dialogue & "Approve Plan Changes" Flow)`.
 6. **Rehearsal & Reset:** On `/integrations`, the user can click "Reset Demo Data" in `ResetDemoModal.tsx` to cleanly restore the initial seed state for their next demo rehearsal.
    *PRD ref:* `prd.md > Features and Behavior (5. Mock Integrations Manager & Demo Controls)`.
 
 ## Stack
-- **Framework & Build Tool:** [Vite](https://vitejs.dev/) with [React](https://react.dev/) 18+ and [TypeScript](https://www.typescriptlang.org/) — Selected for instant sub-second hot reloading, strong type safety across task models, and zero backend configuration.
+- **Frontend Framework & Build Tool:** [Vite](https://vitejs.dev/) with [React](https://react.dev/) 18+ and [TypeScript](https://www.typescriptlang.org/) — Sub-second hot reloading, strong type safety across task models, and smooth UI transitions.
+- **Backend Framework:** [FastAPI](https://fastapi.tiangolo.com/) (Python 3.12) — High-performance async REST API service for LLM prompt coordination, contextual task generation, and plan re-weighting.
+- **LLM Integration:** Large Language Model API (e.g. Google Gemini / OpenAI) invoked via Python SDK or asynchronous HTTP endpoints to generate natural language reasoning, task definitions, and plan changes.
 - **Styling:** [Tailwind CSS](https://tailwindcss.com/) — Utility-first CSS configured to match the approved zinc/neutral palette and violet accents from `prd.md > Look and Feel`.
-- **Icons:** [Lucide React](https://lucide.dev/) — Clean, consistent SVG icon set for calendar events, sources, urgency badges, and actions.
-- **State Management & Persistence:** React Context API (`AppContext`) + Browser `localStorage` — Self-contained, zero-dependency persistence that survives browser refresh without database servers.
+- **Icons:** [Lucide React](https://lucide.dev/) + Custom SVG integration logos (Gmail, Canvas LMS, Google Calendar).
+- **State Management & Persistence:** React Context API (`AppContext`) + Browser `localStorage` with FastAPI REST syncing.
 
 ## Where It Runs and How Someone Tries It
-- **Runtime:** Standard modern web browser (Chrome, Edge, Firefox, Safari) running on Windows, macOS, or Linux. Node.js (v18+) and npm installed locally.
-- **Start Command:**
+- **Runtime:** Modern web browser with Python (3.12+) and Node.js (v18+) installed.
+- **Frontend Start Command:**
   ```bash
   npm install
   npm run dev
+  ```
+- **Backend Start Command (FastAPI):**
+  ```bash
+  uvicorn main:app --reload --port 8000
   ```
 - **What to Open:** `http://localhost:5173`
 - **Submission Recording:** The short 1-minute video demo will be recorded directly from the running browser window using the 3-act walkthrough defined in `scope.md > What "Working" Looks Like`.
