@@ -22,11 +22,11 @@ export const HeroFocusCard: React.FC = () => {
   }
 
   return (
-    <div className="relative bg-gradient-to-br from-[#161224] to-[#121218] border-2 border-violet-900/50 hover:border-violet-700/60 transition-all rounded-2xl p-6 shadow-xl shadow-black/50">
+    <div className="relative bg-[#121215] border border-[#27272a] hover:border-zinc-700 transition-all rounded-2xl p-6 shadow-xl shadow-black/40">
       {/* Top Tag Row */}
       <div className="flex items-center justify-between mb-4">
-        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-violet-600/20 border border-violet-500/30 text-violet-300 text-xs font-bold uppercase tracking-wider">
-          <Target className="w-3.5 h-3.5 text-violet-400" />
+        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-zinc-800/80 border border-zinc-700 text-zinc-200 text-xs font-semibold uppercase tracking-wider">
+          <Target className="w-3.5 h-3.5 text-zinc-300" />
           <span>YOUR FOCUS</span>
         </div>
 
@@ -43,7 +43,7 @@ export const HeroFocusCard: React.FC = () => {
 
       {/* Meta Source & Deadline badges */}
       <div className="flex items-center gap-2 mb-3">
-        <span className="text-xs text-zinc-300 font-medium">✉️ {focusTask.sourceLabel}</span>
+        <span className="text-xs text-zinc-400 font-medium">{focusTask.sourceLabel}</span>
         {focusTask.isHardDeadline && (
           <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-rose-950/80 text-rose-400 border border-rose-800/50">
             HARD
@@ -60,10 +60,10 @@ export const HeroFocusCard: React.FC = () => {
       <div className="flex items-center gap-3">
         <button
           onClick={() => setInFocusSession(!inFocusSession)}
-          className={`flex-1 py-3 px-5 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 transition-all shadow-lg ${
+          className={`flex-1 py-3 px-5 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 transition-all shadow-md ${
             inFocusSession
               ? 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-emerald-900/30'
-              : 'bg-violet-600 hover:bg-violet-500 text-white shadow-violet-900/40'
+              : 'bg-white hover:bg-zinc-200 text-zinc-950 shadow-white/5'
           }`}
         >
           {inFocusSession ? (
@@ -73,7 +73,7 @@ export const HeroFocusCard: React.FC = () => {
             </>
           ) : (
             <>
-              <Play className="w-4 h-4 fill-white" />
+              <Play className="w-4 h-4 fill-zinc-950" />
               <span>Start focus session</span>
             </>
           )}
@@ -102,10 +102,10 @@ export const HeroFocusCard: React.FC = () => {
         </button>
 
         {showDetails && (
-          <div className="mt-3 p-3.5 bg-[#09090b] border border-[#27272a] rounded-xl text-xs text-zinc-300 flex flex-col gap-2 animation-fadeIn">
+          <div className="mt-3 p-3.5 bg-[#09090b] border border-[#27272a] rounded-xl text-xs text-zinc-300 flex flex-col gap-2">
             <div className="flex justify-between items-center text-zinc-400">
               <span>Overall Priority Score</span>
-              <span className="font-mono font-bold text-violet-400 text-sm">{focusTask.priorityScore} / 100</span>
+              <span className="font-mono font-bold text-zinc-100 text-sm">{focusTask.priorityScore} / 100</span>
             </div>
             <div className="grid grid-cols-2 gap-2 text-[11px] text-zinc-400 mt-1">
               <div>Deadline Proximity: <span className="text-zinc-200 font-mono font-semibold">{focusTask.scoreBreakdown.deadlineProximity} pts</span></div>
@@ -122,4 +122,3 @@ export const HeroFocusCard: React.FC = () => {
     </div>
   );
 };
-

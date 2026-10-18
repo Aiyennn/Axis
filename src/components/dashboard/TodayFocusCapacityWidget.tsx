@@ -13,7 +13,7 @@ export const TodayFocusCapacityWidget: React.FC = () => {
   const isOverloaded = totalUrgentHours > availableHours;
   const deficit = Math.max(0, totalUrgentHours - availableHours);
 
-  // Percentage for ring (capped at 100% or showing over)
+  // Percentage for ring
   const percent = Math.min(100, Math.round((2.0 / availableHours) * 100));
   const strokeDashoffset = 100 - percent;
 
@@ -21,7 +21,7 @@ export const TodayFocusCapacityWidget: React.FC = () => {
     <div className="bg-[#121215] border border-[#27272a] rounded-2xl p-5 shadow-lg">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-sm font-bold text-white tracking-tight">Today's Focus</h3>
-        <BarChart2 className="w-4 h-4 text-violet-400" />
+        <BarChart2 className="w-4 h-4 text-zinc-400" />
       </div>
 
       <div className="flex items-center gap-4 mb-4">
@@ -36,7 +36,7 @@ export const TodayFocusCapacityWidget: React.FC = () => {
               d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
             />
             <path
-              className={isOverloaded ? "text-rose-500" : "text-violet-500"}
+              className={isOverloaded ? "text-rose-500" : "text-zinc-200"}
               strokeDasharray="100, 100"
               strokeDashoffset={strokeDashoffset}
               strokeWidth="3.5"
@@ -63,11 +63,10 @@ export const TodayFocusCapacityWidget: React.FC = () => {
         </div>
       ) : (
         <div className="flex items-start gap-2 pt-2 border-t border-[#27272a] text-xs text-zinc-400">
-          <Sparkles className="w-4 h-4 text-violet-400 shrink-0 mt-0.5" />
+          <Sparkles className="w-4 h-4 text-zinc-400 shrink-0 mt-0.5" />
           <span>One focused task at a time. You got this.</span>
         </div>
       )}
     </div>
   );
 };
-

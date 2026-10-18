@@ -11,16 +11,16 @@ export const ComingUpSection: React.FC = () => {
 
   const getSourceIcon = (task: Task) => {
     if (task.source === 'canvas') {
-      return <GraduationCap className="w-4 h-4 text-violet-400" />;
+      return <GraduationCap className="w-4 h-4 text-zinc-300" />;
     }
-    return <FileText className="w-4 h-4 text-blue-400" />;
+    return <FileText className="w-4 h-4 text-zinc-300" />;
   };
 
   return (
     <div className="bg-[#121215] border border-[#27272a] rounded-2xl p-5 shadow-lg">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <Calendar className="w-4 h-4 text-violet-400" />
+          <Calendar className="w-4 h-4 text-zinc-400" />
           <h3 className="text-base font-bold text-white tracking-tight">Coming Up</h3>
         </div>
         <span className="text-xs text-zinc-400 font-mono font-medium flex items-center gap-1">
@@ -46,7 +46,7 @@ export const ComingUpSection: React.FC = () => {
                 </div>
 
                 <div className="min-w-0">
-                  <h4 className="text-sm font-semibold text-zinc-100 group-hover:text-violet-300 transition-colors truncate">
+                  <h4 className="text-sm font-semibold text-zinc-100 group-hover:text-white transition-colors truncate">
                     {task.title}
                   </h4>
                   <div className="flex items-center gap-2 text-xs text-zinc-400 font-mono mt-0.5">
@@ -77,4 +77,3 @@ export const ComingUpSection: React.FC = () => {
     </div>
   );
 };
-

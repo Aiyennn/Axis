@@ -11,15 +11,15 @@ export const TodayScheduleWidget: React.FC = () => {
   return (
     <div className="bg-[#121215] border border-[#27272a] rounded-2xl p-5 shadow-lg">
       <div className="flex items-center gap-2 mb-4">
-        <Calendar className="w-4 h-4 text-violet-400" />
+        <Calendar className="w-4 h-4 text-zinc-400" />
         <h3 className="text-sm font-bold text-white tracking-tight">Today's Schedule</h3>
       </div>
 
       <div className="relative pl-6 space-y-5 before:absolute before:left-2 before:top-2 before:bottom-2 before:w-[1.5px] before:bg-zinc-800">
         {/* Item 1: Now */}
         <div className="relative">
-          <div className="absolute -left-6 top-1 w-2.5 h-2.5 rounded-full bg-violet-500 shadow-sm shadow-violet-500/50"></div>
-          <div className="text-[11px] font-mono font-semibold text-violet-400 uppercase tracking-wider">Now</div>
+          <div className="absolute -left-6 top-1 w-2.5 h-2.5 rounded-full bg-white shadow-sm shadow-white/30"></div>
+          <div className="text-[11px] font-mono font-semibold text-zinc-300 uppercase tracking-wider">Now</div>
           <div className="text-sm font-semibold text-zinc-100 mt-0.5">
             {nowTask ? nowTask.title : 'Focus Session Ready'}
           </div>
@@ -55,4 +55,3 @@ export const TodayScheduleWidget: React.FC = () => {
     </div>
   );
 };
-

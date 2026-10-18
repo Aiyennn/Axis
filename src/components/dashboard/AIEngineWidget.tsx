@@ -19,8 +19,8 @@ export const AIEngineWidget: React.FC<AIEngineWidgetProps> = ({ onOpenAssistant 
   return (
     <div className="bg-[#121215] border border-[#27272a] rounded-2xl p-5 shadow-lg flex flex-col gap-3">
       <div className="flex items-start gap-3">
-        <div className="w-9 h-9 rounded-xl bg-violet-950/60 border border-violet-800/50 flex items-center justify-center shrink-0">
-          <Cpu className="w-4 h-4 text-violet-400" />
+        <div className="w-9 h-9 rounded-xl bg-[#1e1e24] border border-[#27272a] flex items-center justify-center shrink-0">
+          <Cpu className="w-4 h-4 text-zinc-300" />
         </div>
 
         <p className="text-xs text-zinc-400 leading-relaxed">
@@ -31,7 +31,7 @@ export const AIEngineWidget: React.FC<AIEngineWidgetProps> = ({ onOpenAssistant 
       <div className="flex items-center justify-between pt-2 border-t border-[#27272a] text-xs">
         <button
           onClick={handleHowItWorks}
-          className="text-violet-400 hover:text-violet-300 font-medium flex items-center gap-1 transition-colors"
+          className="text-zinc-300 hover:text-white font-medium flex items-center gap-1 transition-colors"
         >
           <span>How it works</span>
           <ArrowUpRight className="w-3.5 h-3.5" />
@@ -47,4 +47,3 @@ export const AIEngineWidget: React.FC<AIEngineWidgetProps> = ({ onOpenAssistant 
     </div>
   );
 };
-

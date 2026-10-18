@@ -10,7 +10,7 @@ export const Sidebar: React.FC = () => {
       {/* Brand Header */}
       <div className="p-5 border-b border-[#27272a] flex items-center justify-between">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-600 to-indigo-700 flex items-center justify-center shadow-lg shadow-violet-900/30">
+          <div className="w-8 h-8 rounded-lg bg-zinc-800 border border-zinc-700 flex items-center justify-center shadow-md">
             <Sparkles className="w-4 h-4 text-white" />
           </div>
           <div>
@@ -30,7 +30,7 @@ export const Sidebar: React.FC = () => {
               : 'text-zinc-400 hover:text-zinc-200 hover:bg-[#18181b]/50'
           }`}
         >
-          <LayoutDashboard className={`w-4 h-4 ${activeView === 'dashboard' ? 'text-violet-400' : 'text-zinc-400'}`} />
+          <LayoutDashboard className={`w-4 h-4 ${activeView === 'dashboard' ? 'text-zinc-200' : 'text-zinc-500'}`} />
           Dashboard
         </button>
 
@@ -38,7 +38,7 @@ export const Sidebar: React.FC = () => {
           onClick={() => setActiveView('dashboard')}
           className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-zinc-400 hover:text-zinc-200 hover:bg-[#18181b]/50 transition-colors"
         >
-          <CheckSquare className="w-4 h-4 text-zinc-400" />
+          <CheckSquare className="w-4 h-4 text-zinc-500" />
           All Tasks
         </button>
 
@@ -46,7 +46,7 @@ export const Sidebar: React.FC = () => {
           onClick={() => setActiveView('dashboard')}
           className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-zinc-400 hover:text-zinc-200 hover:bg-[#18181b]/50 transition-colors"
         >
-          <Calendar className="w-4 h-4 text-zinc-400" />
+          <Calendar className="w-4 h-4 text-zinc-500" />
           Timeline
         </button>
 
@@ -58,7 +58,7 @@ export const Sidebar: React.FC = () => {
               : 'text-zinc-400 hover:text-zinc-200 hover:bg-[#18181b]/50'
           }`}
         >
-          <Cable className={`w-4 h-4 ${activeView === 'integrations' ? 'text-violet-400' : 'text-zinc-400'}`} />
+          <Cable className={`w-4 h-4 ${activeView === 'integrations' ? 'text-zinc-200' : 'text-zinc-500'}`} />
           Integrations
           <span className="ml-auto w-2 h-2 rounded-full bg-emerald-500"></span>
         </button>
@@ -80,4 +80,3 @@ export const Sidebar: React.FC = () => {
     </aside>
   );
 };
-
