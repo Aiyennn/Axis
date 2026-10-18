@@ -19,7 +19,7 @@ Build mode: learn
   Learner check: Open `http://localhost:5173`, observe the three columns with realistic student-freelancer tasks, mark a task as complete, and confirm it strikes through.
   Commit: `Initialize command center with seed data and tri-bucket columns`
 
-- [ ] **2. Multi-Factor Prioritization Engine and Rationale Modal**
+- [x] **2. Multi-Factor Prioritization Engine and Rationale Modal**
   Becomes usable: Every task is evaluated by a multi-factor 0–100 scoring algorithm (evaluating deadline proximity, hard vs. flexible consequences, calendar fit, and urgency). Clicking any card opens `TaskReasonModal.tsx` showing the mathematical breakdown of why the task received its priority.
   Why now: Proves the Unique Kernel immediately on top of the running board—tasks are prioritized intelligently rather than by naive due dates.
   PRD ref: `prd.md > Features and Behavior (2. Prioritized Task Columns)`

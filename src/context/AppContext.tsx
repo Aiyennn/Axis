@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Task, CalendarEvent, ChatMessage, PriorityBucket, PlanChangeProposal } from '../types';
 import { INITIAL_TASKS, INITIAL_CALENDAR_EVENTS, INITIAL_MESSAGES } from '../data/seedData';
+import { calculatePriorityScore } from '../engine/prioritizer';
 
 interface AppContextType {
   tasks: Task[];
@@ -123,27 +124,35 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const addMockTask = (newTaskData: Partial<Task> & { title: string; deadline: string; estimatedHours: number }) => {
+    const isHard = newTaskData.isHardDeadline ?? false;
+    const importance = newTaskData.importance || 'medium';
+    const source = newTaskData.source || 'task';
+
+    const scored = calculatePriorityScore({
+      title: newTaskData.title,
+      deadline: newTaskData.deadline,
+      isHardDeadline: isHard,
+      estimatedHours: newTaskData.estimatedHours,
+      importance,
+      source
+    });
+
     const newTask: Task = {
       id: 'task-' + Date.now(),
       title: newTaskData.title,
       description: newTaskData.description || 'Custom mock task added for testing.',
-      source: newTaskData.source || 'task',
-      sourceLabel: newTaskData.sourceLabel || 'Custom Entry',
+      source,
+      sourceLabel: newTaskData.sourceLabel || (source === 'email' ? 'Client Email' : source === 'canvas' ? 'Canvas Portal' : 'Task Tracker'),
       deadline: newTaskData.deadline,
-      isHardDeadline: newTaskData.isHardDeadline ?? false,
+      isHardDeadline: isHard,
       estimatedHours: newTaskData.estimatedHours,
-      importance: newTaskData.importance || 'medium',
+      importance,
       status: 'pending',
-      priorityScore: newTaskData.priorityScore || 65,
-      priorityBucket: newTaskData.priorityBucket || 'next',
-      scoreBreakdown: newTaskData.scoreBreakdown || {
-        deadlineProximity: 20,
-        consequenceWeight: 15,
-        calendarFit: 15,
-        importanceScore: 15
-      },
-      reasoning: newTaskData.reasoning || 'Custom task added via demo controls.',
-      consequencesOfDelay: newTaskData.consequencesOfDelay || 'Flexible task consequences.'
+      priorityScore: scored.score,
+      priorityBucket: scored.bucket,
+      scoreBreakdown: scored.breakdown,
+      reasoning: scored.reasoning,
+      consequencesOfDelay: scored.consequencesOfDelay
     };
 
     setTasks(prev => [newTask, ...prev]);
