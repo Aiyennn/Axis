@@ -1,20 +1,13 @@
 import React from 'react';
 import { useApp } from '../../context/AppContext';
-import { Calendar, GraduationCap, FileText, ChevronRight, CheckCircle2 } from 'lucide-react';
-import { Task } from '../../types';
+import { Calendar, ChevronRight, CheckCircle2 } from 'lucide-react';
+import { SourceLogo } from '../shared/SourceLogo';
 
 export const ComingUpSection: React.FC = () => {
   const { tasks, toggleTaskComplete, setSelectedTaskForReason } = useApp();
 
   // Tasks in "next" bucket
   const comingUpTasks = tasks.filter(t => t.priorityBucket === 'next' && t.status === 'pending');
-
-  const getSourceIcon = (task: Task) => {
-    if (task.source === 'canvas') {
-      return <GraduationCap className="w-4 h-4 text-zinc-300" />;
-    }
-    return <FileText className="w-4 h-4 text-zinc-300" />;
-  };
 
   return (
     <div className="bg-[#121215] border border-[#27272a] rounded-2xl p-5 shadow-lg">
@@ -41,8 +34,9 @@ export const ComingUpSection: React.FC = () => {
               className="group flex items-center justify-between p-3.5 rounded-xl bg-[#18181b] hover:bg-[#1f1f24] border border-[#27272a] hover:border-zinc-700 transition-all cursor-pointer"
             >
               <div className="flex items-center gap-3.5 min-w-0">
+                {/* Real integration logo */}
                 <div className="w-9 h-9 rounded-xl bg-[#222228] border border-[#27272a] flex items-center justify-center shrink-0">
-                  {getSourceIcon(task)}
+                  <SourceLogo source={task.source} size={20} />
                 </div>
 
                 <div className="min-w-0">

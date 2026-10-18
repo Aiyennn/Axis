@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { Target, Clock, CheckCircle2, ChevronDown, ChevronUp, Play, Sparkles } from 'lucide-react';
+import { SourceLogo } from '../shared/SourceLogo';
 
 export const HeroFocusCard: React.FC = () => {
   const { tasks, toggleTaskComplete, setSelectedTaskForReason } = useApp();
@@ -43,7 +44,10 @@ export const HeroFocusCard: React.FC = () => {
 
       {/* Meta Source & Deadline badges */}
       <div className="flex items-center gap-2 mb-3">
-        <span className="text-xs text-zinc-400 font-medium">{focusTask.sourceLabel}</span>
+        <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-zinc-800/60 border border-zinc-700/50">
+          <SourceLogo source={focusTask.source} size={14} />
+          <span className="text-xs text-zinc-300 font-medium">{focusTask.sourceLabel}</span>
+        </div>
         {focusTask.isHardDeadline && (
           <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-rose-950/80 text-rose-400 border border-rose-800/50">
             HARD

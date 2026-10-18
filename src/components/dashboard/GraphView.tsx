@@ -12,6 +12,12 @@ import { useMemo, useState, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
 import type { Task } from '../../types';
 
+// Real logo assets — imported as URLs by Vite
+import canvasLogoUrl from '../../assets/canvas-logo-svgrepo-com.svg';
+import calendarLogoUrl from '../../assets/google-calendar-svgrepo-com.svg';
+import gmailLogoUrl from '../../assets/google-gmail-svgrepo-com.svg';
+
+
 // ── Canvas ──────────────────────────────────────────────────────────────────
 const W = 920;
 const H = 580;
@@ -58,54 +64,36 @@ function trunc(s: string, n: number) {
 // ── source metadata ──────────────────────────────────────────────────────────
 interface SourceMeta {
   label: string;
-  /** SVG path data for a 24×24 icon, drawn in the card */
-  iconPaths: Array<{ d: string; fill: string }>;
-  /** icon background fill */
+  /** URL to the real SVG logo, used as <image href> inside the SVG card */
+  logoUrl: string | null;
+  /** Fallback icon path for sources without a real logo (24×24 viewBox) */
+  fallbackPath?: string;
+  fallbackFill?: string;
   iconBg: string;
 }
 
 const SOURCE_META: Record<string, SourceMeta> = {
   email: {
     label: 'Gmail',
-    iconBg: '#1e1e20',
-    iconPaths: [
-      // Gmail M-envelope simplified
-      {
-        d: 'M2 6.5C2 5.67 2.67 5 3.5 5h17C21.33 5 22 5.67 22 6.5v11c0 .83-.67 1.5-1.5 1.5h-17C2.67 19 2 18.33 2 17.5V6.5zM12 13.25L4 8v1.5l8 5 8-5V8l-8 5.25z',
-        fill: '#EA4335',
-      },
-    ],
+    logoUrl: gmailLogoUrl,
+    iconBg: '#1e1410',
   },
   canvas: {
     label: 'Canvas',
-    iconBg: '#1e1e20',
-    iconPaths: [
-      // Canvas LMS: simplified mortarboard-ish circle
-      {
-        d: 'M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z',
-        fill: '#E66000',
-      },
-    ],
+    logoUrl: canvasLogoUrl,
+    iconBg: '#1e1210',
   },
   calendar: {
-    label: 'Calendar',
-    iconBg: '#1e1e20',
-    iconPaths: [
-      {
-        d: 'M19 4h-1V2h-2v2H8V2H6v2H5C3.9 4 3 4.9 3 6v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11zM7 11h5v5H7z',
-        fill: '#4285F4',
-      },
-    ],
+    label: 'Google Cal',
+    logoUrl: calendarLogoUrl,
+    iconBg: '#10141e',
   },
   task: {
     label: 'Tasks',
-    iconBg: '#1e1e20',
-    iconPaths: [
-      {
-        d: 'M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-9 14l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z',
-        fill: '#0F9D58',
-      },
-    ],
+    logoUrl: null,
+    fallbackPath: 'M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-9 14l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z',
+    fallbackFill: '#0F9D58',
+    iconBg: '#101e14',
   },
 };
 
@@ -429,12 +417,19 @@ export default function GraphView() {
                 fill={meta.iconBg}
                 stroke={n.color} strokeWidth={0.5} strokeOpacity={0.35}
               />
-              {/* Scale icon paths to fit 24×24 box offset to card position */}
-              <g transform={`translate(${bx + 10} ${by + (CARD_H - ICON_SIZE) / 2}) scale(${ICON_SIZE / 24})`}>
-                {meta.iconPaths.map((ip, pi) => (
-                  <path key={pi} d={ip.d} fill={ip.fill} />
-                ))}
-              </g>
+              {meta.logoUrl ? (
+                /* Real SVG logo via <image> */
+                <image
+                  href={meta.logoUrl}
+                  x={bx + 10} y={by + (CARD_H - ICON_SIZE) / 2}
+                  width={ICON_SIZE} height={ICON_SIZE}
+                />
+              ) : (
+                /* Fallback path for sources without an uploaded logo */
+                <g transform={`translate(${bx + 10} ${by + (CARD_H - ICON_SIZE) / 2}) scale(${ICON_SIZE / 24})`}>
+                  <path d={meta.fallbackPath ?? ''} fill={meta.fallbackFill ?? '#ffffff'} />
+                </g>
+              )}
 
               {/* Task title */}
               <text

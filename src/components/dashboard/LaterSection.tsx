@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { Layers, ChevronDown, ChevronUp, CheckCircle2 } from 'lucide-react';
+import { SourceLogo } from '../shared/SourceLogo';
 
 export const LaterSection: React.FC = () => {
   const { tasks, toggleTaskComplete, setSelectedTaskForReason } = useApp();
@@ -37,9 +38,15 @@ export const LaterSection: React.FC = () => {
               onClick={() => setSelectedTaskForReason(task)}
               className="flex items-center justify-between p-3 rounded-xl bg-[#18181b] border border-[#27272a] hover:border-zinc-700 transition-all cursor-pointer"
             >
-              <div>
-                <h4 className="text-sm font-medium text-zinc-200">{task.title}</h4>
-                <span className="text-[11px] text-zinc-500 font-mono">{task.sourceLabel} • {task.deadline}</span>
+              <div className="flex items-center gap-3 min-w-0">
+                {/* Integration logo */}
+                <div className="w-7 h-7 rounded-lg bg-[#222228] border border-[#27272a] flex items-center justify-center shrink-0">
+                  <SourceLogo source={task.source} size={16} />
+                </div>
+                <div className="min-w-0">
+                  <h4 className="text-sm font-medium text-zinc-200 truncate">{task.title}</h4>
+                  <span className="text-[11px] text-zinc-500 font-mono">{task.sourceLabel} • {task.deadline}</span>
+                </div>
               </div>
               <button
                 onClick={(e) => {
