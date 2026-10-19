@@ -18,15 +18,15 @@ export const TodayFocusCapacityWidget: React.FC = () => {
   const strokeDashoffset = 100 - percent;
 
   return (
-    <div className="bg-[#121215] border border-[#27272a] rounded-2xl p-5 shadow-lg">
+    <div className="bg-[#121215] border border-[#27272a] hover:border-zinc-700/80 hover:shadow-xl hover:shadow-black/30 transition-all duration-200 rounded-none p-5 shadow-lg group/widget">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-sm font-bold text-white tracking-tight">Today's Focus</h3>
-        <BarChart2 className="w-4 h-4 text-zinc-400" />
+        <BarChart2 className="w-4 h-4 text-zinc-400 group-hover/widget:text-zinc-200 transition-colors" />
       </div>
 
       <div className="flex items-center gap-4 mb-4">
-        {/* Circular Progress Ring */}
-        <div className="relative w-14 h-14 shrink-0">
+        {/* Circular Progress Ring with hover scale */}
+        <div className="relative w-14 h-14 shrink-0 hover:scale-110 transition-transform duration-200 cursor-pointer">
           <svg className="w-full h-full -rotate-90" viewBox="0 0 36 36">
             <path
               className="text-zinc-800"
@@ -57,16 +57,18 @@ export const TodayFocusCapacityWidget: React.FC = () => {
       </div>
 
       {isOverloaded ? (
-        <div className="flex items-center gap-2 p-2.5 bg-rose-950/40 border border-rose-800/40 rounded-xl text-rose-300 text-xs font-medium">
+        <div className="flex items-center gap-2 p-2.5 bg-rose-950/40 border border-rose-800/40 hover:border-rose-700/60 rounded-none text-rose-300 text-xs font-medium transition-colors">
           <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
           <span>Overload: {deficit.toFixed(1)}h capacity gap today.</span>
         </div>
       ) : (
         <div className="flex items-start gap-2 pt-2 border-t border-[#27272a] text-xs text-zinc-400">
-          <Sparkles className="w-4 h-4 text-zinc-400 shrink-0 mt-0.5" />
+          <Sparkles className="w-4 h-4 text-zinc-400 shrink-0 mt-0.5 group-hover/widget:text-zinc-200 transition-colors" />
           <span>One focused task at a time. You got this.</span>
         </div>
       )}
     </div>
   );
 };
+
+export default TodayFocusCapacityWidget;

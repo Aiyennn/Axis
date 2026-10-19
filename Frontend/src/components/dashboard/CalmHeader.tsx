@@ -86,21 +86,21 @@ export const CalmHeader: React.FC<CalmHeaderProps> = ({ dashView, setDashView })
           </span>
 
           {/* Engine Online Pill */}
-          <div className="flex items-center gap-2 text-zinc-300">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+          <div className="flex items-center gap-2 text-zinc-300 hover:text-white px-2 py-1 -mx-2 rounded-none hover:bg-zinc-800/40 transition-colors cursor-default">
+            <span className="w-2 h-2 rounded-none bg-emerald-500 animate-pulse"></span>
             <span className="font-sans text-xs">Engine Online</span>
           </div>
 
           {/* Schedule Status Indicator */}
           {capacity.isOverloaded ? (
-            <div className="flex items-center gap-1.5 text-rose-400">
+            <div className="flex items-center gap-1.5 text-rose-400 hover:text-rose-300 px-2 py-1 -mx-2 rounded-none hover:bg-rose-950/20 transition-colors cursor-default">
               <AlertTriangle size={15} />
               <span className="font-sans text-xs font-medium">
                 {capacity.deficitHours}h deficit
               </span>
             </div>
           ) : (
-            <div className="flex items-center gap-1.5 text-emerald-400">
+            <div className="flex items-center gap-1.5 text-emerald-400 hover:text-emerald-300 px-2 py-1 -mx-2 rounded-none hover:bg-emerald-950/20 transition-colors cursor-default">
               <CheckCircle2 size={16} />
               <span className="font-sans text-xs font-medium">Schedule looks clear</span>
             </div>
@@ -110,18 +110,18 @@ export const CalmHeader: React.FC<CalmHeaderProps> = ({ dashView, setDashView })
         {/* Right: View Mode Toggle & User Avatar */}
         <div className="flex items-center gap-3">
           {/* List / Graph Toggle Pill with sliding animated active background */}
-          <div className="relative flex items-center p-1 rounded-xl bg-[#121215] border border-zinc-800">
+          <div className="relative flex items-center p-1 rounded-none bg-[#121215] border border-zinc-800 hover:border-zinc-700 transition-colors">
             {/* Sliding highlight capsule */}
             <div
-              className={`absolute top-1 bottom-1 w-[calc(50%-4px)] rounded-lg bg-zinc-800 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] shadow-sm ${
+              className={`absolute top-1 bottom-1 w-[calc(50%-4px)] rounded-none bg-zinc-800 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] shadow-sm ${
                 dashView === 'list' ? 'left-1' : 'left-[calc(50%)]'
               }`}
             />
 
             <button
               onClick={() => setDashView('list')}
-              className={`relative z-10 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors duration-200 min-w-[64px] ${
-                dashView === 'list' ? 'text-white' : 'text-zinc-400 hover:text-zinc-200'
+              className={`relative z-10 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-none text-xs font-medium transition-all duration-200 min-w-[64px] ${
+                dashView === 'list' ? 'text-white' : 'text-zinc-400 hover:text-zinc-100 hover:scale-105'
               }`}
             >
               <LayoutList size={13} />
@@ -129,8 +129,8 @@ export const CalmHeader: React.FC<CalmHeaderProps> = ({ dashView, setDashView })
             </button>
             <button
               onClick={() => setDashView('graph')}
-              className={`relative z-10 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors duration-200 min-w-[64px] ${
-                dashView === 'graph' ? 'text-white' : 'text-zinc-400 hover:text-zinc-200'
+              className={`relative z-10 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-none text-xs font-medium transition-all duration-200 min-w-[64px] ${
+                dashView === 'graph' ? 'text-white' : 'text-zinc-400 hover:text-zinc-100 hover:scale-105'
               }`}
             >
               <Network size={13} />
@@ -139,7 +139,7 @@ export const CalmHeader: React.FC<CalmHeaderProps> = ({ dashView, setDashView })
           </div>
 
           {/* User Profile Avatar */}
-          <div className="w-8 h-8 rounded-full bg-violet-600 flex items-center justify-center font-bold text-white text-xs shadow-md">
+          <div className="w-8 h-8 rounded-none bg-violet-600 hover:bg-violet-500 hover:scale-110 hover:ring-2 hover:ring-violet-400/50 transition-all duration-200 flex items-center justify-center font-bold text-white text-xs shadow-md cursor-pointer">
             A
           </div>
         </div>

@@ -421,10 +421,10 @@ export const GraphView: React.FC = () => {
   const axisInitialNode = initialNodesData[0];
 
   return (
-    <div className="relative w-full rounded-3xl overflow-hidden border border-zinc-800/80 bg-[#09090b] shadow-2xl select-none">
+    <div className="relative w-full rounded-none overflow-hidden border border-zinc-800/80 bg-[#09090b] shadow-2xl select-none">
       {/* Top Header Mode Indicator */}
       <div className="absolute top-5 left-6 z-20 flex items-center gap-3 pointer-events-none">
-        <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#121215]/85 backdrop-blur-md border border-zinc-800 text-xs text-zinc-300 shadow-md">
+        <div className="flex items-center gap-2 px-3 py-1.5 rounded-none bg-[#121215]/85 backdrop-blur-md border border-zinc-800 text-xs text-zinc-300 shadow-md">
           <span className="w-2 h-2 rounded-full bg-rose-500 animate-ping" />
           <span className="font-semibold text-white">Proximity = Urgency</span>
           <span className="text-zinc-500">•</span>
@@ -436,25 +436,25 @@ export const GraphView: React.FC = () => {
       </div>
 
       {/* Interactive Controls Overlay (Zoom / Reset) */}
-      <div className="absolute top-5 right-6 z-20 flex items-center gap-1.5 p-1 rounded-2xl bg-[#121215]/85 backdrop-blur-md border border-zinc-800 shadow-md">
+      <div className="absolute top-5 right-6 z-20 flex items-center gap-1.5 p-1 rounded-none bg-[#121215]/85 backdrop-blur-md border border-zinc-800 shadow-md">
         <button
           onClick={() => handleZoom('in')}
           title="Zoom In"
-          className="p-2 rounded-xl text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors"
+          className="p-2 rounded-none text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors"
         >
           <ZoomIn size={15} />
         </button>
         <button
           onClick={() => handleZoom('out')}
           title="Zoom Out"
-          className="p-2 rounded-xl text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors"
+          className="p-2 rounded-none text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors"
         >
           <ZoomOut size={15} />
         </button>
         <button
           onClick={handleReset}
           title="Reset Graph"
-          className="p-2 rounded-xl text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors"
+          className="p-2 rounded-none text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors"
         >
           <RotateCcw size={15} />
         </button>
@@ -782,7 +782,7 @@ export const GraphView: React.FC = () => {
       {/* Floating Hover Card for inspecting task details */}
       {hoveredTask && (
         <div
-          className="absolute bottom-6 left-6 z-30 max-w-sm p-4 rounded-2xl bg-[#121215]/95 backdrop-blur-xl border border-zinc-700/80 shadow-2xl shadow-black/80 animate-fade-scale cursor-pointer"
+          className="absolute bottom-6 left-6 z-30 max-w-sm p-4 rounded-none bg-[#121215]/95 backdrop-blur-xl border border-zinc-700/80 shadow-2xl shadow-black/80 animate-fade-scale cursor-pointer"
           onClick={() => setSelectedTaskForReason(hoveredTask)}
         >
           <div className="flex items-center justify-between gap-2 mb-2">
@@ -823,7 +823,7 @@ export const GraphView: React.FC = () => {
       )}
 
       {/* Bottom Right Legend */}
-      <div className="absolute bottom-5 right-6 z-20 flex items-center gap-4 px-3.5 py-2 rounded-2xl bg-[#121215]/85 backdrop-blur-md border border-zinc-800/80 text-xs text-zinc-400 shadow-md">
+      <div className="absolute bottom-5 right-6 z-20 flex items-center gap-4 px-3.5 py-2 rounded-none bg-[#121215]/85 backdrop-blur-md border border-zinc-800/80 text-xs text-zinc-400 shadow-md">
         <div className="flex items-center gap-1.5">
           <span className="w-2.5 h-2.5 rounded-full bg-rose-500 shadow-[0_0_8px_#ef4444]" />
           <span className="text-zinc-200 font-medium">Do Now (Closest)</span>

@@ -42,8 +42,8 @@ export const INITIAL_TASKS: Task[] = [
       calendarFit: 16,
       importanceScore: 15
     },
-    reasoning: 'High-stake university exam. Best scheduled in afternoon after classes.',
-    consequencesOfDelay: 'Insufficient review time before morning exam.'
+    reasoning: 'This is a high-stakes university exam, so I recommend scheduling it in the afternoon after your classes to give you time to prepare and focus.',
+    consequencesOfDelay: 'Just to let you know if you decided to put this off you might not have time to review tommorrow. I suggest you do this now'
   },
   {
     id: 'task-3',

@@ -1,8 +1,8 @@
 /**
  * DailyBriefing.tsx
- * Summary section matching the design screenshot:
+ * Summary section matching the rectilinear design:
  * - 'Here are the Summary:' label connected directly above the pill bar
- * - Clear, high-contrast, readable text
+ * - Clear, high-contrast, readable text with rectilinear edges
  */
 
 import { useMemo } from 'react';
@@ -30,11 +30,11 @@ export default function DailyBriefing() {
         Here are the Summary:
       </h3>
 
-      {/* Summary Pill Bar with high-contrast, crisp readable typography */}
-      <div className="flex items-center gap-4 px-5 py-3.5 rounded-2xl bg-[#141418] border border-zinc-700/80 text-sm shadow-md">
+      {/* Summary Bar with high-contrast, crisp readable typography & hover depth (rounded-none) */}
+      <div className="flex items-center gap-4 px-5 py-3.5 rounded-none bg-[#141418] border border-zinc-700/80 hover:border-zinc-500/80 hover:bg-[#18181f] hover:shadow-lg hover:shadow-black/30 hover:-translate-y-0.5 transition-all duration-200 text-sm shadow-md cursor-default">
         {/* Date + task count */}
         <div className="flex items-center gap-2.5">
-          <BookOpen size={16} className="text-zinc-400 shrink-0" />
+          <BookOpen size={16} className="text-zinc-400 group-hover:text-zinc-200 transition-colors shrink-0" />
           <span className="text-zinc-200 font-medium">Sunday, October 18</span>
           <span className="text-zinc-500 font-bold">·</span>
           <span className="text-zinc-300">

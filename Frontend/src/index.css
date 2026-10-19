@@ -65,3 +65,61 @@
   animation: blinkCursor 0.85s step-start infinite;
 }
 
+/* ── Modal Dialog Animations (Open & Close) ────────────────────── */
+@keyframes modalBackdropFadeIn {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes modalBackdropFadeOut {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes modalContentEnter {
+  0% {
+    opacity: 0;
+    transform: scale(0.93) translateY(12px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes modalContentExit {
+  0% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.95) translateY(8px);
+  }
+}
+
+.animate-modal-backdrop-in {
+  animation: modalBackdropFadeIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.animate-modal-backdrop-out {
+  animation: modalBackdropFadeOut 0.2s cubic-bezier(0.4, 0, 1, 1) both;
+}
+
+.animate-modal-enter {
+  animation: modalContentEnter 0.24s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.animate-modal-exit {
+  animation: modalContentExit 0.2s cubic-bezier(0.4, 0, 1, 1) both;
+}
+
+
