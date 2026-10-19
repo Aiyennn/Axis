@@ -7,9 +7,9 @@ interface AppContextType {
   tasks: Task[];
   calendarEvents: CalendarEvent[];
   chatMessages: ChatMessage[];
-  activeView: 'dashboard' | 'integrations';
+  activeView: 'dashboard' | 'timeline' | 'integrations';
   selectedTaskForReason: Task | null;
-  setActiveView: (view: 'dashboard' | 'integrations') => void;
+  setActiveView: (view: 'dashboard' | 'timeline' | 'integrations') => void;
   setSelectedTaskForReason: (task: Task | null) => void;
   toggleTaskComplete: (taskId: string) => void;
   updateTaskPriority: (taskId: string, newBucket: PriorityBucket) => void;
@@ -53,7 +53,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   });
 
-  const [activeView, setActiveView] = useState<'dashboard' | 'integrations'>('dashboard');
+  const [activeView, setActiveView] = useState<'dashboard' | 'timeline' | 'integrations'>('dashboard');
   const [selectedTaskForReason, setSelectedTaskForReason] = useState<Task | null>(null);
 
   useEffect(() => {

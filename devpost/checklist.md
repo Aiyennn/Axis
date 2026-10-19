@@ -29,7 +29,7 @@ Build mode: learn
   Learner check: Click the "Client Revision" card and the "Exam Study" card, review their AI score breakdown, and verify why one sits in Do Now while the other sits in Do Next.
   Commit: `Implement multi-factor priority scoring engine and rationale modal`
 
-- [ ] **3. Daily Briefing and Schedule Overload Detection**
+- [x] **3. Daily Briefing and Schedule Overload Detection**
   Becomes usable: The Daily Briefing banner at the top dynamically computes total workload hours against open calendar hours. When urgent tasks exceed available time, the high-contrast Schedule Overload alert activates with the exact deficit and recommended deferrals.
   Why now: Delivers the core capacity triage behavior: Axis warns the user when their day is overcommitted rather than pretending everything can fit.
   PRD ref: `prd.md > Features and Behavior (1. Daily Briefing & Schedule Overload Detection)`
@@ -39,7 +39,7 @@ Build mode: learn
   Learner check: Check the top briefing banner; verify the 6.0h workload vs 4.5h free time displays the 1.5h overload warning; complete the 2.0h client task and verify the warning clears.
   Commit: `Add daily briefing banner and schedule overload detection`
 
-- [ ] **4. Interactive Daily Timeline Visualizer**
+- [x] **4. Interactive Daily Timeline Visualizer**
   Becomes usable: A continuous horizontal 8:00 AM – 10:00 PM timeline bar at the bottom of the dashboard plotting fixed commitments (lectures, standups) in dark blocks and AI-allocated focus blocks for "Do Now" tasks in violet.
   Why now: Connects "what to do" with "when to do it" across the user's day, answering both questions at a glance.
   PRD ref: `prd.md > Features and Behavior (3. Daily Timeline Visualizer)`

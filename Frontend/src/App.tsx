@@ -11,6 +11,7 @@ import { AIEngineWidget } from './components/dashboard/AIEngineWidget';
 import { TaskReasonModal } from './components/dashboard/TaskReasonModal';
 import { AIAssistantDrawer } from './components/assistant/AIAssistantDrawer';
 import DailyBriefing from './components/dashboard/DailyBriefing';
+import TimelineView from './components/dashboard/TimelineView';
 import GraphView from './components/dashboard/GraphView';
 
 export const App: React.FC = () => {
@@ -73,11 +74,13 @@ export const App: React.FC = () => {
                 </div>
               )}
             </>
+          ) : activeView === 'timeline' ? (
+            <TimelineView />
           ) : (
-            <div className="bg-[#121215] border border-[#27272a] rounded-2xl p-8 text-center text-zinc-400">
+            <div className="bg-[#121215] border border-[#27272a] rounded-none p-8 text-center text-zinc-400">
               <h3 className="text-lg font-bold text-white mb-2">Simulated Integrations Feeds</h3>
               <p className="text-sm text-zinc-500 max-w-md mx-auto">
-                Incoming responsibilities from Gmail, Canvas, Calendar, and Tasks are connected. Full integrations manager will be activated in Slice 6.
+                Incoming responsibilities from Gmail, Canvas, Calendar, Tasks, Notion, and GitHub are connected. Full integrations manager will be activated in Slice 6.
               </p>
             </div>
           )}

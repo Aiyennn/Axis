@@ -1,18 +1,28 @@
 import React from 'react';
-import { Calendar } from 'lucide-react';
+import { Calendar, ArrowRight } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 
 export const TodayScheduleWidget: React.FC = () => {
-  const { tasks, setSelectedTaskForReason } = useApp();
+  const { tasks, setSelectedTaskForReason, setActiveView } = useApp();
 
   const nowTask = tasks.find(t => t.priorityBucket === 'now' && t.status === 'pending');
   const nextTask = tasks.find(t => t.priorityBucket === 'next' && t.status === 'pending');
 
   return (
     <div className="bg-[#121215] border border-[#27272a] hover:border-zinc-700/80 hover:shadow-xl hover:shadow-black/30 transition-all duration-200 rounded-none p-5 shadow-lg">
-      <div className="flex items-center gap-2 mb-4">
-        <Calendar className="w-4 h-4 text-zinc-400" />
-        <h3 className="text-sm font-bold text-white tracking-tight">Today's Schedule</h3>
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2">
+          <Calendar className="w-4 h-4 text-zinc-400" />
+          <h3 className="text-sm font-bold text-white tracking-tight">Today's Schedule</h3>
+        </div>
+        <button
+          onClick={() => setActiveView('timeline')}
+          className="text-[11px] font-mono text-zinc-400 hover:text-violet-300 transition-colors flex items-center gap-1 group"
+          title="Open full-page interactive timeline"
+        >
+          <span>Full Timeline</span>
+          <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
+        </button>
       </div>
 
       <div className="relative pl-6 space-y-3 before:absolute before:left-2 before:top-3 before:bottom-3 before:w-[1.5px] before:bg-zinc-800">

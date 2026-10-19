@@ -87,7 +87,7 @@ export const CalmHeader: React.FC<CalmHeaderProps> = ({ dashView, setDashView })
 
           {/* Engine Online Pill */}
           <div className="flex items-center gap-2 text-zinc-300 hover:text-white px-2 py-1 -mx-2 rounded-none hover:bg-zinc-800/40 transition-colors cursor-default">
-            <span className="w-2 h-2 rounded-none bg-emerald-500 animate-pulse"></span>
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
             <span className="font-sans text-xs">Engine Online</span>
           </div>
 
@@ -139,7 +139,7 @@ export const CalmHeader: React.FC<CalmHeaderProps> = ({ dashView, setDashView })
           </div>
 
           {/* User Profile Avatar */}
-          <div className="w-8 h-8 rounded-none bg-violet-600 hover:bg-violet-500 hover:scale-110 hover:ring-2 hover:ring-violet-400/50 transition-all duration-200 flex items-center justify-center font-bold text-white text-xs shadow-md cursor-pointer">
+          <div className="w-8 h-8 rounded-full bg-violet-600 hover:bg-violet-500 hover:scale-110 hover:ring-2 hover:ring-violet-400/50 transition-all duration-200 flex items-center justify-center font-bold text-white text-xs shadow-md cursor-pointer shrink-0">
             A
           </div>
         </div>

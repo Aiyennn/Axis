@@ -1,5 +1,5 @@
 import React from 'react';
-import { LayoutDashboard, CheckSquare, Calendar, Cable, Sparkles } from 'lucide-react';
+import { LayoutDashboard, Calendar, Cable, Sparkles } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 
 export const Sidebar: React.FC = () => {
@@ -10,7 +10,7 @@ export const Sidebar: React.FC = () => {
       {/* Brand Header */}
       <div className="p-5 border-b border-[#27272a] flex items-center justify-between">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-zinc-800 border border-zinc-700 flex items-center justify-center shadow-md">
+          <div className="w-8 h-8 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center shadow-md">
             <Sparkles className="w-4 h-4 text-white" />
           </div>
           <div>
@@ -35,18 +35,14 @@ export const Sidebar: React.FC = () => {
         </button>
 
         <button
-          onClick={() => setActiveView('dashboard')}
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-zinc-400 hover:text-zinc-200 hover:bg-[#18181b]/50 transition-colors"
+          onClick={() => setActiveView('timeline')}
+          className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+            activeView === 'timeline'
+              ? 'bg-[#18181b] text-white border border-[#27272a] shadow-sm'
+              : 'text-zinc-400 hover:text-zinc-200 hover:bg-[#18181b]/50'
+          }`}
         >
-          <CheckSquare className="w-4 h-4 text-zinc-500" />
-          All Tasks
-        </button>
-
-        <button
-          onClick={() => setActiveView('dashboard')}
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-zinc-400 hover:text-zinc-200 hover:bg-[#18181b]/50 transition-colors"
-        >
-          <Calendar className="w-4 h-4 text-zinc-500" />
+          <Calendar className={`w-4 h-4 ${activeView === 'timeline' ? 'text-zinc-200' : 'text-zinc-500'}`} />
           Timeline
         </button>
 
