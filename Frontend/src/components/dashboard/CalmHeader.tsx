@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useApp } from '../../context/AppContext';
 import { calculateCapacity } from '../../engine/scheduler';
 import { CheckCircle2, AlertTriangle, Sparkles, LayoutList, Network } from 'lucide-react';
@@ -8,11 +8,72 @@ interface CalmHeaderProps {
   setDashView: (view: 'list' | 'graph') => void;
 }
 
+// Typewriter hook: types `text` one character at a time after `startDelay` ms.
+// Returns { displayed, done }
+function useTypewriter(text: string, speed = 28, startDelay = 0) {
+  const [displayed, setDisplayed] = useState('');
+  const [done, setDone] = useState(false);
+  const indexRef = useRef(0);
+
+  useEffect(() => {
+    setDisplayed('');
+    setDone(false);
+    indexRef.current = 0;
+
+    const delayTimer = setTimeout(() => {
+      const interval = setInterval(() => {
+        indexRef.current += 1;
+        setDisplayed(text.slice(0, indexRef.current));
+        if (indexRef.current >= text.length) {
+          clearInterval(interval);
+          setDone(true);
+        }
+      }, speed);
+      return () => clearInterval(interval);
+    }, startDelay);
+
+    return () => clearTimeout(delayTimer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [text]);
+
+  return { displayed, done };
+}
+
+
+
+// Blinking text cursor shown while text is being typed
+const Cursor: React.FC = () => (
+  <span className="inline-block w-[2px] h-[1em] bg-zinc-300 align-middle ml-0.5 animate-blink-cursor" />
+);
+
 export const CalmHeader: React.FC<CalmHeaderProps> = ({ dashView, setDashView }) => {
   const { tasks, calendarEvents } = useApp();
 
   const activeTasks = tasks.filter(t => t.status !== 'completed');
   const capacity = calculateCapacity(tasks, calendarEvents);
+
+  const greeting = "Welcome back, Ayen. Let's pick up where you left off.";
+  const aiMessage = `I've reviewed your tasks, and you have ${activeTasks.length} active right now. One needs your attention first, while the others can wait. Take a look below, and let's tackle them one step at a time! If you have a question just press this card or the chat bubble on the bottom right corner.`;
+
+  // Phase 1: type greeting (starts immediately)
+  const { displayed: greetingDisplayed, done: greetingDone } = useTypewriter(greeting, 30, 300);
+
+  // Phase 2: type AI message (starts only after greeting finishes)
+  const [aiStarted, setAiStarted] = useState(false);
+
+  useEffect(() => {
+    if (greetingDone && !aiStarted) {
+      const t = setTimeout(() => setAiStarted(true), 350);
+      return () => clearTimeout(t);
+    }
+  }, [greetingDone, aiStarted]);
+
+  const { displayed: aiDisplayed, done: aiDone } = useTypewriter(
+    aiStarted ? aiMessage : '',
+    22,
+    0
+  );
+
 
   return (
     <div className="flex flex-col mb-7">
@@ -84,20 +145,27 @@ export const CalmHeader: React.FC<CalmHeaderProps> = ({ dashView, setDashView })
         </div>
       </div>
 
-      {/* Main Friendly Greeting */}
+      {/* Main Friendly Greeting — typewriter phase 1 */}
       <h1 className="text-3xl font-bold tracking-tight text-white mb-4 flex items-center gap-2">
-        <span>Welcome back, Ayen. Let's pick up where you left off.</span>
-        <Sparkles className="w-6 h-6 text-zinc-300 fill-zinc-300 inline-block" />
+        <span>
+          {greetingDisplayed}
+          {!greetingDone && <Cursor />}
+        </span>
+        {greetingDone && (
+          <Sparkles className="w-6 h-6 text-zinc-300 fill-zinc-300 inline-block" />
+        )}
       </h1>
 
-      {/* Conversational AI Briefing Paragraph with indentation matching screenshot */}
-      <div className="pl-12 flex flex-col">
-        <p className="text-sm text-zinc-300 max-w-3xl leading-relaxed font-normal">
-          I’ve reviewed your tasks, and you have {activeTasks.length} active right now. One needs your attention first,
-          while the others can wait. Take a look below, and let’s tackle them one step at a time! if
-          you have question just press this card or the chat bubble on the bottom right corner
-        </p>
-      </div>
+      {/* Conversational AI Briefing — typewriter phase 2 */}
+      {greetingDone && (
+        <div className="pl-12 flex flex-col">
+          <p className="text-sm text-zinc-300 max-w-3xl leading-relaxed font-normal">
+            {aiDisplayed}
+            {/* Keep cursor blinking throughout (during typing and after) */}
+            {(aiStarted || aiDone) && <Cursor />}
+          </p>
+        </div>
+      )}
     </div>
   );
 };

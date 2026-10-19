@@ -5,16 +5,18 @@ status: approved
 
 # Axis — Technical Specification
 
-A platform-independent, desktop-first command center built with React, TypeScript, Tailwind CSS, and a Python FastAPI backend. Axis consolidates scattered mock feeds (emails, school portal, calendar, tasks) into an explainable, prioritized daily plan powered by an LLM with conversational override controls.
+A platform-independent, desktop-first command center built with React, TypeScript, Tailwind CSS, and a Python FastAPI backend. Axis consolidates scattered mock feeds (Gmail, Notion, GitHub, Canvas, Calendar, Tasks) into an explainable, prioritized daily plan powered by an LLM with conversational override controls.
+
+The project is split into two top-level directories: **`Frontend/`** (Vite + React + TypeScript) and **`Backend/`** (Python FastAPI + LLM integration).
 
 ## How This Works, In Plain Language
 Axis is organized into three connected engines across a frontend client and a Python FastAPI backend service:
-1. **The Ingestion & Store Engine (`AppContext`):** Manages the live state of tasks, calendar commitments, and integration feeds in browser memory, backed by local state persistence and synchronization with the FastAPI backend. It starts pre-loaded with a realistic student-freelancer scenario (urgent client email revision, Canvas exam & paper, lecture schedule).
+1. **The Ingestion & Store Engine (`AppContext`):** Manages the live state of tasks, calendar commitments, and multi-source integration feeds (Gmail, Notion workspace, GitHub repositories, Canvas LMS, Calendar) in browser memory, backed by local state persistence and synchronization with the FastAPI backend. It starts pre-loaded with a realistic student-freelancer scenario (urgent client email revision, GitHub security PR, Notion roadmap sync, Canvas exam & paper, lecture schedule).
 2. **The Prioritization & Timeline Engine (`prioritizer.ts`, `scheduler.ts`):** Evaluates every task using a multi-factor scoring model combined with LLM-generated contextual reasoning. It calculates deadline proximity, consequence weight, duration, and calendar slot fit, grouping tasks into "Do Now", "Do Next", and "Do Later".
 3. **The Dialogic LLM Assistant Engine (FastAPI + LLM API):** A conversational copilot powered by a Large Language Model via a Python FastAPI service. When the user challenges their schedule (e.g., *"I need to study for the CS exam first"*), the LLM analyzes trade-offs, generates a structured **"Approve Plan Changes"** proposal card with human-readable rationale, and requires user approval before updating the board and timeline.
 
 ## The Core Journey Through the System
-1. **Load:** The app initializes from local storage or the FastAPI backend, loading mock feeds from Email, Canvas, Calendar, and Tasks into `AppContext`.
+1. **Load:** The app initializes from local storage or the FastAPI backend, loading mock feeds from Gmail, Notion, GitHub, Canvas, Calendar, and Tasks into `AppContext`.
    *PRD ref:* `prd.md > The Core Journey (Step 1)`.
 2. **Score & Triage:** `prioritizer.ts` runs on all active tasks, calculating scores and sorting them into `Do Now`, `Do Next`, and `Do Later`. `scheduler.ts` maps calendar events and calculates `availableFreeHours` vs. `totalWorkloadHours`.
    *PRD ref:* `prd.md > Features and Behavior (1. Daily Briefing & Schedule Overload Detection)`.
@@ -32,18 +34,21 @@ Axis is organized into three connected engines across a frontend client and a Py
 - **Backend Framework:** [FastAPI](https://fastapi.tiangolo.com/) (Python 3.12) — High-performance async REST API service for LLM prompt coordination, contextual task generation, and plan re-weighting.
 - **LLM Integration:** Large Language Model API (e.g. Google Gemini / OpenAI) invoked via Python SDK or asynchronous HTTP endpoints to generate natural language reasoning, task definitions, and plan changes.
 - **Styling:** [Tailwind CSS](https://tailwindcss.com/) — Utility-first CSS configured to match the approved zinc/neutral palette and violet accents from `prd.md > Look and Feel`.
-- **Icons:** [Lucide React](https://lucide.dev/) + Custom SVG integration logos (Gmail, Canvas LMS, Google Calendar).
+- **Icons:** [Lucide React](https://lucide.dev/) + Custom SVG integration logos (Gmail, Notion, GitHub, Canvas LMS, Google Calendar).
 - **State Management & Persistence:** React Context API (`AppContext`) + Browser `localStorage` with FastAPI REST syncing.
 
 ## Where It Runs and How Someone Tries It
 - **Runtime:** Modern web browser with Python (3.12+) and Node.js (v18+) installed.
 - **Frontend Start Command:**
   ```bash
+  cd Frontend
   npm install
   npm run dev
   ```
 - **Backend Start Command (FastAPI):**
   ```bash
+  cd Backend
+  pip install -r requirements.txt
   uvicorn main:app --reload --port 8000
   ```
 - **What to Open:** `http://localhost:5173`
@@ -90,10 +95,17 @@ Carried forward directly from `prd.md > Look and Feel`:
 - Modals for adding custom mock tasks and confirming demo resets.
 - *PRD ref:* `prd.md > Features and Behavior (5. Mock Integrations Manager & Demo Controls)`.
 
+### FastAPI Backend Services & Endpoints (`Backend/`)
+- **`main.py` (FastAPI Application Entry):** Boots the ASGI server with CORS middleware allowing requests from `http://localhost:5173`.
+- **`routers/chat.py` (`POST /api/chat`):** Receives user dialogue and chat history; invokes LLM prompt chaining to parse constraints, evaluate scheduling impacts, and return assistant messages with optional structured `PlanChangeProposal` payloads.
+- **`routers/plan.py` (`POST /api/plan`):** Evaluates active tasks and calendar commitments to return algorithmic or LLM-augmented prioritization buckets and transparent rationale breakdowns.
+- **`services/llm.py` (LLM Orchestration Layer):** Abstracts calls to Large Language Model APIs (e.g., Google Gemini / OpenAI), injecting system prompts with strict JSON schema response formats for structured proposal generation.
+- **`models/schemas.py` (Pydantic Models):** Strict request/response validation mirroring the TypeScript data contracts for tasks, calendar events, proposals, and chat payloads.
+
 ## Data Model
 
 ```typescript
-export type SourceType = 'email' | 'canvas' | 'calendar' | 'task';
+export type SourceType = 'email' | 'canvas' | 'calendar' | 'task' | 'notion' | 'github';
 export type PriorityBucket = 'now' | 'next' | 'later';
 export type ImportanceLevel = 'high' | 'medium' | 'low';
 
@@ -156,59 +168,85 @@ export interface ChatMessage {
 
 ```
 Axis/
-├── src/
-│   ├── components/
-│   │   ├── assistant/
-│   │   │   ├── AIAssistant.tsx
-│   │   │   └── ApprovePlanCard.tsx
-│   │   ├── dashboard/
-│   │   │   ├── DailyBriefing.tsx
-│   │   │   ├── DailyTimeline.tsx
-│   │   │   ├── PriorityColumns.tsx
-│   │   │   ├── TaskCard.tsx
-│   │   │   └── TaskReasonModal.tsx
-│   │   ├── integrations/
-│   │   │   ├── AddMockTaskModal.tsx
-│   │   │   ├── IntegrationsView.tsx
-│   │   │   └── ResetDemoModal.tsx
-│   │   └── layout/
-│   │       ├── Header.tsx
-│   │       └── Sidebar.tsx
-│   ├── context/
-│   │   └── AppContext.tsx
-│   ├── data/
-│   │   └── seedData.ts
-│   ├── engine/
-│   │   ├── assistant.ts
-│   │   ├── prioritizer.ts
-│   │   └── scheduler.ts
-│   ├── types/
-│   │   └── index.ts
-│   ├── App.tsx
-│   ├── index.css
-│   └── main.tsx
+├── Frontend/                         ← Vite + React + TypeScript client
+│   ├── src/
+│   │   ├── components/
+│   │   │   ├── assistant/
+│   │   │   │   ├── AIAssistant.tsx
+│   │   │   │   └── ApprovePlanCard.tsx
+│   │   │   ├── dashboard/
+│   │   │   │   ├── CalmHeader.tsx
+│   │   │   │   ├── DailyBriefing.tsx
+│   │   │   │   ├── DailyTimeline.tsx
+│   │   │   │   ├── GraphView.tsx
+│   │   │   │   ├── HeroFocusCard.tsx
+│   │   │   │   ├── ComingUpSection.tsx
+│   │   │   │   ├── LaterSection.tsx
+│   │   │   │   ├── PriorityColumns.tsx
+│   │   │   │   ├── TaskCard.tsx
+│   │   │   │   └── TaskReasonModal.tsx
+│   │   │   ├── integrations/
+│   │   │   │   ├── AddMockTaskModal.tsx
+│   │   │   │   ├── IntegrationsView.tsx
+│   │   │   │   └── ResetDemoModal.tsx
+│   │   │   └── layout/
+│   │   │       ├── Header.tsx
+│   │   │       └── Sidebar.tsx
+│   │   ├── context/
+│   │   │   └── AppContext.tsx
+│   │   ├── data/
+│   │   │   └── seedData.ts
+│   │   ├── engine/                   ← Local heuristic stand-in (pre-backend)
+│   │   │   ├── prioritizer.ts
+│   │   │   └── scheduler.ts
+│   │   ├── types/
+│   │   │   └── index.ts
+│   │   ├── App.tsx
+│   │   ├── index.css
+│   │   └── main.tsx
+│   ├── index.html
+│   ├── package.json
+│   ├── tailwind.config.js
+│   ├── postcss.config.js
+│   ├── tsconfig.json
+│   └── vite.config.ts
+│
+├── Backend/                          ← Python FastAPI + LLM service
+│   ├── main.py                       ← FastAPI app entry point
+│   ├── routers/
+│   │   ├── chat.py                   ← /api/chat — conversational AI endpoint
+│   │   └── plan.py                   ← /api/plan — plan proposal generation
+│   ├── services/
+│   │   ├── llm.py                    ← LLM client wrapper (Gemini / OpenAI)
+│   │   └── prioritizer.py            ← Python-side scoring logic
+│   ├── models/
+│   │   └── schemas.py                ← Pydantic request/response models
+│   ├── requirements.txt
+│   └── README.md
+│
 ├── devpost/
 │   ├── learner-profile.md
 │   ├── scope.md
-│   ├── scope.html
 │   ├── prd.md
-│   ├── prd.html
-│   ├── spec.md
-│   └── spec.html
-├── package.json
-├── tsconfig.json
-├── vite.config.ts
-├── tailwind.config.js
-└── README.md
+│   └── spec.md
+├── README.md
+└── LICENSE
 ```
 
+
 ## External Services and Dependencies
-- **External Network Services:** None. The prototype is completely self-contained and operates 100% offline without external API keys, tokens, or rate limits.
-- **Dependencies:**
-  - `react`, `react-dom` (^18.3.0) — Core UI framework.
-  - `lucide-react` (^0.300.0) — Modern SVG icons.
+- **External Network Services:** Optional Large Language Model API (e.g. Google Gemini API via `google-genai` in `Backend/`). The system also includes a local deterministic fallback engine in `Frontend/src/engine/` so the full walkthrough can operate completely offline if an API key is not supplied or during network-isolated hackathon judging.
+- **Frontend Dependencies (`Frontend/package.json`):**
+  - `react`, `react-dom` (^18.3.1) — Core UI framework.
+  - `lucide-react` (^0.475.0) — Modern SVG icons.
   - `tailwindcss`, `postcss`, `autoprefixer` — Styling pipeline.
   - `vite`, `@vitejs/plugin-react` — Fast dev server and bundler.
+- **Backend Dependencies (`Backend/requirements.txt`):**
+  - `fastapi` (^0.115.0) — High-performance async ASGI web API framework.
+  - `uvicorn[standard]` (^0.32.0) — ASGI production web server.
+  - `pydantic` (^2.10.0) — Data validation and type coercion.
+  - `google-genai` / `google-generativeai` — Gemini LLM SDK for conversational reasoning and plan diffs.
+  - `python-dotenv` (^1.0.0) — Environment variable management.
 
 ## Important Failure Modes
 1. **Total Urgent Work Exceeds Daily Hours (Capacity Deficit):**
@@ -217,17 +255,19 @@ Axis/
 2. **Conflicting Re-prioritization Request:**
    - *What happens:* User asks the AI assistant to prioritize a task that directly causes a hard deadline failure.
    - *User experience:* The AI assistant does not execute the change silently; it presents the `ApprovePlanCard` with explicit warning badges (*"⚠️ Delaying this task causes it to miss the 12:00 PM hard client deadline"*), leaving the decision explicitly in the user's hands.
-3. **Corrupted or Missing Local Storage:**
-   - *What happens:* Browser storage is cleared or malformed.
-   - *User experience:* The app catches parsing exceptions and automatically falls back to `seedData.ts`, ensuring the prototype always loads cleanly and never renders a blank crash screen.
+3. **Corrupted or Missing Local Storage / Backend Offline:**
+   - *What happens:* Browser storage is cleared or backend service is unreachable.
+   - *User experience:* If the FastAPI backend is not yet started or offline, the frontend seamlessly falls back to the client-side heuristic engine in `Frontend/src/engine/` and `seedData.ts`. The prototype always loads cleanly and never renders a blank crash screen.
 
 ## What Was Simplified and Why
-- **Local Heuristic Prioritization Engine instead of Live Remote LLM API:** Built directly in TypeScript with realistic instant responses and deterministic trade-off cards. This eliminates API key requirements, network latency, token costs, and API outages during hackathon video recording.
+- **Modular FastAPI Service with Heuristic Fallback:** The backend is powered by FastAPI for LLM completions, prompt coordination, and proposal diff generation, while the frontend retains a client-side heuristic engine as a fallback. This guarantees zero downtime or API key failures during video recording while maintaining clean full-stack architectural integrity.
 - **Mock Integrations instead of Live OAuth (Google / Canvas APIs):** Avoids third-party authentication flows, OAuth callback redirects, and API permission approvals, ensuring the prototype is ready to test the moment it boots.
-- **Client-Side `localStorage` instead of PostgreSQL in Docker:** We discussed containerizing Postgres with Docker, but agreed to use client-side state to keep the project friction-free for hackathon judges and reviewers who clone the repository.
+- **Client-Side State Synchronization instead of Dockerized PostgreSQL:** Kept state management in browser storage with REST synchronization rather than requiring Docker Desktop installation for judges and reviewers who clone the repository.
 
 ## Decisions and Open Issues
-- **Docker vs. Local-First Architecture:** The learner asked about using PostgreSQL in Docker. We evaluated the tradeoffs (rich database schema vs. Docker Desktop installation dependency for evaluators and added setup moving parts) and agreed to go with Option A (Vite + React + TypeScript + local storage).
+- **`Frontend/` + `Backend/` Directory Split:** Adopted a clean monorepo layout with `Frontend/` containing the entire Vite + React + TypeScript client and `Backend/` containing the Python FastAPI service. This separates concerns, makes each side independently runnable with its own dependencies, and prepares the repo for adding the backend without touching frontend config files.
+- **Docker vs. Local-First Architecture:** The learner asked about using PostgreSQL in Docker. We evaluated the tradeoffs (rich database schema vs. Docker Desktop installation dependency for evaluators and added setup moving parts) and agreed to go with Option A (Vite + React + TypeScript + local storage for the frontend, FastAPI for the backend API layer).
 - **Prioritization Scoring Formula:** Agreed on the 4-factor model (Deadline Proximity: 40pts, Commitment Type: 25pts, Calendar Fit: 20pts, Urgency Weight: 15pts).
 - **Human-in-the-Loop Override:** Agreed that all AI-proposed major re-schedules require explicit user approval via the `ApprovePlanCard` before updating columns or timeline.
+
 

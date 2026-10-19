@@ -110,6 +110,50 @@ export const INITIAL_TASKS: Task[] = [
     },
     reasoning: 'Low urgency personal errand. Can be grouped with tomorrow campus trip.',
     consequencesOfDelay: 'None; can be collected tomorrow.'
+  },
+  {
+    id: 'task-6',
+    title: 'Review Pull Request #42: Auth Rate Limiter',
+    description: 'Review security patch for JWT session handling before deploying staging build.',
+    source: 'github',
+    sourceLabel: 'GitHub PR #42',
+    deadline: 'Today, 4:00 PM',
+    isHardDeadline: false,
+    estimatedHours: 1.0,
+    importance: 'medium',
+    status: 'pending',
+    priorityScore: 72,
+    priorityBucket: 'next',
+    scoreBreakdown: {
+      deadlineProximity: 26,
+      consequenceWeight: 20,
+      calendarFit: 16,
+      importanceScore: 10
+    },
+    reasoning: 'Unblocks team backend deployment. Fits cleanly into afternoon focus gap.',
+    consequencesOfDelay: 'Delays backend team staging release.'
+  },
+  {
+    id: 'task-7',
+    title: 'Update Notion Sprint Roadmap & Specs',
+    description: 'Sync quarterly deliverables and milestone progress in the client Notion workspace.',
+    source: 'notion',
+    sourceLabel: 'Notion Workspace',
+    deadline: 'Friday, 5:00 PM',
+    isHardDeadline: false,
+    estimatedHours: 1.0,
+    importance: 'low',
+    status: 'pending',
+    priorityScore: 38,
+    priorityBucket: 'later',
+    scoreBreakdown: {
+      deadlineProximity: 10,
+      consequenceWeight: 12,
+      calendarFit: 11,
+      importanceScore: 5
+    },
+    reasoning: 'Non-blocking documentation update. Postponed until primary client deliverable is complete.',
+    consequencesOfDelay: 'Roadmap notes updated on weekly cadence.'
   }
 ];
 
@@ -136,7 +180,7 @@ export const INITIAL_MESSAGES: ChatMessage[] = [
   {
     id: 'msg-1',
     sender: 'assistant',
-    text: "Good morning! I've unified your inbox, Canvas portal, and calendar. You have 6.0 hours of urgent work with only 4.5 hours of free calendar time today. I recommend focusing on the Client Hero Revision first due to its hard noon deadline.",
+    text: "Good morning! I've unified your Gmail inbox, GitHub pull requests, Notion workspace, Canvas portal, and calendar. You have urgent work scheduled today. I recommend focusing on the Client Hero Revision first due to its hard noon deadline.",
     timestamp: '8:05 AM'
   }
 ];

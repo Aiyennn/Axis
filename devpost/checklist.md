@@ -24,7 +24,7 @@ Build mode: learn
   Why now: Proves the Unique Kernel immediately on top of the running board—tasks are prioritized intelligently rather than by naive due dates.
   PRD ref: `prd.md > Features and Behavior (2. Prioritized Task Columns)`
   Spec ref: `spec.md > Prioritization Engine (prioritizer.ts)`, `spec.md > Components (TaskReasonModal)`
-  Build: Implement `src/engine/prioritizer.ts` with 4-factor scoring logic (0-40 deadline proximity, 0-25 consequence weight, 0-20 calendar fit, 0-15 urgency), categorize tasks into Now (≥80), Next (50-79), and Later (<50), and build `TaskReasonModal.tsx` to surface the transparent score breakdown and delay risks.
+  Build: Implement `Frontend/src/engine/prioritizer.ts` with 4-factor scoring logic (0-40 deadline proximity, 0-25 consequence weight, 0-20 calendar fit, 0-15 urgency), categorize tasks into Now (≥80), Next (50-79), and Later (<50), and build `TaskReasonModal.tsx` to surface the transparent score breakdown and delay risks.
   Verify (mechanical): Execute test script verifying score calculation across different deadline proximity inputs; click a task card in the browser and confirm the rationale modal displays with correct point breakdown.
   Learner check: Click the "Client Revision" card and the "Exam Study" card, review their AI score breakdown, and verify why one sits in Do Now while the other sits in Do Next.
   Commit: `Implement multi-factor priority scoring engine and rationale modal`
@@ -34,7 +34,7 @@ Build mode: learn
   Why now: Delivers the core capacity triage behavior: Axis warns the user when their day is overcommitted rather than pretending everything can fit.
   PRD ref: `prd.md > Features and Behavior (1. Daily Briefing & Schedule Overload Detection)`
   Spec ref: `spec.md > Components (DailyBriefing)`, `spec.md > Prioritization Engine (scheduler.ts)`
-  Build: Implement `src/engine/scheduler.ts` capacity calculations (workload hours vs. free calendar hours) and `DailyBriefing.tsx` banner displaying active tasks, workload chips, and the Overload Alert badge with capacity deficit tag.
+  Build: Implement `Frontend/src/engine/scheduler.ts` capacity calculations (workload hours vs. free calendar hours) and `DailyBriefing.tsx` banner displaying active tasks, workload chips, and the Overload Alert badge with capacity deficit tag.
   Verify (mechanical): Verify briefing correctly calculates total hours; verify overload badge appears when workload > free hours (6.0h vs. 4.5h), and verifies deficit clears when tasks are completed.
   Learner check: Check the top briefing banner; verify the 6.0h workload vs 4.5h free time displays the 1.5h overload warning; complete the 2.0h client task and verify the warning clears.
   Commit: `Add daily briefing banner and schedule overload detection`
@@ -49,18 +49,18 @@ Build mode: learn
   Learner check: Look at the timeline; confirm your 9:30 AM CS lecture and 2:00 PM call are blocked out, with the urgent client revision slotted into the open morning window.
   Commit: `Implement interactive daily timeline with task block mapping`
 
-- [ ] **5. AI Assistant Dialogue and "Approve Plan Changes" Flow**
-  Becomes usable: The right-hand conversational AI Copilot. When the user types or clicks *"I want to study for the CS exam first"*, Axis parses the request, evaluates trade-offs, and displays an inline `ApprovePlanCard.tsx`. Clicking "Approve" moves tasks between columns and updates the timeline; clicking "Keep Current" preserves the existing plan.
+- [ ] **5. AI Assistant Dialogue and "Approve Plan Changes" Flow (FastAPI + LLM Copilot)**
+  Becomes usable: The conversational AI Copilot powered by the Python FastAPI backend service (`Backend/routers/chat.py` and `Frontend/src/components/assistant/AIAssistantDrawer.tsx`). When the user types or clicks *"I want to study for the CS exam first"*, Axis dispatches the request to FastAPI, evaluates trade-offs via LLM prompt chaining, and returns an inline `ApprovePlanCard.tsx` proposal. Clicking "Approve" moves tasks between columns and updates the timeline; clicking "Keep Current" preserves the existing plan.
   Why now: Delivers the core conversational override loop and human-in-the-loop safety contract, proving Act 3 of the 60-second video demo.
   PRD ref: `prd.md > Features and Behavior (4. AI Assistant Dialogue & "Approve Plan Changes" Flow)`
-  Spec ref: `spec.md > Components (AIAssistant, ApprovePlanCard)`, `spec.md > Engine (assistant.ts)`
-  Build: Implement `src/engine/assistant.ts` with natural language intent handling, structured proposal generation, trade-off detection, and `AIAssistant.tsx` chat panel with `ApprovePlanCard.tsx`.
+  Spec ref: `spec.md > Components (AIAssistant, ApprovePlanCard)`, `spec.md > Stack (FastAPI)`, `spec.md > File Structure (Backend/)`
+  Build: Implement FastAPI endpoints (`Backend/routers/chat.py`, `Backend/routers/plan.py`) with LLM integration and fallback heuristic parser, connected to `AIAssistantDrawer.tsx` chat panel with `ApprovePlanCard.tsx`.
   Verify (mechanical): Send prompt *"I want to study for the exam first"*; verify proposal card appears with diff; click "Approve" and verify cards move between columns and timeline updates.
   Learner check: Prompt the AI assistant to prioritize exam prep; review the trade-off warning; click "Approve Changes" and watch Do Now and Do Next update.
-  Commit: `Add AI assistant dialogue and trade-off approval review cards`
+  Commit: `Add AI assistant dialogue, FastAPI backend endpoints, and trade-off approval review cards`
 
 - [ ] **6. Mock Integrations Hub and Demo Rehearsal Controls**
-  Becomes usable: A dedicated `/integrations` view displaying the 4 mock sources (Email, Canvas, Calendar, Tasks), an "Add Mock Task" form, and a "Reset Demo Data" button with confirmation modal to restore baseline state for repeatable 60-second video recordings.
+  Becomes usable: A dedicated `/integrations` view displaying simulated feeds for Email, Notion Workspace, GitHub Repositories, Canvas School Portal, Calendar, and Personal Tasks, an "Add Mock Task" form, and a "Reset Demo Data" button with confirmation modal to restore baseline state for repeatable 60-second video recordings.
   Why now: Completes the full application lifecycle and equips the user with everything needed to rehearse and record their Devpost video submission.
   PRD ref: `prd.md > Features and Behavior (5. Mock Integrations Manager & Demo Controls)`
   Spec ref: `spec.md > Components (IntegrationsView, AddMockTaskModal, ResetDemoModal)`
@@ -93,5 +93,8 @@ Activity mode: [to be recorded during learning wrap-up]
 ## Revisions
 
 - Adapted dashboard layout to user-provided focus architecture: replaced 3 equal side-by-side columns with a primary 2-column layout featuring a prominent "YOUR FOCUS" hero card, streamlined "Coming Up" and "Later" rows, and right-column widgets for Today's Schedule, Capacity, and AI status to dramatically reduce cognitive overload.
+- Architectural reorganization: Split root into `Frontend/` (Vite + React + TypeScript + Tailwind) and `Backend/` (Python 3.12 + FastAPI + Uvicorn) to isolate client and server concerns cleanly.
+- Confirmed backend technology: Python FastAPI explicitly selected as the API server to coordinate LLM orchestration, prompt chaining, contextual task analysis, and structured proposal diff generation.
+- Expanded integrations suite: Added **Notion** (workspace sprint roadmap, documentation) and **GitHub** (pull requests, code reviews, issue tracking) alongside Gmail, Canvas, Calendar, and Tasks to directly represent modern developer/student workflows.
 
 

@@ -5,17 +5,17 @@ status: approved
 
 # Axis — Product Requirements Document (PRD)
 
-An AI-powered productivity command center that consolidates scattered responsibilities from email, school portals, calendars, and task trackers into a unified, intelligently prioritized daily action plan.
+An AI-powered productivity command center that consolidates scattered responsibilities from email, school portals, Notion workspaces, GitHub repositories, calendars, and task trackers into a unified, intelligently prioritized daily action plan.
 
 *Source:* `scope.md > The Unique Kernel`, `scope.md > Who It's For`, `scope.md > The POC Boundary`
 
 ## The Core Journey
-1. **Launch & Ingestion:** The user opens Axis and immediately sees their daily command center pre-seeded with incoming inputs across mock integrations: client email revision requests, an upcoming exam and paper from Canvas, calendar events (lectures and meetings), and personal to-dos.
+1. **Launch & Ingestion:** The user opens Axis and immediately sees their daily command center pre-seeded with incoming inputs across mock integrations: client email revision requests, GitHub PR review, Notion roadmap updates, an upcoming exam and paper from Canvas, calendar events (lectures and meetings), and personal to-dos.
 2. **Daily Briefing & Capacity Triage:** The top Daily Briefing displays a consolidated overview: total pending tasks, urgent deadlines, total estimated work hours vs. available free calendar hours, and an immediate status indicator (Normal or Schedule Overload with actionable warnings).
 3. **Review Prioritized Columns:** The user evaluates three distinct columns side-by-side:
    - **Do Now:** Immediate high-urgency, high-impact items with approaching hard deadlines (e.g., client revisions due by noon).
-   - **Do Next:** Important items scheduled for later today (e.g., studying for tomorrow's exam).
-   - **Do Later:** Flexible or distant tasks that can safely wait (e.g., essay due next week).
+   - **Do Next:** Important items scheduled for later today (e.g., studying for tomorrow's exam, GitHub PR review).
+   - **Do Later:** Flexible or distant tasks that can safely wait (e.g., essay due next week, Notion roadmap sync).
    Each card displays estimated duration, hard vs. flexible deadline badges, and an expandable AI rationale breakdown.
 4. **Inspect the Daily Timeline:** Below the columns, the full-width timeline maps out the day: fixed calendar commitments (classes, client calls), reserved focus blocks for "Do Now" tasks, and planned breaks.
 5. **AI Assistant Dialogue & Proactive Trade-Offs:** The user interacts with the right-hand AI assistant (e.g., *"I need to study for the exam before doing the client revision"*). Axis analyzes the request, generates an **"Approve Plan Changes"** review card detailing the trade-offs (e.g., client revision pushed back 2.5 hours, risks missing deadline), and waits for user confirmation before rearranging the columns or timeline.
@@ -34,7 +34,7 @@ A three-part desktop layout with a responsive left navigation sidebar, central w
   - Persistent chat interface on desktop (collapsible slide-out drawer on tablet/mobile).
   - Displays conversation history, quick action prompts, and interactive **"Approve Plan Changes"** review cards.
 - **Integrations Surface (`/integrations`):**
-  - Feed cards for Email, Canvas School Portal, Calendar, and Task Manager showing mock synced items.
+  - Feed cards for Email, Notion Workspace, GitHub Repositories, Canvas School Portal, Calendar, and Task Manager showing mock synced items.
   - Demo toolbar: **"Reset Demo Data"** button (with confirmation modal) and **"Add Mock Task"** modal form.
 
 ## Look and Feel
@@ -97,32 +97,35 @@ A three-part desktop layout with a responsive left navigation sidebar, central w
 ### 5. Mock Integrations Manager & Demo Controls
 - Dedicated Integrations view displaying the status and simulated item feeds for:
   - **Client Email** (e.g., revision requests, feedback).
+  - **Notion Workspace** (e.g., sprint roadmap, specs, documentation).
+  - **GitHub Repositories** (e.g., code reviews, pull requests, issue trackers).
   - **Canvas School Portal** (e.g., midterm exams, project submissions).
   - **Google/Apple Calendar** (e.g., lectures, team meetings).
   - **Task Tracker** (e.g., personal errands, gym).
 - **"Reset Demo Data" Action:** A prominent button with confirmation dialog that resets all tasks, calendar events, completion states, and chat history back to the default seed state for seamless 60-second walkthrough rehearsals.
 - **"Add Mock Task" Form:** Simple modal form allowing the user to create a custom task (Title, Source, Deadline, Duration, Importance) which is immediately ingested and scored by the prioritization engine.
 - *Acceptance Criteria:*
-  - [ ] Integrations page displays cards for each of the 4 mock sources with live item counts.
+  - [ ] Integrations page displays cards for each of the mock sources (Email, Notion, GitHub, Canvas, Calendar, Tasks) with live item counts.
   - [ ] Clicking "Reset Demo Data" restores the initial state cleanly after confirmation.
   - [ ] Adding a custom mock task updates the dashboard columns and briefing immediately.
 
 ## States and Boundaries
 
-- **Default Seeded State (Demo Ready):** Pre-populated with a realistic student-freelancer profile: 1 urgent client email revision due today, 1 university exam tomorrow morning, 1 flexible essay due in 4 days, 2 scheduled lectures, and 1 client call.
+- **Default Seeded State (Demo Ready):** Pre-populated with a realistic student-freelancer profile: 1 urgent client email revision due today, 1 GitHub PR review, 1 university exam tomorrow morning, 1 Notion sprint doc sync, 1 flexible essay, 2 scheduled lectures, and 1 client call.
 - **Schedule Overload State:** Triggered when urgent tasks exceed free calendar hours; flags deficit and highlights high-risk hard deadlines.
 - **All-Tasks-Complete State:** When all Do Now/Next tasks are completed, the briefing displays a congratulatory all-clear state with available leisure/recovery hours.
-- **Persistence & API:** The application integrates a Python FastAPI backend to coordinate LLM orchestration, structured prompt chaining, and plan generation, with browser state caching for instant local resilience.
+- **Persistence & API:** The application integrates a Python FastAPI backend (`Backend/`) to coordinate LLM orchestration, structured prompt chaining, and plan generation, with browser state caching for instant local resilience.
 
 ## Product Decisions
 - **Pre-approval for AI Plan Changes:** The AI never silently alters the user's schedule; every major re-weighting surfaces an "Approve Plan Changes" card with explicit trade-off explanations.
 - **LLM-Driven Context & Reasoning:** An LLM generates natural language task definitions, priority explanations, and intelligent trade-off analyses rather than static rule-based templates.
 - **Mock Over Real OAuth:** Cut live third-party APIs to guarantee instant, 100% reliable execution during hackathon video recording without token expiration or auth hurdles.
 - **Capacity Deficit Transparency:** Overload situations are directly communicated as capacity gaps rather than compressing impossible tasks into unavailable time.
+- **`Frontend/` + `Backend/` Directory Split:** The codebase is organized into two clear top-level directories — `Frontend/` for the Vite + React + TypeScript client and `Backend/` for the Python FastAPI service — so each side has independent dependencies and can be run, tested, and iterated on without interfering with the other.
 
 ## What We're Building
-- Desktop-first responsive web command center with sidebar, central dashboard, right AI assistant, and integrations view.
-- Python FastAPI backend powering LLM completions, task analysis, and proposal generations.
+- Desktop-first responsive web command center (in `Frontend/`) with sidebar, central dashboard, right AI assistant, and integrations view.
+- Python FastAPI backend (in `Backend/`) powering LLM completions, task analysis, and proposal generations.
 - Multi-factor prioritization engine calibrated with LLM insights.
 - Interactive timeline with task block mapping.
 - Chat copilot with structured trade-off approval cards.

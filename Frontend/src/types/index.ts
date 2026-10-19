@@ -1,4 +1,4 @@
-export type SourceType = 'email' | 'canvas' | 'calendar' | 'task';
+export type SourceType = 'email' | 'canvas' | 'calendar' | 'task' | 'notion' | 'github';
 export type PriorityBucket = 'now' | 'next' | 'later';
 export type ImportanceLevel = 'high' | 'medium' | 'low';
 
