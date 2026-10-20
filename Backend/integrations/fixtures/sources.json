@@ -1,0 +1,33 @@
+[
+  {
+    "integration": "gmail", "accountId": "mock-mail", "fetchedAt": "2026-10-20T08:00:00+08:00",
+    "payload": {
+      "id": "email-hero", "threadId": "thread-client", "internalDate": "1792452600000",
+      "payload": {"headers": [{"name": "Subject", "value": "Homepage revision"}, {"name": "From", "value": "client@example.com"}, {"name": "To", "value": "student@example.com"}], "mimeType": "text/plain", "body": {"data": "UGxlYXNlIHJldmlzZSB0aGUgaG9tZXBhZ2UgaGVybyBieSBub29uIHRvbW9ycm93LiBXZSBjYW5ub3QgYXBwcm92ZSB0aGUgaW52b2ljZSB1bnRpbCB0aGlzIGlzIGZpbmlzaGVkLg=="}}
+    }
+  },
+  {
+    "integration": "gmail", "accountId": "mock-mail", "fetchedAt": "2026-10-20T08:00:00+08:00",
+    "payload": {"id": "email-newsletter", "threadId": "thread-news", "internalDate": "1792452600000", "payload": {"headers": [{"name": "Subject", "value": "Weekly news"}, {"name": "From", "value": "news@example.com"}], "mimeType": "text/plain", "body": {"data": "VGhpcyB3ZWVrJ3MgbmV3cy4gTm8gYWN0aW9uIHJlcXVpcmVkLg=="}}}
+  },
+  {
+    "integration": "notion", "accountId": "mock-workspace", "fetchedAt": "2026-10-20T08:00:00+08:00",
+    "payload": {"id": "page-roadmap", "url": "https://www.notion.so/page-roadmap", "last_edited_time": "2026-10-19T10:00:00Z", "properties": {"Name": {"title": [{"plain_text": "Update sprint roadmap"}]}, "Due": {"date": {"start": "2026-10-23"}}, "Status": {"status": {"name": "Not started"}}}, "blocks": [{"paragraph": {"rich_text": [{"plain_text": "Update the roadmap notes. No effort estimate has been supplied."}]}}]}
+  },
+  {
+    "integration": "github", "accountId": "mock-github", "fetchedAt": "2026-10-20T08:00:00+08:00",
+    "payload": {"id": 42, "number": 42, "repository": {"full_name": "axis/demo"}, "title": "Review authentication patch", "body": "Review the patch before the staging release.", "state": "open", "pull_request": {"url": "https://api.github.com/repos/axis/demo/pulls/42"}, "html_url": "https://github.com/axis/demo/pull/42", "updated_at": "2026-10-19T12:00:00Z", "labels": [{"name": "security"}], "assignees": [{"login": "student"}], "milestone": {"due_on": "2026-10-23T09:00:00Z"}}
+  },
+  {
+    "integration": "canvas", "accountId": "mock-campus", "fetchedAt": "2026-10-20T08:00:00+08:00",
+    "payload": {"id": 101, "course_id": 401, "course_name": "Distributed Systems", "name": "Consensus algorithms assignment", "description": "<p>Explain Raft and Paxos.</p>", "due_at": "2026-10-22T09:00:00Z", "points_possible": 20, "html_url": "https://canvas.example.com/courses/401/assignments/101", "submission": {"workflow_state": "unsubmitted", "submitted_at": null}}
+  },
+  {
+    "integration": "google_calendar", "accountId": "mock-calendar", "fetchedAt": "2026-10-20T08:00:00+08:00",
+    "payload": {"id": "lecture-1", "calendar_id": "primary", "summary": "Distributed Systems lecture", "start": {"dateTime": "2026-10-20T09:30:00+08:00"}, "end": {"dateTime": "2026-10-20T11:00:00+08:00"}, "status": "confirmed", "transparency": "opaque"}
+  },
+  {
+    "integration": "manual", "accountId": "local", "fetchedAt": "2026-10-20T08:00:00+08:00",
+    "payload": {"id": "errand-1", "title": "Collect lab materials", "deadlineDate": "2026-10-22", "estimatedHours": 0.5, "importance": "low"}
+  }
+]

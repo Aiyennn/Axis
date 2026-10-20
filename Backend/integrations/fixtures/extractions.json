@@ -1,0 +1,19 @@
+{
+  "gmail:email-hero": {
+    "tasks": [{
+      "itemKey": "hero-revision",
+      "title": "Revise homepage hero",
+      "deadlineExpression": "noon tomorrow",
+      "consequencesOfDelay": "Invoice approval depends on completion.",
+      "evidence": [
+        {"field": "title", "quote": "revise the homepage hero"},
+        {"field": "deadlineExpression", "quote": "by noon tomorrow"},
+        {"field": "consequencesOfDelay", "quote": "We cannot approve the invoice until this is finished."}
+      ]
+    }]
+  },
+  "gmail:email-newsletter": {"tasks": []},
+  "notion:page-roadmap": {"tasks": [{"itemKey": "primary", "title": "Update sprint roadmap", "evidence": [{"field": "title", "quote": "Update sprint roadmap"}]}]},
+  "github:42": {"tasks": [{"itemKey": "primary", "title": "Review authentication patch", "evidence": [{"field": "title", "quote": "Review authentication patch"}]}]},
+  "canvas:101": {"tasks": [{"itemKey": "primary", "title": "Consensus algorithms assignment", "evidence": [{"field": "title", "quote": "Consensus algorithms assignment"}]}]}
+}
