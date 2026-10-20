@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Axis — Build Checklist</title><style>
+:root { color-scheme: dark; font-family: system-ui, sans-serif; background:#0b0f19; color:#e2e8f0; }
+body { margin:0; line-height:1.7; } nav { padding:1rem 2rem; border-bottom:1px solid #334155; background:#111827; }
+nav a { display:inline-block; margin-right:1.4rem; } a { color:#a5b4fc; } a[aria-current] { color:#fff; font-weight:700; }
+main { max-width:1000px; margin:auto; padding:2rem 1.5rem 5rem; } h1,h2,h3 { line-height:1.25; color:#f8fafc; }
+h1 { font-size:2.4rem; } h2 { margin-top:2.5rem; border-bottom:1px solid #334155; padding-bottom:.6rem; }
+pre { overflow:auto; padding:1.2rem; background:#111827; border:1px solid #334155; border-radius:8px; }
+code { font-family:ui-monospace,monospace; font-size:.9em; overflow-wrap:anywhere; } pre code { white-space:pre; }
+table { border-collapse:collapse; display:block; overflow:auto; width:100%; } th,td { padding:.7rem; border:1px solid #334155; text-align:left; }
+th { background:#1e293b; } li { margin:.35rem 0; } .meta { color:#94a3b8; } strong { color:#f1f5f9; }
+@media(max-width:600px) { main { padding:1rem; } h1 { font-size:1.9rem; } nav { padding:1rem; } }
+@media print { :root { color-scheme:light; background:white; color:black; } h1,h2,h3,strong { color:black; } nav { display:none; } pre,th { background:#eee; } }
+</style></head><body><nav aria-label="Planning documents"><a href="scope.html">SCOPE</a><a href="prd.html">PRD</a><a href="spec.html">SPEC</a><a href="checklist.html" aria-current="page">CHECKLIST</a></nav><main><p class="meta">Updated October 20, 2026 · User-requested backend architecture revision · <a href="checklist.md">Markdown source</a></p><h1>Build Checklist</h1>
+<p>Build mode: learn</p>
+<h2>User-Requested Backend Architecture Revision — October 20, 2026</h2>
+<p>The user explicitly requested this architecture update: deterministic ranking, AI extraction and explanation, separate facts/evidence and assessments, future user login support, and an engine package at <code>Backend/engine/</code> outside services. The original LLM-driven ranking and browser-only persistence plan is superseded.</p>
+<p>The checked slices below preserve historical frontend/demo progress. They do not certify completion of the new backend integration. Earlier references to fixed score thresholds and scripted explanations describe the legacy demo only. Current requirements are in <code>scope.md</code>, <code>prd.md</code>, and <code>spec.md</code>; the new work is tracked below.</p>
+<h2>Updated Backend Work</h2>
+<ul>
+<li>☑ Integration contracts and explicit adapters for Gmail, Notion, GitHub, Canvas, Google Calendar and manual tasks.</li>
+<li>☑ Vendor-shaped source fixtures and explicitly labeled recorded extraction outputs.</li>
+<li>☑ Optional Gemini extraction implementation (live provider verification still pending).</li>
+<li>☑ Evidence/shape validation, explicit-source precedence, relative-date normalization and review flags.</li>
+<li>☑ Synchronous fixture-to-task pipeline; no ingestion table, broker or worker required for mock replay.</li>
+<li>☑ User-owned versioned task facts, source evidence and linked priority assessments; calendar-source storage.</li>
+<li>☑ Deterministic engine package in <code>Backend/engine/</code> with focused pipeline, metrics, policy and scheduling modules.</li>
+<li>☑ Deadline-order repair regression coverage, missing-effort handling and non-overlapping capacity allocation.</li>
+<li>☑ Offline ingestion and priority preview endpoints; CLI persistence with replay deduplication.</li>
+<li>☑ Backend suite: 34 tests passed on October 20, 2026 using disposable databases and no live LLM calls.</li>
+<li>☐ Migrate previously created PostgreSQL schemas; verify on the configured database.</li>
+<li>☐ Implement login and authenticated read/write routes with trusted ownership.</li>
+<li>☐ Connect the frontend to new task facts and matching current assessments.</li>
+<li>☐ Add extracted-fact review and confirmation UI.</li>
+<li>☐ Load stored calendar commitments into engine context automatically.</li>
+<li>☐ Generate grounded AI explanations, with pending/failure handling and stale-result protection.</li>
+<li>☐ Replace scripted chat with constraint extraction and engine-evaluated proposals.</li>
+<li>☐ Persist approval and manual-override behavior; verify reruns respect the agreed policy.</li>
+<li>☐ Verify the full import → rank → explain → frontend flow before claiming the revised demo complete.</li>
+</ul>
+<h2>Historical Demo Slices</h2>
+<ul>
+<li>
+<p>☑ <strong>1. Scaffolding, Seed Store, and Tri-Bucket Columns</strong>
+Becomes usable: A running local web application at <code>http://localhost:5173</code> showing the command center desktop layout: left sidebar, central workspace with pre-seeded student-freelancer tasks in &quot;Do Now,&quot; &quot;Do Next,&quot; and &quot;Do Later,&quot; and interactive task completion toggles that strike through items and persist in browser storage.
+Why now: Boots the project end-to-end (Vite, React, TypeScript, Tailwind CSS, AppContext, TaskCard components) so all subsequent engine logic has a real, responsive surface to land on.
+PRD ref: <code>prd.md &gt; The Core Journey</code> (Steps 1–3), <code>prd.md &gt; Screens and Layout</code>, <code>prd.md &gt; Features and Behavior (2. Prioritized Task Columns)</code>
+Spec ref: <code>spec.md &gt; Stack</code>, <code>spec.md &gt; Components (AppContext, PriorityColumns, TaskCard)</code>, <code>spec.md &gt; File Structure</code>
+Build: Initialize Vite React TypeScript project with Tailwind CSS, create type definitions and <code>seedData.ts</code>, implement <code>AppContext.tsx</code> with local storage synchronization, render layout with sidebar and three priority columns, and enable task completion checkboxes.
+Verify (mechanical): Run <code>npm run build</code> and launch dev server; verify page renders three columns with seed tasks; verify checking off a task updates state and persists across page reload.
+Learner check: Open <code>http://localhost:5173</code>, observe the three columns with realistic student-freelancer tasks, mark a task as complete, and confirm it strikes through.
+Commit: <code>Initialize command center with seed data and tri-bucket columns</code></p>
+</li>
+<li>
+<p>☑ <strong>2. Multi-Factor Prioritization Engine and Rationale Modal</strong>
+Becomes usable: Every task is evaluated by a multi-factor 0–100 scoring algorithm (evaluating deadline proximity, hard vs. flexible consequences, calendar fit, and urgency). Clicking any card opens <code>TaskReasonModal.tsx</code> showing the mathematical breakdown of why the task received its priority.
+Why now: Proves the Unique Kernel immediately on top of the running board—tasks are prioritized intelligently rather than by naive due dates.
+PRD ref: <code>prd.md &gt; Features and Behavior (2. Prioritized Task Columns)</code>
+Historical implementation: <code>Frontend/src/engine/prioritizer.ts</code>; current policy: <code>spec.md &gt; Deterministic Ranking Policy</code>, <code>spec.md &gt; Components (TaskReasonModal)</code>
+Build: Implement <code>Frontend/src/engine/prioritizer.ts</code> with 4-factor scoring logic (0-40 deadline proximity, 0-25 consequence weight, 0-20 calendar fit, 0-15 urgency), categorize tasks into Now (≥80), Next (50-79), and Later (&lt;50), and build <code>TaskReasonModal.tsx</code> to surface the transparent score breakdown and delay risks.
+Verify (mechanical): Execute test script verifying score calculation across different deadline proximity inputs; click a task card in the browser and confirm the rationale modal displays with correct point breakdown.
+Learner check: Click the &quot;Client Revision&quot; card and the &quot;Exam Study&quot; card, review their AI score breakdown, and verify why one sits in Do Now while the other sits in Do Next.
+Commit: <code>Implement multi-factor priority scoring engine and rationale modal</code></p>
+</li>
+<li>
+<p>☑ <strong>3. Daily Briefing and Schedule Overload Detection</strong>
+Becomes usable: The Daily Briefing banner at the top dynamically computes total workload hours against open calendar hours. When urgent tasks exceed available time, the high-contrast Schedule Overload alert activates with the exact deficit and recommended deferrals.
+Why now: Delivers the core capacity triage behavior: Axis warns the user when their day is overcommitted rather than pretending everything can fit.
+PRD ref: <code>prd.md &gt; Features and Behavior (1. Daily Briefing &amp; Schedule Overload Detection)</code>
+Spec ref: <code>spec.md &gt; Components (DailyBriefing)</code>, <code>spec.md &gt; Prioritization Engine (scheduler.ts)</code>
+Build: Implement <code>Frontend/src/engine/scheduler.ts</code> capacity calculations (workload hours vs. free calendar hours) and <code>DailyBriefing.tsx</code> banner displaying active tasks, workload chips, and the Overload Alert badge with capacity deficit tag.
+Verify (mechanical): Verify briefing correctly calculates total hours; verify overload badge appears when workload &gt; free hours (6.0h vs. 4.5h), and verifies deficit clears when tasks are completed.
+Learner check: Check the top briefing banner; verify the 6.0h workload vs 4.5h free time displays the 1.5h overload warning; complete the 2.0h client task and verify the warning clears.
+Commit: <code>Add daily briefing banner and schedule overload detection</code></p>
+</li>
+<li>
+<p>☑ <strong>4. Interactive Daily Timeline Visualizer</strong>
+Becomes usable: A continuous horizontal 8:00 AM – 10:00 PM timeline bar at the bottom of the dashboard plotting fixed commitments (lectures, standups) in dark blocks and locally allocated demo focus blocks for &quot;Do Now&quot; tasks in violet.
+Why now: Connects &quot;what to do&quot; with &quot;when to do it&quot; across the user's day, answering both questions at a glance.
+PRD ref: <code>prd.md &gt; Features and Behavior (3. Daily Timeline Visualizer)</code>
+Spec ref: <code>spec.md &gt; Components (DailyTimeline)</code>, <code>spec.md &gt; Prioritization Engine (scheduler.ts)</code>
+Build: Implement <code>DailyTimeline.tsx</code> with proportional hour track, rendering fixed calendar events from <code>AppContext</code> and automatically slotting Do Now tasks into open intervals.
+Verify (mechanical): Verify fixed calendar events and focus blocks render accurately along the 8 AM - 10 PM track without overlapping.
+Learner check: Look at the timeline; confirm your 9:30 AM CS lecture and 2:00 PM call are blocked out, with the urgent client revision slotted into the open morning window.
+Commit: <code>Implement interactive daily timeline with task block mapping</code></p>
+</li>
+<li>
+<p>☑ <strong>5. AI Assistant Dialogue and &quot;Approve Plan Changes&quot; Flow (FastAPI + LLM Copilot)</strong>
+Becomes usable: The conversational AI Copilot powered by the Python FastAPI backend service (<code>Backend/routers/chat.py</code> and <code>Frontend/src/components/assistant/AIAssistantDrawer.tsx</code>). When the user types or clicks <em>&quot;I want to study for the CS exam first&quot;</em>, Axis dispatches the request to FastAPI, returns the current scripted trade-off response, and returns an inline <code>ApprovePlanCard.tsx</code> proposal. Clicking &quot;Approve&quot; moves tasks between columns and updates the timeline; clicking &quot;Keep Current&quot; preserves the existing plan.
+Why now: Delivers the core conversational override loop and human-in-the-loop safety contract, proving Act 3 of the 60-second video demo.
+PRD ref: <code>prd.md &gt; Features and Behavior (4. AI Assistant Dialogue &amp; &quot;Approve Plan Changes&quot; Flow)</code>
+Spec ref: <code>spec.md &gt; Components (AIAssistant, ApprovePlanCard)</code>, <code>spec.md &gt; Stack (FastAPI)</code>, <code>spec.md &gt; File Structure (Backend/)</code>
+Build: Implement FastAPI endpoints (<code>Backend/routers/chat.py</code>, <code>Backend/routers/plan.py</code>) with the current scripted parser (real engine-backed dialogue pending), connected to <code>AIAssistantDrawer.tsx</code> chat panel with <code>ApprovePlanCard.tsx</code>.
+Verify (mechanical): Send prompt <em>&quot;I want to study for the exam first&quot;</em>; verify proposal card appears with diff; click &quot;Approve&quot; and verify cards move between columns and timeline updates.
+Learner check: Prompt the AI assistant to prioritize exam prep; review the trade-off warning; click &quot;Approve Changes&quot; and watch Do Now and Do Next update.
+Commit: <code>Add AI assistant dialogue, FastAPI backend endpoints, and trade-off approval review cards</code></p>
+</li>
+<li>
+<p>☐ <strong>6. Mock Integrations Hub and Demo Rehearsal Controls</strong>
+Becomes usable: A dedicated <code>/integrations</code> view displaying simulated feeds for Email, Notion Workspace, GitHub Repositories, Canvas School Portal, Calendar, and Personal Tasks, an &quot;Add Mock Task&quot; form, and a &quot;Reset Demo Data&quot; button with confirmation modal to restore baseline state for repeatable 60-second video recordings.
+Why now: Completes the full application lifecycle and equips the user with everything needed to rehearse and record their Devpost video submission.
+PRD ref: <code>prd.md &gt; Features and Behavior (5. Mock Integrations Manager &amp; Demo Controls)</code>
+Spec ref: <code>spec.md &gt; Components (IntegrationsView, AddMockTaskModal, ResetDemoModal)</code>
+Build: Implement <code>IntegrationsView.tsx</code> with feed cards, <code>AddMockTaskModal.tsx</code> for custom task injection, and <code>ResetDemoModal.tsx</code> with one-click restore.
+Verify (mechanical): Create a custom mock task and verify it appears on the dashboard; click &quot;Reset Demo Data&quot; and verify all mutations reset to seed baseline.
+Learner check: Go to Integrations, add a mock task, observe it on the dashboard, then click &quot;Reset Demo Data&quot; to verify you can return to a clean demo state anytime.
+Commit: <code>Add mock integrations manager and demo reset rehearsal controls</code></p>
+</li>
+</ul>
+<h2>Hands-on Checkpoints</h2>
+<ul>
+<li>☐ Early usable behavior explored — Slice 2 (Tri-bucket board with scoring engine and rationale modal live)</li>
+<li>☐ Final kick-the-tires exploration and feedback completed — Slice 6 (Full command center with timeline, AI override, and demo reset)</li>
+</ul>
+<h2>Final Review</h2>
+<ul>
+<li>☐ Final review complete — feedback resolved and learner confirms ready to ship</li>
+</ul>
+<h2>Code Tour and App Map</h2>
+<ul>
+<li>☐ Learning activity complete — guided route, focused alternative, prior practice connected, or brief recap</li>
+<li>☐ Optional edit and transfer reflection addressed — offered/declined/already covered/not applicable as appropriate</li>
+<li>☐ <code>devpost/app-map.html</code> generated from finished code, checked, and shown, including a project-grounded practice to reuse</li>
+</ul>
+<p>Activity and evidence: [to be recorded during learning wrap-up]
+Route and stops: [to be recorded during learning wrap-up]
+Edit outcome: [to be recorded during learning wrap-up]
+Reflection: [to be recorded during learning wrap-up]
+Activity mode: [to be recorded during learning wrap-up]</p>
+<h2>Revisions</h2>
+<ul>
+<li>
+<p><strong>October 20, 2026 — User-requested architecture update:</strong> adopted the deterministic backend and evidence-backed ingestion architecture described above; previous completion marks refer to legacy demo slices. Updated Markdown planning documents and HTML companions together.</p>
+</li>
+<li>
+<p>Adapted dashboard layout to user-provided focus architecture: replaced 3 equal side-by-side columns with a primary 2-column layout featuring a prominent &quot;YOUR FOCUS&quot; hero card, streamlined &quot;Coming Up&quot; and &quot;Later&quot; rows, and right-column widgets for Today's Schedule, Capacity, and AI status to dramatically reduce cognitive overload.</p>
+</li>
+<li>
+<p>Architectural reorganization: Split root into <code>Frontend/</code> (Vite + React + TypeScript + Tailwind) and <code>Backend/</code> (Python 3.12 + FastAPI + Uvicorn) to isolate client and server concerns cleanly.</p>
+</li>
+<li>
+<p>Confirmed backend technology: Python FastAPI explicitly selected as the API server to coordinate LLM orchestration, prompt chaining, contextual task analysis, and structured proposal diff generation.</p>
+</li>
+<li>
+<p>Expanded integrations suite: Added <strong>Notion</strong> (workspace sprint roadmap, documentation) and <strong>GitHub</strong> (pull requests, code reviews, issue tracking) alongside Gmail, Canvas, Calendar, and Tasks to directly represent modern developer/student workflows.</p>
+</li>
+</ul>
+</main></body></html>

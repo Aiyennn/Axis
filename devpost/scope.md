@@ -1,51 +1,93 @@
 ---
 doc: scope
 status: approved
+updated: 2026-10-20
 ---
 
 # Axis
 
-An AI-powered productivity command center that consolidates scattered responsibilities into a single, intelligently prioritized daily action plan.
+An AI-assisted productivity command center for student freelancers juggling coursework, client deliverables and personal commitments across disconnected apps.
+
+## User-Requested Architecture Update — October 20, 2026
+
+The user explicitly requested an update to the backend architecture. They chose a **deterministic engine to decide task order**, with AI extracting supported facts and communicating decisions. They also requested separate storage for task facts/source evidence and priority assessments, preparation for future user login, and a dedicated **`Backend/engine/`** directory outside `services/`.
+
+This revision supersedes the earlier LLM-driven prioritization and browser-only persistence plan. The product audience, visual identity and human-approved plan-change experience remain the direction.
 
 ## The Unique Kernel
-A multi-factor, explainable AI prioritization engine that evaluates deadlines, urgency, importance, duration, dependencies, and calendar commitments—grouping tasks into "Do Now," "Do Next," and "Do Later" with transparent rationales and instant trade-off rebalancing when challenged by the user.
+
+Explainable deterministic prioritization based on deadlines, available working time, explicit impact, importance and waiting age. The engine returns rankings, Now/Next/Later buckets, proposed work blocks and decision facts. AI may explain these outputs but does not assign scores or change the order.
 
 ## Who It's For
-Student freelancers who juggle coursework, exams, client deliverables, and personal commitments across disconnected apps (Canvas, Gmail, Notion, GitHub, Calendar). They start their day overwhelmed, wasting time triaging what to touch first, paralyzed by competing deadlines.
+
+Student freelancers coordinating Gmail, Notion, GitHub, Canvas, Google Calendar and personal tasks. Axis helps them understand what needs attention and whether their commitments fit the available time.
 
 ## The Core Loop
-1. **Consolidate:** View or refresh simulated feeds from email, Notion, GitHub, calendar, task manager, and school portals.
-2. **Prioritize:** Axis scores and buckets items into "Do Now," "Do Next," and "Do Later" with clear reasoning tags and suggested calendar time blocks.
-3. **Dialogue & Adapt:** The user reviews the plan, challenges priorities or adds constraints via the AI assistant ("I need to study for tomorrow's exam first"), and Axis re-evaluates trade-offs with immediate schedule updates.
-4. **Execute:** Check off tasks or re-plan as new urgent items emerge.
 
-## Inspiration & Identity
-- **Feel:** Modern, premium, clean, high-focus command center.
-- **Tone:** Calm, decisive, reassuring, and transparent—never a black-box task list.
-- **Aesthetic:** Dark-mode/neutral high-contrast dashboard with crisp visual hierarchy (clear priority badges, timeline visualization, and an interactive assistant panel).
+1. **Consolidate:** Read different source formats through integration-specific adapters.
+2. **Validate:** Map explicit fields; extract additional stated facts with evidence. Unknown values stay unknown and uncertain extraction requires review.
+3. **Prioritize:** Run validated task facts and calendar constraints through the deterministic engine.
+4. **Understand:** Show scores, capacity warnings and source evidence; attach an AI explanation when available.
+5. **Adapt and execute:** Interpret user constraints, rerun the engine and present plan changes for approval before applying them.
 
-## Why This Matters to the Learner
-To demonstrate how intelligent agents can transform overwhelming digital chaos into actionable clarity, while building fluency in end-to-end agent-first architecture and development.
+## Backend Data Flow
 
-## What "Working" Looks Like
-A compelling 60-second walkthrough with three verifiable beats:
-1. **Scattered Workload (0–15s):** Open the Mock Integrations page showing realistic incoming items from Email (urgent client revisions), GitHub (security patch PR review), Notion (sprint roadmap specs), School Portal (upcoming exam, paper due tomorrow), and Calendar events.
-2. **Intelligent Prioritization (15–40s):** Navigate to Dashboard, trigger AI prioritization, and see tasks unified into "Do Now," "Do Next," and "Do Later" with explicit rationale cards and realistic time estimates.
-3. **Challenge & Adapt (40–60s):** Prompt the AI assistant to prioritize exam prep before client work; Axis recalculates priorities, surfaces the trade-offs, and updates the daily plan under user control.
+```text
+Mock fixtures / future integration APIs
+  → source adapters and structured field mapping
+  → extraction of additional facts
+  → validation and normalization
+  → database: versioned task facts + source evidence
+  → deterministic priority engine
+  → database: priority assessments and decision facts
+  → AI explanation attached to its assessment
+  → frontend
+```
+
+Calendar events become availability constraints rather than task cards. Manual tasks map directly from user fields. Informational messages can produce no tasks.
 
 ## The POC Boundary
-- Functional web command center with responsive modern dark UI, code living in **`Frontend/`**.
-- Python FastAPI backend in **`Backend/`** serving as the intelligent orchestration API and LLM bridge.
-- LLM-powered assistant & prioritization engine that generates contextual task definitions, evaluates trade-offs, and powers the conversational override drawer.
-- Mock integrations manager with rich pre-loaded presets (School Portal, Freelance Email, Notion, GitHub, Calendar, Tasks) and toggle/refresh controls.
-- Interactive Dashboard with Daily Briefing summary, "Do Now / Do Next / Do Later" task cards, and visual Daily Timeline.
+
+- React/TypeScript frontend with the existing dark focus dashboard, timeline, task interactions, integration views and assistant.
+- Python FastAPI backend with PostgreSQL persistence and user-scoped models.
+- Mock ingestion for Gmail, Notion, GitHub, Canvas, Google Calendar and manual tasks.
+- Offline recorded extraction for repeatable demonstrations; optional Gemini extraction.
+- Versioned task facts, evidence and assessments; deterministic engine in its own package.
+- Future AI explanations grounded in engine outputs, with explicit pending/failure states.
+- A local user can own data before login is implemented. Login flows remain pending.
+
+## Current Implementation Boundary
+
+Backend schemas, user ownership, deterministic ranking, preview routes and mock ingestion with persistence support are implemented. The new ingestion fixtures produce five tasks, one calendar event and one ignored newsletter from seven records. Existing frontend seeds are a separate legacy demo dataset.
+
+The frontend still uses the legacy task API. It is not yet connected to the new task-fact/assessment flow. The current chat service is scripted. AI explanation generation, review UI, authenticated routes and engine-backed conversational overrides remain pending; they must not be presented as completed demo features.
+
+## Inspiration & Identity
+
+- **Feel:** Calm, focused and transparent.
+- **Visual direction:** Dark neutral surfaces, violet accents, clear source and priority labels, a prominent focus task and supporting schedule/capacity widgets.
+- **Learning purpose:** Build fluency in source normalization, deterministic decision systems, evidence-based AI assistance and explicit service boundaries.
+
+## What "Working" Looks Like
+
+The target 60-second walkthrough, after the remaining wiring is complete:
+
+1. Show varied incoming mock sources and a validated task with supporting evidence.
+2. Run deterministic prioritization and inspect its score, time allocation and warnings.
+3. Ask for a change, inspect an engine-evaluated proposal and approve or reject it.
+
+Until then, demonstrate backend previews separately and label fixture extraction and scripted chat honestly.
 
 ## Later
-- Real OAuth integrations (Google Workspace, Canvas LMS, Microsoft 365, Notion, GitHub, Slack).
-- Autonomous agent delegation (e.g., drafting client email responses, auto-declining conflicting calendar invites).
-- Cross-device sync and native mobile applications.
+
+- Live OAuth, vendor webhooks and complete vendor API clients.
+- Login implementation, authenticated read/write routes and account settings.
+- Queue workers, pub/sub and an ingestion-record table. Replayable fixture files are sufficient for this synchronous mock pipeline.
+- Global schedule optimization, dependency urgency propagation and sticky overrides.
+- Cross-device sync and native mobile apps.
 
 ## Explicitly Cut
-- **Live external third-party OAuth flows:** Avoids authentication friction and rate limits during hackathon evaluation.
-- **Multi-user collaboration & team accounts:** Unnecessary for single-user student/freelancer proof of concept.
 
+- Autonomous external actions such as sending email or changing calendar events.
+- Team collaboration and shared-account permissions for this individual-user POC.
+- A broker solely to process mock fixtures.

@@ -1,791 +1,250 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Axis — Technical Specification Companion (Spec)</title>
-  <style>
-    :root {
-      --bg-canvas: #09090b;
-      --bg-surface: #121215;
-      --bg-surface-elevated: #18181b;
-      --bg-surface-hover: #222226;
-      --border-subtle: #27272a;
-      --border-strong: #3f3f46;
-      --text-primary: #f4f4f5;
-      --text-secondary: #a1a1aa;
-      --text-tertiary: #71717a;
-      --accent-primary: #7c3aed;
-      --accent-primary-light: #a78bfa;
-      --accent-primary-glow: rgba(124, 58, 237, 0.15);
-      --status-now: #f43f5e;
-      --status-next: #f59e0b;
-      --status-later: #10b981;
-      --font-stack: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-      --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
-    }
-
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-
-    body {
-      background-color: var(--bg-canvas);
-      color: var(--text-primary);
-      font-family: var(--font-stack);
-      line-height: 1.5;
-      padding: 2.5rem 1.25rem;
-      -webkit-font-smoothing: antialiased;
-    }
-
-    .wrapper {
-      max-width: 1120px;
-      margin: 0 auto;
-    }
-
-    /* Meta Bar */
-    .meta-bar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 1.5rem;
-      padding-bottom: 1rem;
-      border-bottom: 1px solid var(--border-subtle);
-      flex-wrap: wrap;
-      gap: 0.75rem;
-    }
-
-    .breadcrumbs {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      font-size: 0.82rem;
-      color: var(--text-tertiary);
-      font-family: var(--font-mono);
-    }
-
-    .breadcrumbs span.current {
-      color: var(--text-primary);
-      font-weight: 500;
-    }
-
-    .badge-status {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.4rem;
-      padding: 0.2rem 0.65rem;
-      font-size: 0.75rem;
-      font-weight: 600;
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
-      border-radius: 9999px;
-      background: var(--accent-primary-glow);
-      color: var(--accent-primary-light);
-      border: 1px solid rgba(139, 92, 246, 0.3);
-    }
-
-    .badge-status::before {
-      content: "";
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      background: var(--accent-primary-light);
-    }
-
-    /* Page Header */
-    .hero {
-      margin-bottom: 2.5rem;
-    }
-
-    .hero h1 {
-      font-size: 2.25rem;
-      font-weight: 700;
-      letter-spacing: -0.03em;
-      color: var(--text-primary);
-      margin-bottom: 0.5rem;
-    }
-
-    .hero p {
-      font-size: 1.05rem;
-      color: var(--text-secondary);
-      max-width: 760px;
-      line-height: 1.6;
-    }
-
-    /* Blueprint Highlights Grid */
-    .blueprint-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 1rem;
-      margin-bottom: 2.5rem;
-    }
-
-    @media (max-width: 840px) {
-      .blueprint-grid { grid-template-columns: repeat(2, 1fr); }
-    }
-    @media (max-width: 520px) {
-      .blueprint-grid { grid-template-columns: 1fr; }
-    }
-
-    .bp-card {
-      background: var(--bg-surface);
-      border: 1px solid var(--border-subtle);
-      border-radius: 8px;
-      padding: 1.15rem;
-    }
-
-    .bp-label {
-      font-size: 0.7rem;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      color: var(--text-tertiary);
-      margin-bottom: 0.4rem;
-      font-weight: 600;
-    }
-
-    .bp-val {
-      font-size: 0.95rem;
-      color: var(--text-primary);
-      font-weight: 600;
-      margin-bottom: 0.25rem;
-    }
-
-    .bp-note {
-      font-size: 0.78rem;
-      color: var(--text-secondary);
-      line-height: 1.4;
-    }
-
-    /* Diagram Section */
-    .diagram-section {
-      background: var(--bg-surface);
-      border: 1px solid var(--border-subtle);
-      border-radius: 10px;
-      padding: 1.75rem;
-      margin-bottom: 2.5rem;
-    }
-
-    .section-title {
-      font-size: 1.2rem;
-      font-weight: 600;
-      letter-spacing: -0.01em;
-      color: var(--text-primary);
-      margin-bottom: 0.35rem;
-    }
-
-    .section-desc {
-      font-size: 0.85rem;
-      color: var(--text-secondary);
-      margin-bottom: 1.5rem;
-    }
-
-    .svg-container {
-      width: 100%;
-      overflow-x: auto;
-      background: #06090e;
-      border: 1px solid var(--border-subtle);
-      border-radius: 8px;
-      padding: 1.5rem 1rem;
-    }
-
-    /* Scoring Model Breakdown Visual */
-    .scoring-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 1rem;
-      margin-bottom: 1.5rem;
-    }
-
-    @media (max-width: 768px) {
-      .scoring-grid { grid-template-columns: 1fr; }
-    }
-
-    .scoring-card {
-      background: var(--bg-surface-elevated);
-      border: 1px solid var(--border-subtle);
-      border-radius: 8px;
-      padding: 1rem;
-      display: flex;
-      flex-direction: column;
-      gap: 0.4rem;
-    }
-
-    .score-pts {
-      font-family: var(--font-mono);
-      font-size: 1.25rem;
-      font-weight: 700;
-      color: var(--accent-primary-light);
-    }
-
-    .score-title {
-      font-size: 0.82rem;
-      font-weight: 600;
-      color: var(--text-primary);
-    }
-
-    .score-desc {
-      font-size: 0.75rem;
-      color: var(--text-secondary);
-      line-height: 1.4;
-    }
-
-    /* Interactive Component Architecture Explorer */
-    .components-section {
-      background: var(--bg-surface);
-      border: 1px solid var(--border-subtle);
-      border-radius: 10px;
-      padding: 1.75rem;
-      margin-bottom: 2.5rem;
-    }
-
-    .comp-tabs {
-      display: flex;
-      gap: 0.4rem;
-      border-bottom: 1px solid var(--border-subtle);
-      padding-bottom: 0.75rem;
-      margin-bottom: 1.25rem;
-      overflow-x: auto;
-    }
-
-    .comp-btn {
-      background: transparent;
-      border: 1px solid transparent;
-      color: var(--text-tertiary);
-      padding: 0.45rem 0.85rem;
-      border-radius: 6px;
-      font-size: 0.82rem;
-      font-weight: 600;
-      cursor: pointer;
-      white-space: nowrap;
-      transition: all 0.15s ease;
-    }
-
-    .comp-btn:hover {
-      color: var(--text-primary);
-    }
-
-    .comp-btn.active {
-      background: var(--bg-surface-elevated);
-      color: var(--text-primary);
-      border-color: var(--border-subtle);
-    }
-
-    .comp-view {
-      display: none;
-    }
-
-    .comp-view.active {
-      display: block;
-      animation: fadeIn 0.2s ease;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(3px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    .comp-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 0.75rem;
-      flex-wrap: wrap;
-      gap: 0.5rem;
-    }
-
-    .comp-file {
-      font-family: var(--font-mono);
-      font-size: 0.85rem;
-      color: var(--accent-primary-light);
-      background: var(--bg-canvas);
-      padding: 0.2rem 0.55rem;
-      border-radius: 4px;
-      border: 1px solid var(--border-subtle);
-    }
-
-    .prd-ref-tag {
-      font-size: 0.72rem;
-      color: var(--text-secondary);
-      background: var(--bg-surface-elevated);
-      padding: 0.2rem 0.5rem;
-      border-radius: 4px;
-      border: 1px solid var(--border-subtle);
-    }
-
-    .comp-desc {
-      color: var(--text-secondary);
-      font-size: 0.88rem;
-      line-height: 1.5;
-      margin-bottom: 1rem;
-    }
-
-    .comp-details-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 1rem;
-    }
-
-    @media (max-width: 680px) {
-      .comp-details-grid { grid-template-columns: 1fr; }
-    }
-
-    .detail-card {
-      background: var(--bg-canvas);
-      border: 1px solid var(--border-subtle);
-      border-radius: 6px;
-      padding: 0.9rem;
-      font-size: 0.8rem;
-    }
-
-    .detail-card-title {
-      font-size: 0.72rem;
-      text-transform: uppercase;
-      font-weight: 700;
-      color: var(--text-tertiary);
-      letter-spacing: 0.05em;
-      margin-bottom: 0.4rem;
-    }
-
-    /* File Tree Box */
-    .file-tree-box {
-      background: var(--bg-surface);
-      border: 1px solid var(--border-subtle);
-      border-radius: 10px;
-      padding: 1.75rem;
-      margin-bottom: 2.5rem;
-    }
-
-    pre.code-tree {
-      background: var(--bg-canvas);
-      border: 1px solid var(--border-subtle);
-      border-radius: 6px;
-      padding: 1.25rem;
-      font-family: var(--font-mono);
-      font-size: 0.82rem;
-      color: var(--text-secondary);
-      overflow-x: auto;
-      line-height: 1.55;
-    }
-
-    pre.code-tree span.folder { color: #a5b4fc; font-weight: 600; }
-    pre.code-tree span.file { color: #f4f4f5; }
-    pre.code-tree span.comment { color: #71717a; }
-
-    /* Footer */
-    footer {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding-top: 1.5rem;
-      border-top: 1px solid var(--border-subtle);
-      color: var(--text-tertiary);
-      font-size: 0.8rem;
-      flex-wrap: wrap;
-      gap: 0.75rem;
-    }
-
-    footer code {
-      font-family: var(--font-mono);
-      color: var(--text-secondary);
-      background: var(--bg-surface);
-      padding: 0.15rem 0.4rem;
-      border-radius: 4px;
-      border: 1px solid var(--border-subtle);
-    }
-  </style>
-</head>
-<body>
-  <div class="wrapper">
-
-    <!-- Meta Bar -->
-    <div class="meta-bar">
-      <div class="breadcrumbs">
-        <span>devpost</span> / <span>specifications</span> / <span class="current">spec.html</span>
-      </div>
-      <div class="badge-status">
-        Technical Blueprint • Approved
-      </div>
-    </div>
-
-    <!-- Header -->
-    <header class="hero">
-      <h1>Axis — Technical Architecture</h1>
-      <p>
-        Full technical specification for Axis: client-side reactive state store, multi-factor heuristic prioritization engine, interactive daily timeline, and conversational trade-off copilot.
-      </p>
-    </header>
-
-    <!-- Blueprint Quick Facts -->
-    <div class="blueprint-grid">
-      <div class="bp-card">
-        <div class="bp-label">Application Stack</div>
-        <div class="bp-val">Vite + React + TS</div>
-        <div class="bp-note">Tailwind CSS, Lucide React, LocalStorage persistence.</div>
-      </div>
-      <div class="bp-card">
-        <div class="bp-label">Execution Model</div>
-        <div class="bp-val">Client-Side SPA</div>
-        <div class="bp-note">Instant start (<code>npm run dev</code>), zero database config.</div>
-      </div>
-      <div class="bp-card">
-        <div class="bp-label">Engine Design</div>
-        <div class="bp-val">Multi-Factor Heuristic</div>
-        <div class="bp-note">0–100 scoring evaluating deadlines, duration, and capacity.</div>
-      </div>
-      <div class="bp-card">
-        <div class="bp-label">Override Safety</div>
-        <div class="bp-val">Human Approval Flow</div>
-        <div class="bp-note">Structured diff & trade-off preview before schedule shifts.</div>
-      </div>
-    </div>
-
-    <!-- Data Flow & Architecture Diagram -->
-    <section class="diagram-section">
-      <h2 class="section-title">Data Flow & Module Architecture</h2>
-      <p class="section-desc">How state flows from mock feeds through the prioritization algorithm to UI surfaces and user dialogic feedback.</p>
-
-      <div class="svg-container">
-        <svg viewBox="0 0 960 300" width="100%" height="auto" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <linearGradient id="boxGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stop-color="#18181b"/>
-              <stop offset="100%" stop-color="#121215"/>
-            </linearGradient>
-            <marker id="arr" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-              <path d="M 0 0 L 10 5 L 0 10 z" fill="#71717a"/>
-            </marker>
-            <marker id="arrPurple" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-              <path d="M 0 0 L 10 5 L 0 10 z" fill="#a78bfa"/>
-            </marker>
-          </defs>
-
-          <!-- Module 1: Seed & Data Source -->
-          <g transform="translate(15, 30)">
-            <rect width="180" height="235" rx="8" fill="url(#boxGrad)" stroke="#27272a" stroke-width="1.5"/>
-            <text x="90" y="28" fill="#f4f4f5" font-size="12" font-weight="bold" text-anchor="middle">DATA SOURCES</text>
-            <text x="90" y="44" fill="#71717a" font-size="9" text-anchor="middle">seedData.ts / localStorage</text>
-
-            <rect x="15" y="60" width="150" height="32" rx="5" fill="#222226" stroke="#333338"/>
-            <text x="25" y="80" fill="#d4d4d8" font-size="10">📧 Client Email Revisions</text>
-
-            <rect x="15" y="100" width="150" height="32" rx="5" fill="#222226" stroke="#333338"/>
-            <text x="25" y="120" fill="#d4d4d8" font-size="10">🎓 Canvas Exams & Papers</text>
-
-            <rect x="15" y="140" width="150" height="32" rx="5" fill="#222226" stroke="#333338"/>
-            <text x="25" y="160" fill="#d4d4d8" font-size="10">📅 Fixed Lectures & Calls</text>
-
-            <rect x="15" y="180" width="150" height="32" rx="5" fill="#222226" stroke="#333338"/>
-            <text x="25" y="200" fill="#d4d4d8" font-size="10">✅ Personal Todo Items</text>
-          </g>
-
-          <line x1="200" y1="145" x2="240" y2="145" stroke="#52525b" stroke-width="1.5" marker-end="url(#arr)"/>
-
-          <!-- Module 2: State Store -->
-          <g transform="translate(245, 50)">
-            <rect width="185" height="195" rx="8" fill="url(#boxGrad)" stroke="#7c3aed" stroke-width="1.5"/>
-            <text x="92" y="28" fill="#a78bfa" font-size="12" font-weight="bold" text-anchor="middle">STORE / CONTEXT</text>
-            <text x="92" y="44" fill="#71717a" font-size="9" text-anchor="middle">AppContext.tsx</text>
-
-            <rect x="15" y="60" width="155" height="26" rx="4" fill="#222226"/>
-            <text x="23" y="77" fill="#e4e4e7" font-size="10">tasks: Task[]</text>
-
-            <rect x="15" y="93" width="155" height="26" rx="4" fill="#222226"/>
-            <text x="23" y="110" fill="#e4e4e7" font-size="10">calendar: Event[]</text>
-
-            <rect x="15" y="126" width="155" height="26" rx="4" fill="#222226"/>
-            <text x="23" y="143" fill="#e4e4e7" font-size="10">proposal: PlanChange?</text>
-
-            <rect x="15" y="159" width="155" height="26" rx="4" fill="#222226"/>
-            <text x="23" y="176" fill="#e4e4e7" font-size="10">messages: ChatMessage[]</text>
-          </g>
-
-          <line x1="435" y1="145" x2="475" y2="145" stroke="#52525b" stroke-width="1.5" marker-end="url(#arr)"/>
-
-          <!-- Module 3: Engines -->
-          <g transform="translate(480, 50)">
-            <rect width="210" height="195" rx="8" fill="url(#boxGrad)" stroke="#27272a" stroke-width="1.5"/>
-            <text x="105" y="28" fill="#f4f4f5" font-size="12" font-weight="bold" text-anchor="middle">ENGINES & LOGIC</text>
-            <text x="105" y="44" fill="#71717a" font-size="9" text-anchor="middle">prioritizer.ts & scheduler.ts</text>
-
-            <rect x="15" y="60" width="180" height="34" rx="4" fill="#222226"/>
-            <text x="23" y="77" fill="#d4d4d8" font-size="9.5" font-weight="600">0–100 Priority Scoring</text>
-            <text x="23" y="89" fill="#71717a" font-size="8">Deadlines + Duration + Urgency</text>
-
-            <rect x="15" y="102" width="180" height="34" rx="4" fill="#222226"/>
-            <text x="23" y="119" fill="#d4d4d8" font-size="9.5" font-weight="600">Capacity & Overload Triage</text>
-            <text x="23" y="131" fill="#71717a" font-size="8">Workload vs. Free Hours</text>
-
-            <rect x="15" y="144" width="180" height="34" rx="4" fill="#222226"/>
-            <text x="23" y="161" fill="#d4d4d8" font-size="9.5" font-weight="600">Timeline Block Allocator</text>
-            <text x="23" y="173" fill="#71717a" font-size="8">Map Do Now tasks into slots</text>
-          </g>
-
-          <line x1="695" y1="145" x2="735" y2="145" stroke="#52525b" stroke-width="1.5" marker-end="url(#arr)"/>
-
-          <!-- Module 4: UI Surfaces & AI Dialogue -->
-          <g transform="translate(740, 30)">
-            <rect width="200" height="235" rx="8" fill="url(#boxGrad)" stroke="#27272a" stroke-width="1.5"/>
-            <text x="100" y="28" fill="#f4f4f5" font-size="12" font-weight="bold" text-anchor="middle">PRESENTATION LAYER</text>
-            <text x="100" y="44" fill="#71717a" font-size="9" text-anchor="middle">React Components</text>
-
-            <rect x="15" y="60" width="170" height="28" rx="4" fill="#222226"/>
-            <text x="23" y="78" fill="#f4f4f5" font-size="9.5">📊 DailyBriefing.tsx</text>
-
-            <rect x="15" y="94" width="170" height="28" rx="4" fill="#222226"/>
-            <text x="23" y="112" fill="#f4f4f5" font-size="9.5">📋 PriorityColumns.tsx</text>
-
-            <rect x="15" y="128" width="170" height="28" rx="4" fill="#222226"/>
-            <text x="23" y="146" fill="#f4f4f5" font-size="9.5">📅 DailyTimeline.tsx</text>
-
-            <rect x="15" y="162" width="170" height="42" rx="4" fill="#1e182a" stroke="#7c3aed"/>
-            <text x="23" y="179" fill="#a78bfa" font-size="9.5" font-weight="600">🤖 AIAssistant.tsx</text>
-            <text x="23" y="193" fill="#e9d5ff" font-size="8">ApprovePlanCard.tsx (Review)</text>
-          </g>
-
-          <!-- Override Feedback Loop -->
-          <path d="M 840 215 C 840 280, 335 280, 335 250" fill="none" stroke="#a78bfa" stroke-width="1.5" stroke-dasharray="4,4" marker-end="url(#arrPurple)"/>
-          <text x="590" y="275" fill="#a78bfa" font-size="9" text-anchor="middle">User Approves Plan Change Proposal (State Dispatched)</text>
-        </svg>
-      </div>
-    </section>
-
-    <!-- Scoring Engine Breakdown -->
-    <section class="diagram-section">
-      <h2 class="section-title">Prioritization Engine: 0–100 Scoring Formula</h2>
-      <p class="section-desc">Transparent calculation replacing arbitrary date-sorting with multi-factor constraint evaluation.</p>
-
-      <div class="scoring-grid">
-        <div class="scoring-card">
-          <div class="score-pts">40 pts</div>
-          <div class="score-title">Deadline Proximity</div>
-          <div class="score-desc">Exponential decay based on hours remaining until due date. Under 4 hours awards maximum weight.</div>
-        </div>
-        <div class="scoring-card">
-          <div class="score-pts">25 pts</div>
-          <div class="score-title">Commitment Consequence</div>
-          <div class="score-desc">Hard external deliverables (client milestones, graded exams) vs. flexible internal research tasks.</div>
-        </div>
-        <div class="scoring-card">
-          <div class="score-pts">20 pts</div>
-          <div class="score-title">Calendar Slot Fit</div>
-          <div class="score-desc">Task duration matches the next available free block before an upcoming class or meeting.</div>
-        </div>
-        <div class="scoring-card">
-          <div class="score-pts">15 pts</div>
-          <div class="score-title">Importance Base Weight</div>
-          <div class="score-desc">Base priority tag (High, Medium, Low) assigned by source feed or user override.</div>
-        </div>
-      </div>
-
-      <div style="font-size: 0.8rem; color: var(--text-tertiary); display: flex; gap: 1.5rem; flex-wrap: wrap;">
-        <span><strong>Do Now:</strong> Score ≥ 80</span>
-        <span><strong>Do Next:</strong> Score 50 – 79</span>
-        <span><strong>Do Later:</strong> Score &lt; 50</span>
-      </div>
-    </section>
-
-    <!-- Interactive Component Explorer -->
-    <section class="components-section">
-      <h2 class="section-title">Component Mapping & Specifications</h2>
-      <p class="section-desc">Click each component to inspect its implementation file, responsibilities, and PRD requirement link.</p>
-
-      <div class="comp-tabs">
-        <button class="comp-btn active" onclick="switchComp('briefing')">DailyBriefing</button>
-        <button class="comp-btn" onclick="switchComp('columns')">PriorityColumns & TaskCard</button>
-        <button class="comp-btn" onclick="switchComp('timeline')">DailyTimeline</button>
-        <button class="comp-btn" onclick="switchComp('assistant')">AIAssistant & Approval</button>
-        <button class="comp-btn" onclick="switchComp('engine')">Prioritizer & Scheduler</button>
-        <button class="comp-btn" onclick="switchComp('integrations')">Integrations & Demo Reset</button>
-      </div>
-
-      <!-- Component 1 -->
-      <div id="comp-briefing" class="comp-view active">
-        <div class="comp-header">
-          <span class="comp-file">src/components/dashboard/DailyBriefing.tsx</span>
-          <span class="prd-ref-tag">Implements: prd.md &gt; 1. Daily Briefing &amp; Overload Detection</span>
-        </div>
-        <div class="comp-desc">
-          Renders the top summary banner. Calculates total required workload hours vs. open calendar free hours. Activates the Overload Alert banner with exact deficit calculations when time is oversubscribed.
-        </div>
-        <div class="comp-details-grid">
-          <div class="detail-card">
-            <div class="detail-card-title">Inputs / State</div>
-            <div><code>tasks: Task[]</code>, <code>calendarEvents: CalendarEvent[]</code> from <code>AppContext</code>.</div>
-          </div>
-          <div class="detail-card">
-            <div class="detail-card-title">Key Outputs</div>
-            <div>Active tasks count, Workload vs. Free Hours chips, Overload capacity deficit badge.</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Component 2 -->
-      <div id="comp-columns" class="comp-view">
-        <div class="comp-header">
-          <span class="comp-file">src/components/dashboard/PriorityColumns.tsx &amp; TaskCard.tsx</span>
-          <span class="prd-ref-tag">Implements: prd.md &gt; 2. Prioritized Task Columns</span>
-        </div>
-        <div class="comp-desc">
-          Renders Do Now, Do Next, and Do Later columns. Each card supports marking complete, expanding mathematical score breakdown in <code>TaskReasonModal.tsx</code>, and manual priority override dropdown.
-        </div>
-        <div class="comp-details-grid">
-          <div class="detail-card">
-            <div class="detail-card-title">Inputs / State</div>
-            <div><code>tasks: Task[]</code> filtered by bucket (<code>now</code>, <code>next</code>, <code>later</code>).</div>
-          </div>
-          <div class="detail-card">
-            <div class="detail-card-title">Interactions</div>
-            <div><code>toggleTaskComplete()</code>, <code>updateTaskPriority()</code>, open reason modal.</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Component 3 -->
-      <div id="comp-timeline" class="comp-view">
-        <div class="comp-header">
-          <span class="comp-file">src/components/dashboard/DailyTimeline.tsx</span>
-          <span class="prd-ref-tag">Implements: prd.md &gt; 3. Daily Timeline Visualizer</span>
-        </div>
-        <div class="comp-desc">
-          Plots a single-day 8:00 AM – 10:00 PM horizontal timeline. Visually distinguishes fixed commitments (classes, meetings) from scheduled focus blocks allocated to Do Now tasks.
-        </div>
-        <div class="comp-details-grid">
-          <div class="detail-card">
-            <div class="detail-card-title">Inputs / State</div>
-            <div><code>scheduler.ts</code> computed intervals mapping tasks to calendar open gaps.</div>
-          </div>
-          <div class="detail-card">
-            <div class="detail-card-title">Visual States</div>
-            <div>Fixed event blocks (neutral gray), Focus blocks (violet), Open free gaps (dashed).</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Component 4 -->
-      <div id="comp-assistant" class="comp-view">
-        <div class="comp-header">
-          <span class="comp-file">src/components/assistant/AIAssistant.tsx &amp; ApprovePlanCard.tsx</span>
-          <span class="prd-ref-tag">Implements: prd.md &gt; 4. AI Dialogue &amp; Approve Plan Changes</span>
-        </div>
-        <div class="comp-desc">
-          Handles conversational challenges. When user requests rebalancing (e.g. studying for exam first), it generates an <code>ApprovePlanCard</code> detailing structured diffs and deadline risks before modifying the board.
-        </div>
-        <div class="comp-details-grid">
-          <div class="detail-card">
-            <div class="detail-card-title">Safety Contract</div>
-            <div>No schedule shifts occur until user clicks "Approve Changes".</div>
-          </div>
-          <div class="detail-card">
-            <div class="detail-card-title">Actions</div>
-            <div><code>applyPlanProposal()</code> dispatches new task buckets; "Reject" retains current plan.</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Component 5 -->
-      <div id="comp-engine" class="comp-view">
-        <div class="comp-header">
-          <span class="comp-file">src/engine/prioritizer.ts &amp; scheduler.ts</span>
-          <span class="prd-ref-tag">Implements: prd.md &gt; The Core Journey &amp; Features 1, 2</span>
-        </div>
-        <div class="comp-desc">
-          Pure deterministic TypeScript logic. Computes 0–100 priority scores, evaluates deadline proximity, detects capacity gaps, and slots focus intervals into open calendar windows.
-        </div>
-        <div class="comp-details-grid">
-          <div class="detail-card">
-            <div class="detail-card-title">Performance</div>
-            <div>Executes in &lt; 5ms in-browser with zero network overhead.</div>
-          </div>
-          <div class="detail-card">
-            <div class="detail-card-title">Reliability</div>
-            <div>100% deterministic outputs for rehearsable 60-second video demo recording.</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Component 6 -->
-      <div id="comp-integrations" class="comp-view">
-        <div class="comp-header">
-          <span class="comp-file">src/components/integrations/IntegrationsView.tsx &amp; Modals</span>
-          <span class="prd-ref-tag">Implements: prd.md &gt; 5. Mock Integrations Manager &amp; Controls</span>
-        </div>
-        <div class="comp-desc">
-          Dedicated view showcasing active mock feeds (Gmail, Canvas, Calendar, Tasks). Contains "Reset Demo Data" confirmation modal and "Add Mock Task" creation form.
-        </div>
-        <div class="comp-details-grid">
-          <div class="detail-card">
-            <div class="detail-card-title">Demo Utilities</div>
-            <div><code>resetToDemoSeed()</code> wipes custom changes and restores baseline state.</div>
-          </div>
-          <div class="detail-card">
-            <div class="detail-card-title">Testing Tools</div>
-            <div><code>addMockTask()</code> injects a custom task directly into prioritization.</div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- File Tree -->
-    <div class="file-tree-box">
-      <h2 class="section-title">Planned Project File Tree</h2>
-      <p class="section-desc">Annotated file organization following the approved modular Vite + React + TypeScript architecture.</p>
-
-      <pre class="code-tree">
-<span class="folder">Axis/</span>
-├── <span class="folder">src/</span>
-│   ├── <span class="folder">components/</span>
-│   │   ├── <span class="folder">assistant/</span>
-│   │   │   ├── <span class="file">AIAssistant.tsx</span>        <span class="comment"># Persistent copilot drawer & message thread</span>
-│   │   │   └── <span class="file">ApprovePlanCard.tsx</span>    <span class="comment"># Structured diff review card with trade-offs</span>
-│   │   ├── <span class="folder">dashboard/</span>
-│   │   │   ├── <span class="file">DailyBriefing.tsx</span>      <span class="comment"># Workload metrics & Schedule Overload banner</span>
-│   │   │   ├── <span class="file">DailyTimeline.tsx</span>      <span class="comment"># 8 AM - 10 PM visual commitment & focus track</span>
-│   │   │   ├── <span class="file">PriorityColumns.tsx</span>    <span class="comment"># Do Now, Do Next, Do Later side-by-side columns</span>
-│   │   │   ├── <span class="file">TaskCard.tsx</span>           <span class="comment"># Card with source tag, duration, deadline, status</span>
-│   │   │   └── <span class="file">TaskReasonModal.tsx</span>    <span class="comment"># Explains why task received its priority score</span>
-│   │   ├── <span class="folder">integrations/</span>
-│   │   │   ├── <span class="file">AddMockTaskModal.tsx</span>   <span class="comment"># Custom task injection form</span>
-│   │   │   ├── <span class="file">IntegrationsView.tsx</span>   <span class="comment"># Multi-source mock status & feed inspection</span>
-│   │   │   └── <span class="file">ResetDemoModal.tsx</span>      <span class="comment"># Confirmation dialog to restore demo baseline</span>
-│   │   └── <span class="folder">layout/</span>
-│   │       ├── <span class="file">Header.tsx</span>             <span class="comment"># Command center top bar</span>
-│   │       └── <span class="file">Sidebar.tsx</span>            <span class="comment"># Navigation (Dashboard, Tasks, Integrations)</span>
-│   ├── <span class="folder">context/</span>
-│   │   └── <span class="file">AppContext.tsx</span>             <span class="comment"># React Context store with localStorage sync</span>
-│   ├── <span class="folder">data/</span>
-│   │   └── <span class="file">seedData.ts</span>               <span class="comment"># Realistic student-freelancer demo scenario</span>
-│   ├── <span class="folder">engine/</span>
-│   │   ├── <span class="file">assistant.ts</span>              <span class="comment"># Dialogue intent parser & proposal generator</span>
-│   │   ├── <span class="file">prioritizer.ts</span>            <span class="comment"># 0-100 multi-factor scoring & classification</span>
-│   │   └── <span class="file">scheduler.ts</span>              <span class="comment"># Capacity deficit math & timeline slot allocator</span>
-│   ├── <span class="folder">types/</span>
-│   │   └── <span class="file">index.ts</span>                  <span class="comment"># Task, CalendarEvent, Proposal TypeScript types</span>
-│   ├── <span class="file">App.tsx</span>                       <span class="comment"># View router (Dashboard vs. Integrations)</span>
-│   ├── <span class="file">index.css</span>                     <span class="comment"># Tailwind CSS design system rules</span>
-│   └── <span class="file">main.tsx</span>                      <span class="comment"># Vite application bootstrap</span>
-├── <span class="folder">devpost/</span>                          <span class="comment"># Devpost Learn specifications workspace</span>
-├── <span class="file">package.json</span>                      <span class="comment"># Dependencies (react, vite, tailwindcss, lucide)</span>
-├── <span class="file">tailwind.config.js</span>                <span class="comment"># Design tokens & color system</span>
-└── <span class="file">vite.config.ts</span>                    <span class="comment"># Vite bundler configuration</span>
-      </pre>
-    </div>
-
-    <!-- Footer -->
-    <footer>
-      <span>Axis Technical Specification</span>
-      <span>Canonical specification: <code>devpost/spec.md</code></span>
-    </footer>
-
-  </div>
-
-  <script>
-    function switchComp(compId) {
-      document.querySelectorAll('.comp-btn').forEach(btn => btn.classList.remove('active'));
-      document.querySelectorAll('.comp-view').forEach(view => view.classList.remove('active'));
-
-      event.target.classList.add('active');
-      const target = document.getElementById('comp-' + compId);
-      if (target) target.classList.add('active');
-    }
-  </script>
-</body>
-</html>
-
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Axis — Technical Specification</title><style>
+:root { color-scheme: dark; font-family: system-ui, sans-serif; background:#0b0f19; color:#e2e8f0; }
+body { margin:0; line-height:1.7; } nav { padding:1rem 2rem; border-bottom:1px solid #334155; background:#111827; }
+nav a { display:inline-block; margin-right:1.4rem; } a { color:#a5b4fc; } a[aria-current] { color:#fff; font-weight:700; }
+main { max-width:1000px; margin:auto; padding:2rem 1.5rem 5rem; } h1,h2,h3 { line-height:1.25; color:#f8fafc; }
+h1 { font-size:2.4rem; } h2 { margin-top:2.5rem; border-bottom:1px solid #334155; padding-bottom:.6rem; }
+pre { overflow:auto; padding:1.2rem; background:#111827; border:1px solid #334155; border-radius:8px; }
+code { font-family:ui-monospace,monospace; font-size:.9em; overflow-wrap:anywhere; } pre code { white-space:pre; }
+table { border-collapse:collapse; display:block; overflow:auto; width:100%; } th,td { padding:.7rem; border:1px solid #334155; text-align:left; }
+th { background:#1e293b; } li { margin:.35rem 0; } .meta { color:#94a3b8; } strong { color:#f1f5f9; }
+@media(max-width:600px) { main { padding:1rem; } h1 { font-size:1.9rem; } nav { padding:1rem; } }
+@media print { :root { color-scheme:light; background:white; color:black; } h1,h2,h3,strong { color:black; } nav { display:none; } pre,th { background:#eee; } }
+</style></head><body><nav aria-label="Planning documents"><a href="scope.html">SCOPE</a><a href="prd.html">PRD</a><a href="spec.html" aria-current="page">SPEC</a><a href="checklist.html">CHECKLIST</a></nav><main><p class="meta">Updated October 20, 2026 · User-requested backend architecture revision · <a href="spec.md">Markdown source</a></p><h1>Axis — Technical Specification</h1>
+<h2>User-Requested Architecture Update</h2>
+<p>On October 20, 2026, the user explicitly requested a backend architecture update: deterministic prioritization, AI for extraction and communication, separate task-fact/evidence and assessment storage, future login readiness, and an engine package at <strong><code>Backend/engine/</code></strong>, outside services.</p>
+<p>This supersedes the earlier browser-first storage and LLM-driven ranking design. This specification distinguishes the target architecture from current implementation.</p>
+<h2>Stack</h2>
+<ul>
+<li>Frontend: Vite, React, TypeScript, Tailwind, React Context and existing local cache.</li>
+<li>Backend: Python 3.12, FastAPI, Pydantic, SQLAlchemy and psycopg.</li>
+<li>Persistence: PostgreSQL; <code>docker-compose.yml</code> defines PostgreSQL 16 for local use.</li>
+<li>Optional extraction: <code>google-genai</code>, configured by <code>GEMINI_API_KEY</code> and <code>GEMINI_MODEL</code>.</li>
+<li>Testing: unittest, disposable SQLite persistence tests and HTTPX ASGI API tests.</li>
+<li>Time handling: offset-aware datetimes, <code>zoneinfo</code> and <code>tzdata</code>.</li>
+<li>Exact package requirements live in <code>Backend/requirements.txt</code>.</li>
+</ul>
+<h2>How This Works, In Plain Language</h2>
+<ol>
+<li>Source adapters map explicit fields from different provider shapes.</li>
+<li>Extraction proposes additional facts with quotes. Fixture mode uses recorded mock output; Gemini mode calls a real model.</li>
+<li>Validation checks shapes, field constraints and quote presence. Direct source fields win over extraction; unsupported dates remain unresolved.</li>
+<li>Accepted tasks are saved with source evidence as user-owned revisions.</li>
+<li>The deterministic engine computes metrics, applies ranking policy, repairs avoidable deadline ordering where its heuristic permits, and allocates capacity.</li>
+<li>Assessments store decisions against exact task revisions.</li>
+<li>Planned: AI generates explanations from finalized decisions, and the frontend reads the current assessment together with the task facts.</li>
+</ol>
+<p>AI does not control scores or order. Extraction can influence input facts, so retained extracted values are marked for confirmation.</p>
+<h2>Components and File Structure</h2>
+<pre><code class="language-text">Backend/
+  main.py
+  database.py
+  models/
+    integrations.py       Source contracts and NormalizedTask
+    priority.py           Engine input/output contracts
+    db_models.py          Users, task revisions, calendar sources, assessments, legacy models
+    schemas.py            Existing demo API contracts
+  integrations/
+    adapters.py           Mappings for six source types
+    fixtures/
+      sources.json        Vendor-shaped mock subsets plus connection context
+      extractions.json    Recorded extraction responses
+  ingestion/
+    extraction.py         Fixture and Gemini extractors
+    validation.py         Evidence checks and normalization
+    pipeline.py           Synchronous preview orchestration
+    store.py              User-scoped, replay-aware persistence
+    __main__.py            CLI preview/import
+    README.md
+  engine/
+    __init__.py           Public rank_tasks entry point
+    pipeline.py           Engine orchestration
+    calendar.py           Working-time calculations
+    metrics.py            Deadline, slack, uncertainty and dependency metrics
+    policy.py             Scoring tables and tier precedence
+    scheduling.py         Allocation and conservative deadline-order repair
+    assessment.py         Output facts and buckets
+  services/
+    priority_store.py     Load latest user task revisions and persist assessments
+    seeder.py             Legacy demo seeds
+    llm.py                Existing scripted chat behavior
+  routers/
+    tasks.py
+    calendar.py
+    chat.py
+    plan.py
+    priority.py
+    integrations.py
+  tests/
+  PRIORITY_ENGINE.md
+</code></pre>
+<p><code>Frontend/</code> retains its components, Context store, API client and local heuristic engine until the new backend flow is connected. The focus dashboard, briefing, timeline, rationale modal and approval card consume these legacy contracts today.</p>
+<h2>Ingestion Contracts and Validation</h2>
+<p>Sources: Gmail, Notion, GitHub, Canvas, Google Calendar and manual tasks. Integration APIs are not expected to share a shape. Adapters produce Axis-owned records; extraction and validation produce <code>NormalizedTask</code>.</p>
+<p>Source identity includes integration, account, source record and source item key. One email may yield zero or multiple tasks; structured task sources keep one primary task. Calendar events remain commitments, not tasks.</p>
+<p>Task facts include title, description, deadline timestamp or date, deadline strictness, effort, importance, consequences, status, dependencies and evidence. Unknown fields remain null. Source fields override conflicting extracted fields. Milestone dates, labels and assignment points do not automatically become task deadlines or importance.</p>
+<p>Every extracted non-null field needs a quote present in mapped source text. Quote presence is not proof of semantic correctness; retained extracted values require review. Relative Gmail dates use message time, not retrieval time. Adapter coverage and the explicit date grammar are documented in <a href="../Backend/ingestion/README.md">the ingestion guide</a>.</p>
+<p>No ingestion table or broker is needed for the current mock flow. Fixture files provide replayability. Accepted task snapshots retain raw source content, mapped fields, extractor mode and fingerprints. Same-content replay does not create a revision; changed facts or source content do. Fetch time alone is ignored. Real-source deletion reconciliation and stable LLM action matching remain pending.</p>
+<h2>Database Model</h2>
+<table>
+<thead>
+<tr>
+<th>Model/table</th>
+<th>Responsibility</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>UserModel</code> / <code>users</code></td>
+<td>Local identity and optional future provider/subject identity; no login endpoints or passwords</td>
+</tr>
+<tr>
+<td><code>TaskFactsModel</code> / <code>task_facts</code></td>
+<td>Composite key <code>(user_id, id, version)</code>; facts, source identity, evidence and source snapshot</td>
+</tr>
+<tr>
+<td><code>PriorityAssessmentModel</code> / <code>priority_assessments</code></td>
+<td>Composite FK to the exact owned task revision; run, rank, score, bucket, policy version, decision facts and explanation state</td>
+</tr>
+<tr>
+<td><code>CalendarSourceModel</code> / <code>calendar_sources</code></td>
+<td>Normalized calendar JSON scoped by user/account/source</td>
+</tr>
+<tr>
+<td>Legacy <code>tasks</code>, <code>calendar_events</code>, <code>chat_messages</code></td>
+<td>Existing demo routes and frontend</td>
+</tr>
+</tbody>
+</table>
+<p>An assessment cannot reference another user's task revision. Run/task and run/rank uniqueness are scoped by user. Model constraints do not replace API authentication or user-filtered queries.</p>
+<p>Task changes should insert new versions. Historical-row immutability, review confirmation and current-assessment selection require service/API wiring. Each assessment currently repeats its run input snapshot; a separate run table is a later storage improvement.</p>
+<h2>Deterministic Ranking Policy</h2>
+<p>Current versions: engine <code>2</code>, policy <code>slack-v2</code>.</p>
+<ol>
+<li>Exclude completed/cancelled tasks. Calculate working blocks in the chosen timezone, subtracting busy intervals once even when they overlap.</li>
+<li>Calculate slack: available working hours before deadline minus remaining effort. Date-only deadlines require an explicit time policy; unknown effort stays unknown.</li>
+<li>Choose tiers: deadline at risk, time-sensitive, normal, blocked. A hard deadline is at risk when overdue, slack is within the safety buffer, or unknown-effort work has a deadline within that buffer.</li>
+<li>Score using the fixed policy:</li>
+</ol>
+<table>
+<thead>
+<tr>
+<th>Factor</th>
+<th>Points</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Urgency</td>
+<td>Up to 50 using slack bands; overdue gets 50</td>
+</tr>
+<tr>
+<td>Explicit delay impact</td>
+<td>Critical 25, significant 15, minor 5, unknown 0</td>
+</tr>
+<tr>
+<td>Importance</td>
+<td>High 15, medium 10, low 5, unknown 0</td>
+</tr>
+<tr>
+<td>Waiting age</td>
+<td>One per elapsed day, capped at 10</td>
+</tr>
+</tbody>
+</table>
+<p>Sort initially by tier, descending score, deadline, creation time and task ID. Try earliest-deadline order for schedulable tasks only when it removes at least one projected miss and introduces none. Record changes as decision facts; final ranks follow the resulting order.</p>
+<p>Allocate split work without double-booking capacity. Now includes at-risk or time-sensitive work and work allocated today; Next includes other future allocations; Later includes blocked/unallocated work. Unknown-effort urgent tasks request an estimate without reserving imaginary time.</p>
+<p>Dependencies block tasks until prerequisites are completed. The current engine does not propagate urgency to prerequisites or schedule dependency chains. Review-required inputs are flagged but provisionally evaluated. Global optimization, sticky overrides and non-splittable work are not implemented.</p>
+<p>Full policy and request example: <a href="../Backend/PRIORITY_ENGINE.md">engine guide</a>.</p>
+<h2>Routes and Service Entry Points</h2>
+<table>
+<thead>
+<tr>
+<th>Entry</th>
+<th>Current behavior</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>POST /api/integrations/mock/preview</code></td>
+<td>Offline fixed-fixture ingestion preview; no DB or live LLM call</td>
+</tr>
+<tr>
+<td><code>python -m Backend.ingestion</code></td>
+<td>Preview; <code>--persist</code> saves accepted facts and calendar records</td>
+</tr>
+<tr>
+<td><code>POST /api/priority/preview</code></td>
+<td>Deterministic evaluation of submitted facts/context; no DB access</td>
+</tr>
+<tr>
+<td><code>create_priority_run(db, user_id=..., context=..., delay_impacts=...)</code></td>
+<td>Internal service loads latest owned revisions and flushes assessments; caller commits</td>
+</tr>
+<tr>
+<td><code>GET/POST /api/tasks</code></td>
+<td>Legacy list/create; creation still accepts client scores and reasoning</td>
+</tr>
+<tr>
+<td><code>PATCH /api/tasks/{id}/toggle</code></td>
+<td>Legacy completion toggle</td>
+</tr>
+<tr>
+<td><code>PATCH /api/tasks/{id}/bucket</code></td>
+<td>Legacy manual bucket change</td>
+</tr>
+<tr>
+<td><code>POST /api/tasks/reset</code></td>
+<td>Resets legacy tasks, calendar and chat; not new task facts/assessments</td>
+</tr>
+<tr>
+<td><code>GET /api/calendar</code></td>
+<td>Legacy decimal-hour calendar records</td>
+</tr>
+<tr>
+<td><code>GET /api/chat/history</code>, <code>POST /api/chat</code></td>
+<td>Legacy chat storage and scripted responses</td>
+</tr>
+<tr>
+<td><code>POST /api/plan/apply</code></td>
+<td>Applies submitted legacy bucket moves; no persisted approval verification</td>
+</tr>
+<tr>
+<td><code>GET /</code>, <code>GET /health</code></td>
+<td>Static service information; health does not execute a DB probe</td>
+</tr>
+</tbody>
+</table>
+<p>No login or authenticated assessment persistence route exists. New preview routes do not expose private database records. Legacy routes remain unscoped demo APIs and must not be treated as a deployed multi-user system.</p>
+<h2>AI Explanation and Conversational Changes — Planned</h2>
+<p>Save deterministic assessments first with explanation status pending. Generate short explanations from task evidence and finalized decision facts; store model/prompt version and generation time on that assessment. Handle failures explicitly and reject stale output for superseded decisions when selecting current results.</p>
+<p>For dialogue, AI translates requests into proposed constraints. Validated constraints go through the deterministic engine. The user approves a concrete change before application. Current scripted chat and legacy apply routes do not implement this complete behavior.</p>
+<h2>Run and Verify</h2>
+<p>From the repository root:</p>
+<pre><code class="language-powershell">pip install -r Backend/requirements.txt
+docker compose up -d
+uvicorn Backend.main:app --reload --port 8000
+</code></pre>
+<p>Frontend: run <code>npm install</code> and <code>npm run dev</code> in <code>Frontend/</code>; open localhost:5173.</p>
+<pre><code class="language-powershell">python -m Backend.ingestion
+python -m Backend.ingestion --persist --user-id local-demo --create-user
+python -m Backend.ingestion --extractor gemini
+python -m unittest discover -s Backend/tests -v
+</code></pre>
+<p>Default preview requires no database or LLM. Gemini mode requires credentials/model and has not been verified against a live provider in this work. Persistence requires the configured database. <code>create_all()</code> creates missing tables but does not migrate existing schemas. Tests use disposable SQLite, not live PostgreSQL.</p>
+<h2>Important Failure Modes</h2>
+<ul>
+<li>Invalid extraction: reject that record and return an issue; preserve other accepted records. CLI exits nonzero when records are rejected.</li>
+<li>Unsupported deadline or missing effort: retain uncertainty rather than invent facts.</li>
+<li>Provider failure: explicit rejected-record issues; no silent mock substitution.</li>
+<li>Capacity conflict: projected deadline-miss warning; repair is not a guarantee that every feasible schedule will be found.</li>
+<li>Repeated import: compare fingerprints and preserve unchanged versions.</li>
+<li>Stale explanation: future current-assessment selection must check task versions and context.</li>
+<li>User identity: trusted ownership is required for internal writes; login remains pending.</li>
+</ul>
+<h2>Implementation Status and Remaining Work</h2>
+<p>Implemented and verified with 34 passing backend tests: source contracts, mock adapters, fixture extraction, validation, ingestion persistence behavior, user-owned database constraints, engine pipeline, previews and assessment storage.</p>
+<p>Remaining: migrations for existing installs; authenticated API wiring; review/confirmation UI; calendar-to-engine context mapping; new backend results on the frontend; AI explanations; engine-backed dialogue and durable approval/override behavior; end-to-end demo verification.</p>
+<p>The tests establish covered behavior, not optimal prioritization or live vendor integration correctness.</p>
+</main></body></html>

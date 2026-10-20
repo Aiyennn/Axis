@@ -1,13 +1,42 @@
 ---
 doc: checklist
 status: approved
+updated: 2026-10-20
 ---
 
 # Build Checklist
 
 Build mode: learn
 
-## Slices
+## User-Requested Backend Architecture Revision — October 20, 2026
+
+The user explicitly requested this architecture update: deterministic ranking, AI extraction and explanation, separate facts/evidence and assessments, future user login support, and an engine package at `Backend/engine/` outside services. The original LLM-driven ranking and browser-only persistence plan is superseded.
+
+The checked slices below preserve historical frontend/demo progress. They do not certify completion of the new backend integration. Earlier references to fixed score thresholds and scripted explanations describe the legacy demo only. Current requirements are in `scope.md`, `prd.md`, and `spec.md`; the new work is tracked below.
+
+## Updated Backend Work
+
+- [x] Integration contracts and explicit adapters for Gmail, Notion, GitHub, Canvas, Google Calendar and manual tasks.
+- [x] Vendor-shaped source fixtures and explicitly labeled recorded extraction outputs.
+- [x] Optional Gemini extraction implementation (live provider verification still pending).
+- [x] Evidence/shape validation, explicit-source precedence, relative-date normalization and review flags.
+- [x] Synchronous fixture-to-task pipeline; no ingestion table, broker or worker required for mock replay.
+- [x] User-owned versioned task facts, source evidence and linked priority assessments; calendar-source storage.
+- [x] Deterministic engine package in `Backend/engine/` with focused pipeline, metrics, policy and scheduling modules.
+- [x] Deadline-order repair regression coverage, missing-effort handling and non-overlapping capacity allocation.
+- [x] Offline ingestion and priority preview endpoints; CLI persistence with replay deduplication.
+- [x] Backend suite: 34 tests passed on October 20, 2026 using disposable databases and no live LLM calls.
+- [ ] Migrate previously created PostgreSQL schemas; verify on the configured database.
+- [ ] Implement login and authenticated read/write routes with trusted ownership.
+- [ ] Connect the frontend to new task facts and matching current assessments.
+- [ ] Add extracted-fact review and confirmation UI.
+- [ ] Load stored calendar commitments into engine context automatically.
+- [ ] Generate grounded AI explanations, with pending/failure handling and stale-result protection.
+- [ ] Replace scripted chat with constraint extraction and engine-evaluated proposals.
+- [ ] Persist approval and manual-override behavior; verify reruns respect the agreed policy.
+- [ ] Verify the full import → rank → explain → frontend flow before claiming the revised demo complete.
+
+## Historical Demo Slices
 
 - [x] **1. Scaffolding, Seed Store, and Tri-Bucket Columns**
   Becomes usable: A running local web application at `http://localhost:5173` showing the command center desktop layout: left sidebar, central workspace with pre-seeded student-freelancer tasks in "Do Now," "Do Next," and "Do Later," and interactive task completion toggles that strike through items and persist in browser storage.
@@ -23,7 +52,7 @@ Build mode: learn
   Becomes usable: Every task is evaluated by a multi-factor 0–100 scoring algorithm (evaluating deadline proximity, hard vs. flexible consequences, calendar fit, and urgency). Clicking any card opens `TaskReasonModal.tsx` showing the mathematical breakdown of why the task received its priority.
   Why now: Proves the Unique Kernel immediately on top of the running board—tasks are prioritized intelligently rather than by naive due dates.
   PRD ref: `prd.md > Features and Behavior (2. Prioritized Task Columns)`
-  Spec ref: `spec.md > Prioritization Engine (prioritizer.ts)`, `spec.md > Components (TaskReasonModal)`
+  Historical implementation: `Frontend/src/engine/prioritizer.ts`; current policy: `spec.md > Deterministic Ranking Policy`, `spec.md > Components (TaskReasonModal)`
   Build: Implement `Frontend/src/engine/prioritizer.ts` with 4-factor scoring logic (0-40 deadline proximity, 0-25 consequence weight, 0-20 calendar fit, 0-15 urgency), categorize tasks into Now (≥80), Next (50-79), and Later (<50), and build `TaskReasonModal.tsx` to surface the transparent score breakdown and delay risks.
   Verify (mechanical): Execute test script verifying score calculation across different deadline proximity inputs; click a task card in the browser and confirm the rationale modal displays with correct point breakdown.
   Learner check: Click the "Client Revision" card and the "Exam Study" card, review their AI score breakdown, and verify why one sits in Do Now while the other sits in Do Next.
@@ -40,7 +69,7 @@ Build mode: learn
   Commit: `Add daily briefing banner and schedule overload detection`
 
 - [x] **4. Interactive Daily Timeline Visualizer**
-  Becomes usable: A continuous horizontal 8:00 AM – 10:00 PM timeline bar at the bottom of the dashboard plotting fixed commitments (lectures, standups) in dark blocks and AI-allocated focus blocks for "Do Now" tasks in violet.
+  Becomes usable: A continuous horizontal 8:00 AM – 10:00 PM timeline bar at the bottom of the dashboard plotting fixed commitments (lectures, standups) in dark blocks and locally allocated demo focus blocks for "Do Now" tasks in violet.
   Why now: Connects "what to do" with "when to do it" across the user's day, answering both questions at a glance.
   PRD ref: `prd.md > Features and Behavior (3. Daily Timeline Visualizer)`
   Spec ref: `spec.md > Components (DailyTimeline)`, `spec.md > Prioritization Engine (scheduler.ts)`
@@ -49,12 +78,12 @@ Build mode: learn
   Learner check: Look at the timeline; confirm your 9:30 AM CS lecture and 2:00 PM call are blocked out, with the urgent client revision slotted into the open morning window.
   Commit: `Implement interactive daily timeline with task block mapping`
 
-- [ ] **5. AI Assistant Dialogue and "Approve Plan Changes" Flow (FastAPI + LLM Copilot)**
-  Becomes usable: The conversational AI Copilot powered by the Python FastAPI backend service (`Backend/routers/chat.py` and `Frontend/src/components/assistant/AIAssistantDrawer.tsx`). When the user types or clicks *"I want to study for the CS exam first"*, Axis dispatches the request to FastAPI, evaluates trade-offs via LLM prompt chaining, and returns an inline `ApprovePlanCard.tsx` proposal. Clicking "Approve" moves tasks between columns and updates the timeline; clicking "Keep Current" preserves the existing plan.
+- [x] **5. AI Assistant Dialogue and "Approve Plan Changes" Flow (FastAPI + LLM Copilot)**
+  Becomes usable: The conversational AI Copilot powered by the Python FastAPI backend service (`Backend/routers/chat.py` and `Frontend/src/components/assistant/AIAssistantDrawer.tsx`). When the user types or clicks *"I want to study for the CS exam first"*, Axis dispatches the request to FastAPI, returns the current scripted trade-off response, and returns an inline `ApprovePlanCard.tsx` proposal. Clicking "Approve" moves tasks between columns and updates the timeline; clicking "Keep Current" preserves the existing plan.
   Why now: Delivers the core conversational override loop and human-in-the-loop safety contract, proving Act 3 of the 60-second video demo.
   PRD ref: `prd.md > Features and Behavior (4. AI Assistant Dialogue & "Approve Plan Changes" Flow)`
   Spec ref: `spec.md > Components (AIAssistant, ApprovePlanCard)`, `spec.md > Stack (FastAPI)`, `spec.md > File Structure (Backend/)`
-  Build: Implement FastAPI endpoints (`Backend/routers/chat.py`, `Backend/routers/plan.py`) with LLM integration and fallback heuristic parser, connected to `AIAssistantDrawer.tsx` chat panel with `ApprovePlanCard.tsx`.
+  Build: Implement FastAPI endpoints (`Backend/routers/chat.py`, `Backend/routers/plan.py`) with the current scripted parser (real engine-backed dialogue pending), connected to `AIAssistantDrawer.tsx` chat panel with `ApprovePlanCard.tsx`.
   Verify (mechanical): Send prompt *"I want to study for the exam first"*; verify proposal card appears with diff; click "Approve" and verify cards move between columns and timeline updates.
   Learner check: Prompt the AI assistant to prioritize exam prep; review the trade-off warning; click "Approve Changes" and watch Do Now and Do Next update.
   Commit: `Add AI assistant dialogue, FastAPI backend endpoints, and trade-off approval review cards`
@@ -91,6 +120,8 @@ Reflection: [to be recorded during learning wrap-up]
 Activity mode: [to be recorded during learning wrap-up]
 
 ## Revisions
+
+- **October 20, 2026 — User-requested architecture update:** adopted the deterministic backend and evidence-backed ingestion architecture described above; previous completion marks refer to legacy demo slices. Updated Markdown planning documents and HTML companions together.
 
 - Adapted dashboard layout to user-provided focus architecture: replaced 3 equal side-by-side columns with a primary 2-column layout featuring a prominent "YOUR FOCUS" hero card, streamlined "Coming Up" and "Later" rows, and right-column widgets for Today's Schedule, Capacity, and AI status to dramatically reduce cognitive overload.
 - Architectural reorganization: Split root into `Frontend/` (Vite + React + TypeScript + Tailwind) and `Backend/` (Python 3.12 + FastAPI + Uvicorn) to isolate client and server concerns cleanly.
