@@ -17,9 +17,9 @@ export const DailyTimeline: React.FC = () => {
   // Generate continuous scheduled blocks (events + slotted tasks + open windows)
   const blocks = generateDailyTimeline(tasks, calendarEvents);
 
-  // Simulated current time for realistic demo walkthrough: 10:15 AM
-  const CURRENT_DEMO_HOUR = 10.25; // 10:15 AM
-  const currentHourPercent = ((CURRENT_DEMO_HOUR - DAY_START_HOUR) / TOTAL_DAY_HOURS) * 100;
+  // Simulated current time for realistic demo walkthrough: 08:00 AM
+  const CURRENT_DEMO_HOUR = 8; // 08:00 AM
+  const currentHourPercent = Math.max(0, ((CURRENT_DEMO_HOUR - DAY_START_HOUR) / TOTAL_DAY_HOURS) * 100);
 
   // Hourly markers for ticks (8 AM through 10 PM)
   const hourTicks = Array.from({ length: TOTAL_DAY_HOURS + 1 }, (_, i) => DAY_START_HOUR + i);
@@ -47,7 +47,7 @@ export const DailyTimeline: React.FC = () => {
               </span>
               <span className="hidden sm:inline-flex items-center gap-1 text-[10px] font-mono px-2 py-0.5 bg-violet-950/60 text-violet-300 border border-violet-800/50">
                 <Sparkles className="w-3 h-3 text-violet-400" />
-                AI Auto-Allocated
+                Engine proposals
               </span>
             </div>
             <p className="text-xs text-zinc-400 mt-0.5">
@@ -60,7 +60,7 @@ export const DailyTimeline: React.FC = () => {
         <div className="flex items-center flex-wrap gap-3 text-xs font-mono">
           <div className="flex items-center gap-1.5">
             <span className="w-2.5 h-2.5 bg-violet-600/80 border border-violet-400/80"></span>
-            <span className="text-zinc-300">AI Focus Block</span>
+            <span className="text-zinc-300">Proposed focus block</span>
           </div>
           <div className="flex items-center gap-1.5">
             <span className="w-2.5 h-2.5 bg-zinc-800 border border-zinc-600"></span>
@@ -72,7 +72,7 @@ export const DailyTimeline: React.FC = () => {
           </div>
           <div className="flex items-center gap-1.5">
             <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span>
-            <span className="text-rose-400">Now (10:15 AM)</span>
+            <span className="text-rose-400">Now (08:00 AM)</span>
           </div>
         </div>
       </div>
@@ -198,14 +198,14 @@ export const DailyTimeline: React.FC = () => {
               );
             })}
 
-            {/* Current Time Indicator Marker (10:15 AM) */}
+            {/* Current Time Indicator Marker (08:00 AM) */}
             <div
               className="absolute top-0 bottom-0 w-[2px] bg-rose-500 z-20 pointer-events-none shadow-[0_0_8px_rgba(244,63,94,0.9)]"
               style={{ left: `${currentHourPercent}%` }}
             >
               <div className="absolute -top-1 -translate-x-1/2 px-1.5 py-0.5 bg-rose-600 text-white font-mono text-[9px] font-bold shadow-md uppercase tracking-wider flex items-center gap-1">
                 <span className="w-1.5 h-1.5 rounded-full bg-white animate-ping"></span>
-                NOW 10:15 AM
+                NOW 08:00 AM
               </div>
             </div>
           </div>
@@ -222,7 +222,7 @@ export const DailyTimeline: React.FC = () => {
               </span>
               <span className="font-medium text-white">{hoveredBlock.title}</span>
               {hoveredBlock.type === 'focus' && (
-                <span className="text-[11px] font-mono text-zinc-500">(Click to view AI reasoning)</span>
+                <span className="text-[11px] font-mono text-zinc-500">(Click to view explanation)</span>
               )}
             </div>
           ) : (

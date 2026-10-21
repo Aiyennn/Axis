@@ -4,16 +4,71 @@
       "itemKey": "hero-revision",
       "title": "Revise homepage hero",
       "deadlineExpression": "noon tomorrow",
-      "consequencesOfDelay": "Invoice approval depends on completion.",
+      "isHardDeadline": true,
+      "estimatedHours": 2.0,
+      "importance": "high",
+      "consequencesOfDelay": "We cannot approve the invoice until this is finished.",
       "evidence": [
         {"field": "title", "quote": "revise the homepage hero"},
         {"field": "deadlineExpression", "quote": "by noon tomorrow"},
+        {"field": "isHardDeadline", "quote": "cannot approve the invoice until this is finished"},
+        {"field": "estimatedHours", "quote": "Estimated effort is 2 hours"},
+        {"field": "importance", "quote": "cannot approve the invoice until this is finished"},
         {"field": "consequencesOfDelay", "quote": "We cannot approve the invoice until this is finished."}
       ]
     }]
   },
   "gmail:email-newsletter": {"tasks": []},
-  "notion:page-roadmap": {"tasks": [{"itemKey": "primary", "title": "Update sprint roadmap", "evidence": [{"field": "title", "quote": "Update sprint roadmap"}]}]},
-  "github:42": {"tasks": [{"itemKey": "primary", "title": "Review authentication patch", "evidence": [{"field": "title", "quote": "Review authentication patch"}]}]},
-  "canvas:101": {"tasks": [{"itemKey": "primary", "title": "Consensus algorithms assignment", "evidence": [{"field": "title", "quote": "Consensus algorithms assignment"}]}]}
+  "notion:page-roadmap": {
+    "tasks": [{
+      "itemKey": "primary",
+      "title": "Update sprint roadmap",
+      "isHardDeadline": false,
+      "estimatedHours": 1.0,
+      "importance": "low",
+      "evidence": [
+        {"field": "title", "quote": "Update the sprint roadmap"},
+        {"field": "isHardDeadline", "quote": "Low urgency"},
+        {"field": "estimatedHours", "quote": "Estimated effort is 1.0 hour"},
+        {"field": "importance", "quote": "Low urgency"}
+      ]
+    }]
+  },
+  "github:42": {
+    "tasks": [{
+      "itemKey": "primary",
+      "title": "Review authentication patch",
+      "isHardDeadline": false,
+      "estimatedHours": 1.0,
+      "importance": "medium",
+      "consequencesOfDelay": "Review the patch before the staging release.",
+      "evidence": [
+        {"field": "title", "quote": "Review authentication patch"},
+        {"field": "isHardDeadline", "quote": "Medium priority"},
+        {"field": "estimatedHours", "quote": "Estimated effort is 1.0 hour"},
+        {"field": "importance", "quote": "Medium priority"},
+        {"field": "consequencesOfDelay", "quote": "Review the patch before the staging release."}
+      ]
+    }]
+  },
+  "canvas:101": {
+    "tasks": [{
+      "itemKey": "primary",
+      "title": "CS-401 Midterm Exam Preparation",
+      "deadlineExpression": "9:00 am tomorrow",
+      "isHardDeadline": true,
+      "estimatedHours": 3.0,
+      "importance": "high",
+      "consequencesOfDelay": "High-stakes university midterm exam preparation.",
+      "evidence": [
+        {"field": "title", "quote": "CS-401 Midterm Exam Preparation"},
+        {"field": "deadlineExpression", "quote": "Due by 9:00 am tomorrow"},
+        {"field": "isHardDeadline", "quote": "High-stakes university midterm"},
+        {"field": "estimatedHours", "quote": "Estimated effort is 3 hours"},
+        {"field": "importance", "quote": "High-stakes university midterm"},
+        {"field": "consequencesOfDelay", "quote": "High-stakes university midterm exam preparation."}
+      ]
+    }]
+  }
 }
+

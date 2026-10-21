@@ -5,6 +5,10 @@
 node_modules/
 dist/
 
+# Python generated files
+__pycache__/
+*.py[cod]
+
 # Local credential files
 .env
 .env.*

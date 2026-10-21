@@ -28,9 +28,9 @@ class IngestionTests(unittest.TestCase):
         self.assertEqual(len(result.calendarEvents), 1)
         gmail = next(t for t in result.tasks if t.source.integration == "gmail")
         self.assertEqual(gmail.deadlineAt.isoformat(), "2026-10-21T12:00:00+08:00")
-        self.assertIsNone(gmail.estimatedHours)
-        self.assertIsNone(gmail.isHardDeadline)
-        self.assertTrue(gmail.requiresReview)
+        self.assertEqual(gmail.estimatedHours, 2.0)   # fixture now includes effort estimate
+        self.assertTrue(gmail.isHardDeadline)          # fixture now includes deadline strictness
+        self.assertTrue(gmail.requiresReview)          # extracted fields still require confirmation
         github = next(t for t in result.tasks if t.source.integration == "github")
         self.assertIsNone(github.deadlineAt)  # A milestone isn't a task deadline.
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Task, PriorityBucket } from '../../types';
+import { Task } from '../../types';
 import { useApp } from '../../context/AppContext';
 import { Clock, CheckCircle2, HelpCircle } from 'lucide-react';
 
@@ -8,7 +8,7 @@ interface TaskCardProps {
 }
 
 export const TaskCard: React.FC<TaskCardProps> = ({ task }) => {
-  const { toggleTaskComplete, updateTaskPriority, setSelectedTaskForReason } = useApp();
+  const { toggleTaskComplete, setSelectedTaskForReason } = useApp();
 
   const isCompleted = task.status === 'completed';
 
@@ -82,7 +82,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task }) => {
       <div className="flex items-center justify-between text-xs text-zinc-400 pt-1 border-t border-[#27272a]/60 mt-0.5">
         <div className="flex items-center gap-2">
           <span className="font-mono text-[11px] bg-[#222226] px-1.5 py-0.5 rounded text-zinc-300">
-            {task.estimatedHours}h
+            {task.estimatedHours === null ? "Estimate needed" : `${task.estimatedHours}h`}
           </span>
           <span className="font-mono text-[11px] text-violet-400 font-semibold">
             {task.priorityScore} pts
@@ -91,15 +91,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task }) => {
 
         {/* Priority Bucket Selector */}
         <div className="flex items-center gap-1">
-          <select
-            value={task.priorityBucket}
-            onChange={(e) => updateTaskPriority(task.id, e.target.value as PriorityBucket)}
-            className="text-[11px] font-mono bg-[#121215] text-zinc-300 border border-[#27272a] rounded px-1.5 py-0.5 focus:outline-none focus:border-violet-500"
-          >
-            <option value="now">Do Now</option>
-            <option value="next">Do Next</option>
-            <option value="later">Do Later</option>
-          </select>
+          <span>{task.priorityBucket}</span>
         </div>
       </div>
     </div>

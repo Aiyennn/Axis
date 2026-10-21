@@ -1,19 +1,14 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from Backend.database import engine, Base, SessionLocal
-from Backend.services.seeder import seed_database
-from Backend.routers import tasks, calendar, chat, plan, priority, integrations
+from Backend.database import engine, Base
+from Backend.routers import auth, workspace, priority, integrations, chat
+from Backend.services.auth import allowed_origins
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Initialize PostgreSQL tables and seed demo scenario
+    # Fresh installs only. Existing schemas use the documented migration.
     Base.metadata.create_all(bind=engine)
-    db = SessionLocal()
-    try:
-        seed_database(db)
-    finally:
-        db.close()
     yield
 
 app = FastAPI(
@@ -26,19 +21,18 @@ app = FastAPI(
 # CORS setup for Vite frontend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173", "*"],
+    allow_origins=allowed_origins(),
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 # Mount API Routers
-app.include_router(tasks.router)
-app.include_router(calendar.router)
-app.include_router(chat.router)
-app.include_router(plan.router)
+app.include_router(auth.router)
+app.include_router(workspace.router)
 app.include_router(priority.router)
 app.include_router(integrations.router)
+app.include_router(chat.router)
 
 @app.get("/")
 def root():
@@ -51,6 +45,13 @@ def root():
 
 @app.get("/health")
 def health_check():
+    from sqlalchemy import text
+    from fastapi import HTTPException
+    try:
+        with engine.connect() as connection:
+            connection.execute(text("SELECT 1"))
+    except Exception:
+        raise HTTPException(503, "Database unavailable")
     return {"status": "healthy", "database": "connected"}
 
 if __name__ == "__main__":

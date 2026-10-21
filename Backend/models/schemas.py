@@ -1,4 +1,4 @@
-from typing import List, Optional, Literal
+from typing import List, Optional, Literal, Any
 from pydantic import BaseModel, Field
 
 PriorityBucket = Literal['now', 'next', 'later']
@@ -18,13 +18,13 @@ class TaskSchema(BaseModel):
     source: SourceType
     sourceLabel: str
     deadline: str
-    isHardDeadline: bool = False
-    estimatedHours: float = 1.0
-    importance: ImportanceLevel = "medium"
+    isHardDeadline: Optional[bool] = False
+    estimatedHours: Optional[float] = 1.0
+    importance: Optional[ImportanceLevel] = "medium"
     status: Literal['pending', 'completed'] = "pending"
     priorityScore: int = 50
     priorityBucket: PriorityBucket = "next"
-    scoreBreakdown: Optional[ScoreBreakdownSchema] = None
+    scoreBreakdown: Optional[Any] = None
     reasoning: Optional[str] = ""
     consequencesOfDelay: Optional[str] = ""
 
@@ -51,11 +51,10 @@ class PlanChangeProposalSchema(BaseModel):
 
 class ChatRequest(BaseModel):
     message: str
-    tasks: List[TaskSchema] = Field(default_factory=list)
-    calendarEvents: List[CalendarEventSchema] = Field(default_factory=list)
+    tasks: Optional[List[dict]] = Field(default_factory=list)
+    calendarEvents: Optional[List[dict]] = Field(default_factory=list)
 
 class ChatResponse(BaseModel):
     reply: str
     proposal: Optional[PlanChangeProposalSchema] = None
-    engine: str = "scripted-demo"
-
+    engine: str = "offline"

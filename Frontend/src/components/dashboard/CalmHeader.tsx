@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useApp } from '../../context/AppContext';
-import { calculateCapacity } from '../../engine/scheduler';
+
 import { CheckCircle2, AlertTriangle, Sparkles, LayoutList, Network } from 'lucide-react';
 
 interface CalmHeaderProps {
@@ -47,13 +47,13 @@ const Cursor: React.FC = () => (
 );
 
 export const CalmHeader: React.FC<CalmHeaderProps> = ({ dashView, setDashView }) => {
-  const { tasks, calendarEvents } = useApp();
+  const { capacity, user, briefing } = useApp();
 
-  const activeTasks = tasks.filter(t => t.status !== 'completed');
-  const capacity = calculateCapacity(tasks, calendarEvents);
 
-  const greeting = "Welcome back, Ayen. Let's pick up where you left off.";
-  const aiMessage = `I've reviewed your tasks, and you have ${activeTasks.length} active right now. One needs your attention first, while the others can wait. Take a look below, and let's tackle them one step at a time! If you have a question just press this card or the chat bubble on the bottom right corner.`;
+
+
+  const greeting = `Welcome back, ${user?.name || "there"}.`;
+  const aiMessage = briefing.summary || 'Import mock feeds to start prioritizing your tasks.';
 
   // Phase 1: type greeting (starts immediately)
   const { displayed: greetingDisplayed, done: greetingDone } = useTypewriter(greeting, 30, 300);
@@ -82,7 +82,7 @@ export const CalmHeader: React.FC<CalmHeaderProps> = ({ dashView, setDashView })
         {/* Left: Date + System Status Indicators */}
         <div className="flex items-center gap-5 text-xs font-mono">
           <span className="text-zinc-500 font-semibold tracking-wider uppercase text-sm">
-            SATURDAY, OCTOBER 17
+            TUESDAY, OCTOBER 20
           </span>
 
           {/* Engine Online Pill */}
@@ -102,7 +102,7 @@ export const CalmHeader: React.FC<CalmHeaderProps> = ({ dashView, setDashView })
           ) : (
             <div className="flex items-center gap-1.5 text-emerald-400 hover:text-emerald-300 px-2 py-1 -mx-2 rounded-none hover:bg-emerald-950/20 transition-colors cursor-default">
               <CheckCircle2 size={16} />
-              <span className="font-sans text-xs font-medium">Schedule looks clear</span>
+              <span className="font-sans text-xs font-medium">Review unknown estimates</span>
             </div>
           )}
         </div>

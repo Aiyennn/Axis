@@ -15,12 +15,14 @@ class ExplanationProvider(Protocol):
 
 class GeminiExplanationProvider:
     def __init__(self):
-        self.model = os.getenv("GEMINI_EXPLANATION_MODEL") or os.getenv("GEMINI_MODEL", "")
+        raw = os.getenv("GEMINI_EXPLANATION_MODEL") or os.getenv("GEMINI_MODEL", "")
+        self.model = raw.strip("'\" \t\r\n")
 
     def generate(self, snapshot):
         from google import genai
         from google.genai import types
-        key = os.getenv("GEMINI_API_KEY")
+        raw_key = os.getenv("GEMINI_API_KEY")
+        key = raw_key.strip("'\" \t\r\n") if raw_key else ""
         if not key or not self.model:
             raise ValueError("Gemini explanation configuration is missing")
         payload = json.dumps(snapshot)

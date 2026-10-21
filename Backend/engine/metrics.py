@@ -43,9 +43,12 @@ def calculate_metrics(item: PriorityTask, context: PriorityContext,
                                datetime.min.time(), zone).astimezone(UTC)
     capacity = None
     slack = None
-    if deadline is not None and deadline <= horizon and task.estimatedHours is not None:
+    # Option B: when effort is unknown, fall back to a provisional 1.0 h so the task
+    # is still scored on deadline proximity instead of silently receiving 0 urgency.
+    provisional_hours = task.estimatedHours if task.estimatedHours is not None else 1.0
+    if deadline is not None and deadline <= horizon:
         capacity = available_before(blocks, deadline)
-        slack = capacity - task.estimatedHours
+        slack = capacity - provisional_hours
     overdue = deadline is not None and deadline <= now
     blocked_by = tuple(sorted({
         dep for dep in task.dependencyIds
@@ -58,6 +61,7 @@ def calculate_metrics(item: PriorityTask, context: PriorityContext,
         (deadline is not None and deadline > horizon, "DEADLINE_BEYOND_PLANNING_HORIZON"),
         (overdue, "DEADLINE_OVERDUE"),
         (task.estimatedHours is None, "EFFORT_UNKNOWN"),
+        (task.estimatedHours is None and deadline is not None and deadline <= horizon, "EFFORT_DEFAULTED"),
         (task.importance is None, "IMPORTANCE_UNKNOWN"),
         (item.delayImpact == "unknown", "DELAY_IMPACT_UNKNOWN"),
         (task.requiresReview or any(e.needsConfirmation for e in task.evidence), "FACTS_REQUIRE_REVIEW"),

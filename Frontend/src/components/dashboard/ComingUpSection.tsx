@@ -6,17 +6,9 @@ import { Task } from '../../types';
 
 // Helper to format time & duration like '9:00 AM - 3 Hours' or '5:00 PM - 0.5 Hours'
 function formatTaskSubtitle(task: Task): string {
-  let timeStr = '';
-  const lower = task.deadline.toLowerCase();
-  if (lower.includes('12:00')) timeStr = '12:00 PM';
-  else if (lower.includes('9:00')) timeStr = '9:00 AM';
-  else if (lower.includes('5:00')) timeStr = '5:00 PM';
-  else if (lower.includes('6:00')) timeStr = '6:00 PM';
-  else if (lower.includes('11:59')) timeStr = '11:59 PM';
-  else if (lower.includes('4:00')) timeStr = '4:00 PM';
-  else timeStr = task.deadline;
+  const timeStr = task.deadline;
 
-  const durationStr = `${task.estimatedHours} Hour${task.estimatedHours === 1 ? '' : 's'}`;
+  const durationStr = task.estimatedHours === null ? "Estimate needed" : `${task.estimatedHours} hours`;
   return `${timeStr} - ${durationStr}`;
 }
 
@@ -25,7 +17,7 @@ export const ComingUpSection: React.FC = () => {
   const [isExpanded, setIsExpanded] = useState(true);
 
   // Filter tasks belonging to "next" priority bucket that are pending
-  const comingUpTasks = tasks.filter(t => t.priorityBucket === 'next' && t.status === 'pending');
+  const comingUpTasks = tasks.slice(1).filter(t => t.priorityBucket !== 'later' && t.status === 'pending');
 
   // Group into Today and Tomorrow based on deadline string
   const todayTasks = comingUpTasks.filter(t => {

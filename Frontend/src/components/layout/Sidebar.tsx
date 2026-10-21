@@ -1,9 +1,9 @@
 import React from 'react';
-import { LayoutDashboard, Calendar, Cable, Sparkles } from 'lucide-react';
+import { LayoutDashboard, Calendar, Cable, Sparkles, LogOut } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 
 export const Sidebar: React.FC = () => {
-  const { activeView, setActiveView } = useApp();
+  const { activeView, setActiveView, user, logout } = useApp();
 
   return (
     <aside className="w-64 bg-[#121215] border-r border-[#27272a] flex flex-col h-screen shrink-0">
@@ -64,7 +64,7 @@ export const Sidebar: React.FC = () => {
       <div className="p-3 m-3 bg-[#18181b] border border-[#27272a] rounded-lg">
         <div className="flex items-center justify-between mb-2">
           <span className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider">Simulated Feeds</span>
-          <span className="text-[10px] text-emerald-400 font-mono">4 Connected</span>
+          <span className="text-[10px] text-emerald-400 font-mono">Mock only</span>
         </div>
         <div className="flex flex-wrap gap-1.5">
           <span className="text-[10px] px-2 py-0.5 rounded bg-[#27272a] text-zinc-300 font-mono">Gmail</span>
@@ -73,6 +73,30 @@ export const Sidebar: React.FC = () => {
           <span className="text-[10px] px-2 py-0.5 rounded bg-[#27272a] text-zinc-300 font-mono">Tracker</span>
         </div>
       </div>
+
+      {/* User Session & Logout Footer */}
+      {user && (
+        <div className="p-3 border-t border-[#27272a] bg-[#141417] flex items-center justify-between">
+          <div className="flex items-center gap-2.5 overflow-hidden">
+            <div className="w-7 h-7 rounded-full bg-violet-600/20 border border-violet-500/30 flex items-center justify-center shrink-0">
+              <span className="text-xs font-bold text-violet-300 uppercase">
+                {user.name ? user.name.charAt(0) : user.email.charAt(0)}
+              </span>
+            </div>
+            <div className="truncate">
+              <div className="text-xs font-semibold text-white truncate">{user.name || user.email.split('@')[0]}</div>
+              <div className="text-[10px] text-zinc-500 truncate">{user.email}</div>
+            </div>
+          </div>
+          <button
+            onClick={logout}
+            title="Log Out"
+            className="p-1.5 text-zinc-400 hover:text-red-400 hover:bg-zinc-800 rounded transition-colors shrink-0"
+          >
+            <LogOut className="w-4 h-4" />
+          </button>
+        </div>
+      )}
     </aside>
   );
 };

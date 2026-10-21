@@ -1,257 +1,137 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { Task, CalendarEvent, ChatMessage, PriorityBucket, PlanChangeProposal } from '../types';
-import { INITIAL_TASKS, INITIAL_CALENDAR_EVENTS, INITIAL_MESSAGES } from '../data/seedData';
-import { calculatePriorityScore } from '../engine/prioritizer';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
+import { Task, ChatMessage, PlanChangeProposal } from '../types';
+import { api, ApiError, User, Workspace, MockIntegration } from '../services/api';
 
-interface AppContextType {
-  tasks: Task[];
-  calendarEvents: CalendarEvent[];
-  chatMessages: ChatMessage[];
-  activeView: 'dashboard' | 'timeline' | 'integrations';
-  selectedTaskForReason: Task | null;
-  setActiveView: (view: 'dashboard' | 'timeline' | 'integrations') => void;
-  setSelectedTaskForReason: (task: Task | null) => void;
-  toggleTaskComplete: (taskId: string) => void;
-  updateTaskPriority: (taskId: string, newBucket: PriorityBucket) => void;
-  applyPlanProposal: (proposal: PlanChangeProposal) => void;
-  addMockTask: (newTask: Partial<Task> & { title: string; deadline: string; estimatedHours: number }) => void;
-  resetToDemoSeed: () => void;
-  sendChatMessage: (userText: string) => void;
-}
-
-const AppContext = createContext<AppContextType | undefined>(undefined);
-
-const TASKS_STORAGE_KEY = 'axis_tasks_v3';
-const CALENDAR_STORAGE_KEY = 'axis_calendar_v1';
-const CHAT_STORAGE_KEY = 'axis_chat_v1';
-
-export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [tasks, setTasks] = useState<Task[]>(() => {
-    try {
-      const saved = localStorage.getItem(TASKS_STORAGE_KEY);
-      return saved ? JSON.parse(saved) : INITIAL_TASKS;
-    } catch {
-      return INITIAL_TASKS;
-    }
-  });
-
-  const [calendarEvents] = useState<CalendarEvent[]>(() => {
-    try {
-      const saved = localStorage.getItem(CALENDAR_STORAGE_KEY);
-      return saved ? JSON.parse(saved) : INITIAL_CALENDAR_EVENTS;
-    } catch {
-      return INITIAL_CALENDAR_EVENTS;
-    }
-  });
-
-  const [chatMessages, setChatMessages] = useState<ChatMessage[]>(() => {
-    try {
-      const saved = localStorage.getItem(CHAT_STORAGE_KEY);
-      return saved ? JSON.parse(saved) : INITIAL_MESSAGES;
-    } catch {
-      return INITIAL_MESSAGES;
-    }
-  });
-
+const empty: Workspace = { tasks: [], calendarEvents: [], briefing: {}, status: 'empty', mockNow: '', capacitySummary: {} };
+function useWorkspace() {
+  const [user, setUser] = useState<User | null>(null);
+  const [workspace, setWorkspace] = useState<Workspace>(empty);
+  const [loading, setLoading] = useState(true);
+  const [busy, setBusy] = useState(false);
+  const [chatBusy, setChatBusy] = useState(false);
+  const [error, setError] = useState('');
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [activeView, setActiveView] = useState<'dashboard' | 'timeline' | 'integrations'>('dashboard');
   const [selectedTaskForReason, setSelectedTaskForReason] = useState<Task | null>(null);
+  const inFlight = useRef(false);
 
   useEffect(() => {
+    let active = true;
+    api.me().then(async identity => {
+      const data = await api.workspace();
+      if (active) { setUser(identity); setWorkspace(data); }
+    }).catch(e => { if (active && !(e instanceof ApiError && e.status === 401)) setError(e.message); })
+      .finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
+  }, []);
+
+  const run = async (operation: () => Promise<void>) => {
+    if (inFlight.current) return;
+    inFlight.current = true; setBusy(true); setError('');
+    try { await operation(); }
+    catch (e) {
+      setError(e instanceof Error ? e.message : 'Request failed');
+      if (e instanceof ApiError && e.status === 401) { setUser(null); setWorkspace(empty); setSelectedTaskForReason(null); }
+    } finally { inFlight.current = false; setBusy(false); }
+  };
+
+  const accept = (data: Workspace) => {
+    setWorkspace(data);
+    setSelectedTaskForReason(previous => data.tasks.find(t => t.id === previous?.id) || null);
+  };
+
+  const authenticate = (mode: 'login' | 'register', email: string, password: string) => run(async () => {
+    const identity = await api.authenticate(mode, email, password);
+    setUser(identity);
+    let data = await api.workspace();
+    if (!data.tasks || data.tasks.length === 0) {
+      try { data = await api.sync(); } catch {}
+    }
+    accept(data);
+    setChatMessages([]);
+  });
+
+  const logout = () => run(async () => {
+    await api.logout(); setUser(null); setWorkspace(empty); setChatMessages([]); setSelectedTaskForReason(null);
+  });
+
+  const syncMock = (integrations?: MockIntegration[]) => run(async () => accept(await api.sync(integrations)));
+  const refresh = () => run(async () => accept(await api.refresh()));
+  const editTask = (id: string, version: number, patch: object) => run(async () => accept(await api.edit(id, { version, ...patch })));
+
+  const toggleTaskComplete = (id: string) => {
+    const task = workspace.tasks.find(t => t.id === id);
+    const completed = workspace.completedTasks?.find(t => t.id === id);
+    if (task || completed) void editTask(id, (task || completed)!.version!, { status: task ? 'completed' : 'pending' });
+  };
+
+  const sendChatMessage = async (text: string) => {
+    if (!text.trim() || chatBusy) return;
+    const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    setChatMessages(previous => [
+      ...previous,
+      { id: crypto.randomUUID(), sender: 'user', text, timestamp },
+    ]);
+    setChatBusy(true);
+
     try {
-      localStorage.setItem(TASKS_STORAGE_KEY, JSON.stringify(tasks));
+      const taskContext = (workspace.tasks || []).map(t => ({
+        id: t.id,
+        title: t.title,
+        priorityBucket: t.priorityBucket,
+        deadline: t.deadline,
+        estimatedHours: t.estimatedHours,
+        importance: t.importance,
+        reasoning: t.reasoning,
+      }));
+      const res = await api.chat(text, taskContext);
+      const reply = res.reply || "Oops Axis is not available at the moment please try again later";
+      setChatMessages(previous => [
+        ...previous,
+        {
+          id: crypto.randomUUID(),
+          sender: 'assistant',
+          text: reply,
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          proposal: res.proposal as PlanChangeProposal | undefined,
+        },
+      ]);
     } catch {
-      // Ignore write errors
+      setChatMessages(previous => [
+        ...previous,
+        {
+          id: crypto.randomUUID(),
+          sender: 'assistant',
+          text: "Oops Axis is not available at the moment please try again later",
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        },
+      ]);
+    } finally {
+      setChatBusy(false);
     }
-  }, [tasks]);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(chatMessages));
-    } catch {
-      // Ignore write errors
-    }
-  }, [chatMessages]);
-
-  const toggleTaskComplete = (taskId: string) => {
-    setTasks(prev => prev.map(t => {
-      if (t.id === taskId) {
-        const nextStatus = t.status === 'completed' ? 'pending' : 'completed';
-        return { ...t, status: nextStatus };
-      }
-      return t;
-    }));
   };
 
-  const updateTaskPriority = (taskId: string, newBucket: PriorityBucket) => {
-    setTasks(prev => prev.map(t => {
-      if (t.id === taskId) {
-        return { ...t, priorityBucket: newBucket };
-      }
-      return t;
-    }));
+  const capacity = {
+    totalWorkloadHours: workspace.capacitySummary.knownRemainingHours || 0,
+    availableFreeHours: workspace.capacitySummary.availableWorkingHoursToday || 0,
+    deficitHours: Math.max(0, (workspace.capacitySummary.knownRemainingHours || 0) - (workspace.capacitySummary.availableWorkingHoursToday || 0)),
+    isOverloaded: (workspace.capacitySummary.knownRemainingHours || 0) > (workspace.capacitySummary.availableWorkingHoursToday || 0),
   };
 
-  const applyPlanProposal = (proposal: PlanChangeProposal) => {
-    setTasks(prev => {
-      return prev.map(task => {
-        const move = proposal.moves.find(m => m.taskId === task.id);
-        if (move) {
-          return { ...task, priorityBucket: move.toBucket };
-        }
-        return task;
-      });
-    });
-
-    // Mark proposal as approved in messages
-    setChatMessages(prev => prev.map(msg => {
-      if (msg.proposal && msg.proposal.id === proposal.id) {
-        return {
-          ...msg,
-          proposal: { ...msg.proposal, requiresApproval: false }
-        };
-      }
-      return msg;
-    }));
-
-    // Add confirmation message
-    const confirmMsg: ChatMessage = {
-      id: 'msg-' + Date.now(),
-      sender: 'assistant',
-      text: "Plan updated! I've rescheduled your priorities. Exam preparation is now in Do Now, and client work has been adjusted accordingly.",
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-    };
-    setChatMessages(prev => [...prev, confirmMsg]);
+  return {
+    ...workspace, user, loading, busy, chatBusy, error, authenticate, logout, syncMock, refresh, editTask, capacity,
+    chatMessages, activeView, selectedTaskForReason, setActiveView, setSelectedTaskForReason, toggleTaskComplete,
+    sendChatMessage, resetToDemoSeed: () => syncMock(),
+    updateTaskPriority: (_id: string, _bucket: string) => setError('Edit task facts to recalculate priority. Buckets are assigned by the engine.'),
+    applyPlanProposal: async (_proposal: PlanChangeProposal) => setError('Legacy bucket proposals are unavailable. Edit task facts instead.'),
   };
+}
 
-  const addMockTask = (newTaskData: Partial<Task> & { title: string; deadline: string; estimatedHours: number }) => {
-    const isHard = newTaskData.isHardDeadline ?? false;
-    const importance = newTaskData.importance || 'medium';
-    const source = newTaskData.source || 'task';
-
-    const scored = calculatePriorityScore({
-      title: newTaskData.title,
-      deadline: newTaskData.deadline,
-      isHardDeadline: isHard,
-      estimatedHours: newTaskData.estimatedHours,
-      importance,
-      source
-    });
-
-    const newTask: Task = {
-      id: 'task-' + Date.now(),
-      title: newTaskData.title,
-      description: newTaskData.description || 'Custom mock task added for testing.',
-      source,
-      sourceLabel: newTaskData.sourceLabel || (source === 'email' ? 'Client Email' : source === 'canvas' ? 'Canvas Portal' : 'Task Tracker'),
-      deadline: newTaskData.deadline,
-      isHardDeadline: isHard,
-      estimatedHours: newTaskData.estimatedHours,
-      importance,
-      status: 'pending',
-      priorityScore: scored.score,
-      priorityBucket: scored.bucket,
-      scoreBreakdown: scored.breakdown,
-      reasoning: scored.reasoning,
-      consequencesOfDelay: scored.consequencesOfDelay
-    };
-
-    setTasks(prev => [newTask, ...prev]);
-  };
-
-  const resetToDemoSeed = () => {
-    localStorage.removeItem(TASKS_STORAGE_KEY);
-    localStorage.removeItem(CALENDAR_STORAGE_KEY);
-    localStorage.removeItem(CHAT_STORAGE_KEY);
-    setTasks(INITIAL_TASKS);
-    setChatMessages(INITIAL_MESSAGES);
-    setSelectedTaskForReason(null);
-  };
-
-  const sendChatMessage = (userText: string) => {
-    const userMsg: ChatMessage = {
-      id: 'msg-' + Date.now(),
-      sender: 'user',
-      text: userText,
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-    };
-
-    const lower = userText.toLowerCase();
-    let assistantMsg: ChatMessage;
-
-    // Check if user is challenging priorities for exam prep vs client revision
-    if (lower.includes('exam') || lower.includes('study')) {
-      const proposal: PlanChangeProposal = {
-        id: 'prop-' + Date.now(),
-        requestedPrompt: userText,
-        moves: [
-          {
-            taskId: 'task-2',
-            taskTitle: 'CS401 Midterm Exam Preparation',
-            fromBucket: 'next',
-            toBucket: 'now'
-          },
-          {
-            taskId: 'task-1',
-            taskTitle: 'Revise Homepage Hero Section for Client',
-            fromBucket: 'now',
-            toBucket: 'next'
-          }
-        ],
-        tradeOffs: [
-          'Client revision shifted to 2:30 PM (after client call).',
-          'Warning: Client requested revisions by 12:00 PM. High risk of missing deadline.',
-          'Exam study will occupy your peak morning focus hours before afternoon class.'
-        ],
-        requiresApproval: true
-      };
-
-      assistantMsg = {
-        id: 'msg-' + (Date.now() + 1),
-        sender: 'assistant',
-        text: "I can re-prioritize your day so you study for tomorrow's exam first. However, pushing back the client revision means you will miss their requested 12:00 PM review window.",
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        proposal
-      };
-    } else {
-      assistantMsg = {
-        id: 'msg-' + (Date.now() + 1),
-        sender: 'assistant',
-        text: `Understood. I am analyzing your workload around "${userText}". Your current priority remains focused on immediate hard deadlines.`,
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-      };
-    }
-
-    setChatMessages(prev => [...prev, userMsg, assistantMsg]);
-  };
-
-  return (
-    <AppContext.Provider
-      value={{
-        tasks,
-        calendarEvents,
-        chatMessages,
-        activeView,
-        selectedTaskForReason,
-        setActiveView,
-        setSelectedTaskForReason,
-        toggleTaskComplete,
-        updateTaskPriority,
-        applyPlanProposal,
-        addMockTask,
-        resetToDemoSeed,
-        sendChatMessage
-      }}
-    >
-      {children}
-    </AppContext.Provider>
-  );
-};
-
+const AppContext = createContext<ReturnType<typeof useWorkspace> | undefined>(undefined);
+export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) =>
+  <AppContext.Provider value={useWorkspace()}>{children}</AppContext.Provider>;
 export const useApp = () => {
   const context = useContext(AppContext);
-  if (!context) {
-    throw new Error('useApp must be used within an AppProvider');
-  }
+  if (!context) throw new Error('useApp must be used within AppProvider');
   return context;
 };
-

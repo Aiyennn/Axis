@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useApp } from './context/AppContext';
+import { SignIn } from './components/SignIn';
 import { Sidebar } from './components/layout/Sidebar';
 import { CalmHeader } from './components/dashboard/CalmHeader';
 import { HeroFocusCard } from './components/dashboard/HeroFocusCard';
@@ -10,14 +11,34 @@ import { TodayFocusCapacityWidget } from './components/dashboard/TodayFocusCapac
 import { AIEngineWidget } from './components/dashboard/AIEngineWidget';
 import { TaskReasonModal } from './components/dashboard/TaskReasonModal';
 import { AIAssistantDrawer } from './components/assistant/AIAssistantDrawer';
+import { ChatBubble } from './components/assistant/ChatBubble';
 import DailyBriefing from './components/dashboard/DailyBriefing';
 import TimelineView from './components/dashboard/TimelineView';
 import GraphView from './components/dashboard/GraphView';
+import { IntegrationsPage } from './components/integrations/IntegrationsPage';
+import { Sparkles } from 'lucide-react';
 
 export const App: React.FC = () => {
-  const { activeView } = useApp();
+  const { user, activeView, loading } = useApp();
   const [isAssistantOpen, setIsAssistantOpen] = useState(false);
   const [dashView, setDashView] = useState<'list' | 'graph'>('list');
+
+  // Show a clean loading screen while workspace initialises
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#09090b] flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4 text-zinc-400">
+          <Sparkles className="w-8 h-8 text-violet-400 animate-pulse" />
+          <p className="text-sm font-mono tracking-wide">Loading workspace…</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Dedicated Login / Register view if not authenticated
+  if (!user) {
+    return <SignIn />;
+  }
 
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-[#09090b] text-[#f4f4f5]">
@@ -45,29 +66,19 @@ export const App: React.FC = () => {
                     <DailyBriefing />
                   </div>
 
-                  {/* 2-Column Dashboard Layout matching user design */}
+                  {/* 2-Column Dashboard Layout */}
                   <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-                    {/* Left Primary Focus & Task Lists Column (slide in from left) */}
+                    {/* Left Primary Focus & Task Lists Column */}
                     <div className="lg:col-span-7 flex flex-col gap-6 animate-slide-left [animation-delay:60ms]">
-                      {/* Hero "YOUR FOCUS" Card */}
                       <HeroFocusCard />
-
-                      {/* "Coming Up" (Do Next) Section */}
                       <ComingUpSection />
-
-                      {/* "Later" (Do Later) Section */}
                       <LaterSection />
                     </div>
 
-                    {/* Right Context & Schedule Column (slide in from right) */}
+                    {/* Right Context & Schedule Column */}
                     <div className="lg:col-span-5 flex flex-col gap-6 animate-slide-right [animation-delay:100ms]">
-                      {/* Today's Schedule Timeline Widget */}
                       <TodayScheduleWidget />
-
-                      {/* Today's Focus Capacity Widget */}
                       <TodayFocusCapacityWidget />
-
-                      {/* AI Engine Status & Trigger Widget */}
                       <AIEngineWidget onOpenAssistant={() => setIsAssistantOpen(true)} />
                     </div>
                   </div>
@@ -77,12 +88,7 @@ export const App: React.FC = () => {
           ) : activeView === 'timeline' ? (
             <TimelineView />
           ) : (
-            <div className="bg-[#121215] border border-[#27272a] rounded-none p-8 text-center text-zinc-400">
-              <h3 className="text-lg font-bold text-white mb-2">Simulated Integrations Feeds</h3>
-              <p className="text-sm text-zinc-500 max-w-md mx-auto">
-                Incoming responsibilities from Gmail, Canvas, Calendar, Tasks, Notion, and GitHub are connected. Full integrations manager will be activated in Slice 6.
-              </p>
-            </div>
+            <IntegrationsPage />
           )}
         </main>
       </div>
@@ -94,6 +100,12 @@ export const App: React.FC = () => {
       <AIAssistantDrawer
         isOpen={isAssistantOpen}
         onClose={() => setIsAssistantOpen(false)}
+      />
+
+      {/* Floating LLM Chat Bubble */}
+      <ChatBubble
+        isOpen={isAssistantOpen}
+        onToggle={() => setIsAssistantOpen(prev => !prev)}
       />
     </div>
   );

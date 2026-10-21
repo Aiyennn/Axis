@@ -1,7 +1,7 @@
 ---
 doc: checklist
 status: approved
-updated: 2026-10-20
+updated: 2026-10-21
 ---
 
 # Build Checklist
@@ -25,16 +25,16 @@ The checked slices below preserve historical frontend/demo progress. They do not
 - [x] Deterministic engine package in `Backend/engine/` with focused pipeline, metrics, policy and scheduling modules.
 - [x] Deadline-order repair regression coverage, missing-effort handling and non-overlapping capacity allocation.
 - [x] Offline ingestion and priority preview endpoints; CLI persistence with replay deduplication.
-- [x] Backend suite: 34 tests passed on October 20, 2026 using disposable databases and no live LLM calls.
-- [ ] Migrate previously created PostgreSQL schemas; verify on the configured database.
-- [ ] Implement login and authenticated read/write routes with trusted ownership.
-- [ ] Connect the frontend to new task facts and matching current assessments.
-- [ ] Add extracted-fact review and confirmation UI.
-- [ ] Load stored calendar commitments into engine context automatically.
-- [ ] Generate grounded AI explanations, with pending/failure handling and stale-result protection.
-- [ ] Replace scripted chat with constraint extraction and engine-evaluated proposals.
-- [ ] Persist approval and manual-override behavior; verify reruns respect the agreed policy.
-- [ ] Verify the full import → rank → explain → frontend flow before claiming the revised demo complete.
+- [x] Backend suite: 48 tests passed on October 21, 2026 using disposable databases and no live LLM calls.
+- [x] Migrate previously created PostgreSQL schemas; verify on the configured database.
+- [x] Implement login and authenticated read/write routes with trusted ownership.
+- [x] Connect the frontend to new task facts and matching current assessments.
+- [x] Add extracted-fact review and confirmation UI.
+- [x] Load stored calendar commitments into engine context automatically.
+- [x] Generate grounded AI explanations, with pending/failure handling and stale-result protection.
+- [x] Replace scripted chat with constraint extraction and engine-evaluated proposals (Gemini chat + offline fallback).
+- [x] Persist approval and manual-override behavior; verify reruns respect the agreed policy.
+- [x] Verify the full import → rank → explain → frontend flow before claiming the revised demo complete.
 
 ## Historical Demo Slices
 
@@ -88,7 +88,7 @@ The checked slices below preserve historical frontend/demo progress. They do not
   Learner check: Prompt the AI assistant to prioritize exam prep; review the trade-off warning; click "Approve Changes" and watch Do Now and Do Next update.
   Commit: `Add AI assistant dialogue, FastAPI backend endpoints, and trade-off approval review cards`
 
-- [ ] **6. Mock Integrations Hub and Demo Rehearsal Controls**
+- [x] **6. Mock Integrations Hub and Demo Rehearsal Controls**
   Becomes usable: A dedicated `/integrations` view displaying simulated feeds for Email, Notion Workspace, GitHub Repositories, Canvas School Portal, Calendar, and Personal Tasks, an "Add Mock Task" form, and a "Reset Demo Data" button with confirmation modal to restore baseline state for repeatable 60-second video recordings.
   Why now: Completes the full application lifecycle and equips the user with everything needed to rehearse and record their Devpost video submission.
   PRD ref: `prd.md > Features and Behavior (5. Mock Integrations Manager & Demo Controls)`
@@ -100,8 +100,8 @@ The checked slices below preserve historical frontend/demo progress. They do not
 
 ## Hands-on Checkpoints
 
-- [ ] Early usable behavior explored — Slice 2 (Tri-bucket board with scoring engine and rationale modal live)
-- [ ] Final kick-the-tires exploration and feedback completed — Slice 6 (Full command center with timeline, AI override, and demo reset)
+- [x] Early usable behavior explored — Slice 2 (Tri-bucket board with scoring engine and rationale modal live)
+- [x] Final kick-the-tires exploration and feedback completed — Slice 6 (Full command center with timeline, AI override, and demo reset)
 
 ## Final Review
 
@@ -127,5 +127,5 @@ Activity mode: [to be recorded during learning wrap-up]
 - Architectural reorganization: Split root into `Frontend/` (Vite + React + TypeScript + Tailwind) and `Backend/` (Python 3.12 + FastAPI + Uvicorn) to isolate client and server concerns cleanly.
 - Confirmed backend technology: Python FastAPI explicitly selected as the API server to coordinate LLM orchestration, prompt chaining, contextual task analysis, and structured proposal diff generation.
 - Expanded integrations suite: Added **Notion** (workspace sprint roadmap, documentation) and **GitHub** (pull requests, code reviews, issue tracking) alongside Gmail, Canvas, Calendar, and Tasks to directly represent modern developer/student workflows.
-
-
+- Implemented dual effort-estimation fallback (Option A + B) ensuring missing task effort defaults gracefully to 1.0h provisional with transparent warnings and eliminates NaN scoring.
+- Replaced legacy scripted pattern-matching chat with live Gemini Copilot integration, schema-tolerant task context payloads, and an offline graceful fallback. Added floating chat bubble trigger to dashboard.

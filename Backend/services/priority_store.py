@@ -37,6 +37,11 @@ def create_priority_run(db, *, user_id: str, context: PriorityContext,
         raise ValueError("Delay impact supplied for unknown task")
     tasks = []
     for row, created_at in records:
+        default_impact = "critical" if row.is_hard_deadline else (
+            "significant" if row.importance == "high" else (
+                "minor" if row.importance in {"medium", "low"} else "unknown"
+            )
+        )
         tasks.append(PriorityTask(task={
             "id": row.id,
             "source": {"integration": row.integration, "accountId": row.account_id,
@@ -49,7 +54,7 @@ def create_priority_run(db, *, user_id: str, context: PriorityContext,
             "status": row.status, "dependencyIds": row.dependency_ids,
             "evidence": row.evidence, "requiresReview": row.requires_review,
             "ingestedAt": _aware(row.ingested_at),
-        }, version=row.version, createdAt=_aware(created_at), delayImpact=impacts.get(row.id, "unknown")))
+        }, version=row.version, createdAt=_aware(created_at), delayImpact=impacts.get(row.id, default_impact)))
     request = PriorityRequest(tasks=tasks, context=context)
     result = rank_tasks(request)
     run_id = str(uuid.uuid4())

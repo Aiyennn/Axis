@@ -5,17 +5,9 @@ import { SourceLogo } from '../shared/SourceLogo';
 import { Task } from '../../types';
 
 function formatTaskSubtitle(task: Task): string {
-  let timeStr = '';
-  const lower = task.deadline.toLowerCase();
-  if (lower.includes('12:00')) timeStr = '12:00 PM';
-  else if (lower.includes('9:00')) timeStr = '9:00 AM';
-  else if (lower.includes('5:00')) timeStr = '5:00 PM';
-  else if (lower.includes('6:00')) timeStr = '6:00 PM';
-  else if (lower.includes('11:59')) timeStr = '11:59 PM';
-  else if (lower.includes('4:00')) timeStr = '4:00 PM';
-  else timeStr = task.deadline;
+  const timeStr = task.deadline;
 
-  const durationStr = `${task.estimatedHours} Hour${task.estimatedHours === 1 ? '' : 's'}`;
+  const durationStr = task.estimatedHours === null ? "Estimate needed" : `${task.estimatedHours} hours`;
   return `${timeStr} - ${durationStr}`;
 }
 
@@ -24,7 +16,7 @@ export const LaterSection: React.FC = () => {
   const [isExpanded, setIsExpanded] = useState(true);
 
   // Filter tasks belonging to "later" priority bucket that are pending
-  const laterTasks = tasks.filter(t => t.priorityBucket === 'later' && t.status === 'pending');
+  const laterTasks = tasks.slice(1).filter(t => t.priorityBucket === 'later' && t.status === 'pending');
 
   // Group into Thursday, Friday, and others
   const thursdayTasks = laterTasks.filter(t => t.deadline.toLowerCase().includes('thursday'));
@@ -161,7 +153,7 @@ export const LaterSection: React.FC = () => {
               {otherLaterTasks.length > 0 && (
                 <div className="flex flex-col pt-5 border-t border-zinc-800/80">
                   <span className="text-lg font-medium text-zinc-200 mb-3 block tracking-tight">
-                    Next Week & Beyond
+                    Other tasks
                   </span>
                   <div className="flex flex-col pl-4 gap-1">
                     {otherLaterTasks.map(task => (

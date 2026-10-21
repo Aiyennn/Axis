@@ -4,23 +4,26 @@ export type ImportanceLevel = 'high' | 'medium' | 'low';
 
 export interface Task {
   id: string;
+  version?: number;
+  rank?: number;
+  explanationSource?: 'ai' | 'rules';
+  explanationStatus?: string;
+  requiresReview?: boolean;
+  evidence?: { field: string; origin: string; quote?: string; needsConfirmation?: boolean }[];
+  warnings?: string[];
+  plannedWork?: { start: string; end: string }[];
   title: string;
   description: string;
   source: SourceType;
   sourceLabel: string;
   deadline: string;
-  isHardDeadline: boolean;
-  estimatedHours: number;
-  importance: ImportanceLevel;
+  isHardDeadline: boolean | null;
+  estimatedHours: number | null;
+  importance: ImportanceLevel | null;
   status: 'pending' | 'completed';
   priorityScore: number; // 0 - 100
   priorityBucket: PriorityBucket;
-  scoreBreakdown: {
-    deadlineProximity: number; // 0 - 40
-    consequenceWeight: number; // 0 - 25
-    calendarFit: number; // 0 - 20
-    importanceScore: number; // 0 - 15
-  };
+  scoreBreakdown: Record<string, number>;
   reasoning: string;
   consequencesOfDelay: string;
 }

@@ -3,18 +3,18 @@ import { Sparkles, BarChart2, AlertCircle } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 
 export const TodayFocusCapacityWidget: React.FC = () => {
-  const { tasks } = useApp();
+  const { tasks, capacity } = useApp();
 
   const totalUrgentHours = tasks
     .filter(t => (t.priorityBucket === 'now' || t.priorityBucket === 'next') && t.status === 'pending')
-    .reduce((sum, t) => sum + t.estimatedHours, 0);
+    .reduce((sum, t) => sum + (t.estimatedHours || 0), 0);
 
-  const availableHours = 4.5;
+  const availableHours = capacity.availableFreeHours;
   const isOverloaded = totalUrgentHours > availableHours;
   const deficit = Math.max(0, totalUrgentHours - availableHours);
 
   // Percentage for ring
-  const percent = Math.min(100, Math.round((2.0 / availableHours) * 100));
+  const percent = Math.min(100, Math.round(availableHours ? (totalUrgentHours / availableHours) * 100 : 0));
   const strokeDashoffset = 100 - percent;
 
   return (

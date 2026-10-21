@@ -2,13 +2,13 @@ import React from 'react';
 import { Calendar, Clock, Sparkles, CheckCircle2, AlertTriangle, ArrowRight, BookOpen, Video } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { DailyTimeline } from './DailyTimeline';
-import { calculateCapacity, generateDailyTimeline, formatHour } from '../../engine/scheduler';
+import { generateDailyTimeline, formatHour } from '../../engine/scheduler';
 import { SourceLogo } from '../shared/SourceLogo';
 
 export const TimelineView: React.FC = () => {
-  const { tasks, calendarEvents, setSelectedTaskForReason, setActiveView } = useApp();
+  const { tasks, calendarEvents, capacity, setSelectedTaskForReason, setActiveView } = useApp();
 
-  const capacity = calculateCapacity(tasks, calendarEvents);
+
   const blocks = generateDailyTimeline(tasks, calendarEvents);
 
   const focusBlocks = blocks.filter((b) => b.type === 'focus');
@@ -24,11 +24,11 @@ export const TimelineView: React.FC = () => {
               <span className="px-2 py-0.5 text-[10px] font-mono uppercase tracking-wider bg-violet-950 text-violet-300 border border-violet-800">
                 Schedule Engine
               </span>
-              <span className="text-xs font-mono text-zinc-500">Wednesday, Oct 19</span>
+              <span className="text-xs font-mono text-zinc-500">Tuesday, Oct 20, 2026 · Mock clock</span>
             </div>
             <h1 className="text-2xl font-bold text-white mt-1 tracking-tight">Timeline & Daily Schedule</h1>
             <p className="text-sm text-zinc-400 mt-1 max-w-2xl">
-              Continuous 8:00 AM – 10:00 PM time-blocking schedule. Balances fixed university lectures and client calls with AI-slotted focus intervals.
+              Proposed work blocks within the 9:00 AM–6:00 PM workday, calculated by the deterministic engine around stored calendar events.
             </p>
           </div>
 
@@ -135,7 +135,7 @@ export const TimelineView: React.FC = () => {
                             {formatHour(block.startHour)} – {formatHour(block.endHour)}
                           </span>
                           <span className="text-[10px] font-mono px-1.5 py-0.2 bg-violet-900/60 text-violet-200 border border-violet-700/60 uppercase">
-                            AI Focus Slot
+                            Proposed Focus Slot
                           </span>
                           {task?.isHardDeadline && (
                             <span className="text-[10px] font-mono px-1.5 py-0.2 bg-rose-950/60 text-rose-300 border border-rose-800/60">
@@ -153,7 +153,7 @@ export const TimelineView: React.FC = () => {
                           <span className="text-violet-400">Score: {task?.priorityScore}/100</span>
                           <span>•</span>
                           <span className="text-zinc-500 group-hover:text-zinc-300 transition-colors">
-                            Click to view AI reasoning →
+                            Click to view explanation →
                           </span>
                         </div>
                       </div>
@@ -218,13 +218,13 @@ export const TimelineView: React.FC = () => {
           <div className="bg-[#121215] border border-[#27272a] p-5 shadow-lg">
             <div className="flex items-center gap-2 mb-3">
               <Sparkles className="w-4 h-4 text-violet-400" />
-              <h3 className="text-sm font-bold text-white tracking-tight">AI Slotting Principles</h3>
+              <h3 className="text-sm font-bold text-white tracking-tight">Scheduling rules</h3>
             </div>
             <div className="space-y-3 text-xs text-zinc-300">
               <div className="flex items-start gap-2.5">
                 <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 mt-0.5 shrink-0" />
                 <p>
-                  <strong className="text-white">Hard Deadlines Slotted First:</strong> Urgent work like client revisions are placed in the earliest open morning gap (8:00 AM – 9:30 AM) before your CS lecture.
+                  <strong className="text-white">Deadline-aware allocation:</strong> The engine uses deadline risk, available time, and task facts to propose work blocks. Missing effort stays unscheduled.
                 </p>
               </div>
               <div className="flex items-start gap-2.5">
@@ -236,7 +236,7 @@ export const TimelineView: React.FC = () => {
               <div className="flex items-start gap-2.5">
                 <AlertTriangle className="w-3.5 h-3.5 text-amber-400 mt-0.5 shrink-0" />
                 <p>
-                  <strong className="text-white">Human-in-the-Loop Override:</strong> Any timeline adjustment requested in the AI Copilot produces a trade-off proposal card before moving blocks.
+                  <strong className="text-white">Edit facts to recalculate:</strong> Open a task to update effort or confirm evidence. The backend saves a new revision and recalculates priorities.
                 </p>
               </div>
             </div>

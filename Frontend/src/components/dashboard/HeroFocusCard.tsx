@@ -8,15 +8,14 @@ export const HeroFocusCard: React.FC = () => {
   const [inFocusSession, setInFocusSession] = useState(false);
 
   // The primary focus is the highest-scoring pending task in "now", or the top pending task
-  const focusTask = tasks.find(t => t.priorityBucket === 'now' && t.status === 'pending') ||
-                    tasks.find(t => t.status === 'pending');
+  const focusTask = tasks.find(t => t.status === 'pending');
 
   if (!focusTask) {
     return (
       <div className="bg-[#121215] border border-[#27272a] rounded-none p-8 text-center text-zinc-400">
         <Sparkles className="w-8 h-8 text-emerald-400 mx-auto mb-2" />
-        <h3 className="text-lg font-semibold text-white">All clear for today!</h3>
-        <p className="text-sm text-zinc-500">You've completed all high-priority responsibilities.</p>
+        <h3 className="text-lg font-semibold text-white">No pending tasks</h3>
+        <p className="text-sm text-zinc-500">Import mock feeds to populate your workspace.</p>
       </div>
     );
   }
@@ -41,7 +40,7 @@ export const HeroFocusCard: React.FC = () => {
         {/* Time estimate right-aligned */}
         <div className="flex items-center gap-1.5 text-zinc-400 font-mono text-xs">
           <Clock className="w-3.5 h-3.5 text-zinc-500" />
-          <span>~ {focusTask.estimatedHours} hours</span>
+          <span>{focusTask.estimatedHours === null ? "Estimate needed" : `~ ${focusTask.estimatedHours} hours`}</span>
         </div>
       </div>
 
@@ -96,7 +95,7 @@ export const HeroFocusCard: React.FC = () => {
           className="w-full py-3 px-4 bg-[#18181d] hover:bg-[#202026] text-zinc-300 hover:text-white border border-[#27272a] hover:border-zinc-700 text-xs sm:text-sm font-semibold rounded-none transition-all duration-150 flex items-center justify-center gap-2 group"
         >
           <Sparkles className="w-4 h-4 text-violet-400 group-hover:scale-110 transition-transform" />
-          <span>View details & AI score breakdown</span>
+          <span>View details & priority breakdown</span>
         </button>
       </div>
     </div>
