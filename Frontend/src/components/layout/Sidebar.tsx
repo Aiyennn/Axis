@@ -1,5 +1,6 @@
+import { AxisLogo } from '../shared/AxisLogo';
 import React from 'react';
-import { LayoutDashboard, Calendar, Cable, Sparkles, LogOut } from 'lucide-react';
+import { LayoutDashboard, Calendar, Cable, LogOut } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 
 export const Sidebar: React.FC = () => {
@@ -11,7 +12,7 @@ export const Sidebar: React.FC = () => {
       <div className="p-5 border-b border-[#27272a] flex items-center justify-between">
         <div className="flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center shadow-md">
-            <Sparkles className="w-4 h-4 text-white" />
+            <AxisLogo className="w-4 h-4 text-white" />
           </div>
           <div>
             <span className="font-bold tracking-wider text-base text-white">AXIS</span>

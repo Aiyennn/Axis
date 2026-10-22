@@ -6,9 +6,12 @@ const empty: Workspace = { tasks: [], calendarEvents: [], briefing: {}, status: 
 function useWorkspace() {
   const [user, setUser] = useState<User | null>(null);
   const [workspace, setWorkspace] = useState<Workspace>(empty);
+  const [completedScheduleTasks, setCompletedScheduleTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [chatBusy, setChatBusy] = useState(false);
+  const [briefingBusy, setBriefingBusy] = useState(false);
+  const [briefingError, setBriefingError] = useState('');
   const [error, setError] = useState('');
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [activeView, setActiveView] = useState<'dashboard' | 'timeline' | 'integrations'>('dashboard');
@@ -42,6 +45,7 @@ function useWorkspace() {
 
   const authenticate = (mode: 'login' | 'register', email: string, password: string) => run(async () => {
     const identity = await api.authenticate(mode, email, password);
+    setCompletedScheduleTasks([]);
     setUser(identity);
     let data = await api.workspace();
     if (!data.tasks || data.tasks.length === 0) {
@@ -52,17 +56,48 @@ function useWorkspace() {
   });
 
   const logout = () => run(async () => {
-    await api.logout(); setUser(null); setWorkspace(empty); setChatMessages([]); setSelectedTaskForReason(null);
+    await api.logout(); setUser(null); setWorkspace(empty); setChatMessages([]); setCompletedScheduleTasks([]); setSelectedTaskForReason(null);
   });
 
-  const syncMock = (integrations?: MockIntegration[]) => run(async () => accept(await api.sync(integrations)));
+  const syncMock = (integrations?: MockIntegration[], reset = false) => run(async () => { accept(await api.sync(integrations, reset)); if (reset) { setChatMessages([]); setSelectedTaskForReason(null); } });
   const refresh = () => run(async () => accept(await api.refresh()));
+  const retryBriefing = () => run(async () => {
+    setBriefingBusy(true);
+    setBriefingError('');
+    try { accept(await api.retryBriefing()); }
+    catch (e) {
+      setBriefingError(e instanceof Error ? e.message : 'Could not request a briefing. Please try again.');
+      throw e;
+    } finally { setBriefingBusy(false); }
+  });
   const editTask = (id: string, version: number, patch: object) => run(async () => accept(await api.edit(id, { version, ...patch })));
 
   const toggleTaskComplete = (id: string) => {
     const task = workspace.tasks.find(t => t.id === id);
     const completed = workspace.completedTasks?.find(t => t.id === id);
-    if (task || completed) void editTask(id, (task || completed)!.version!, { status: task ? 'completed' : 'pending' });
+    const target = task || completed;
+    if (!target) return;
+    void run(async () => {
+      if (task) {
+        // Preserve the existing time blocks so the schedule can show completion
+        // immediately, even while the server prepares its revised plan.
+        setCompletedScheduleTasks(previous => [
+          ...previous.filter(item => item.id !== id), { ...task, status: 'completed' },
+        ]);
+        setWorkspace(previous => ({
+          ...previous,
+          tasks: previous.tasks.filter(item => item.id !== id),
+          completedTasks: [...(previous.completedTasks || []), { id, title: task.title, version: task.version! }],
+        }));
+      }
+      try {
+        accept(await api.edit(id, { version: target.version!, status: task ? 'completed' : 'pending' }));
+      } catch (e) {
+        setWorkspace(workspace);
+        if (task) setCompletedScheduleTasks(previous => previous.filter(item => item.id !== id));
+        throw e;
+      }
+    });
   };
 
   const sendChatMessage = async (text: string) => {
@@ -119,7 +154,11 @@ function useWorkspace() {
   };
 
   return {
-    ...workspace, user, loading, busy, chatBusy, error, authenticate, logout, syncMock, refresh, editTask, capacity,
+    ...workspace, user, loading, busy, chatBusy, briefingBusy, briefingError, retryBriefing, error, authenticate, logout, syncMock, refresh, editTask, capacity,
+    scheduleTasks: [...workspace.tasks, ...completedScheduleTasks.filter(task =>
+      !workspace.tasks.some(item => item.id === task.id) &&
+      workspace.completedTasks?.some(item => item.id === task.id)
+    )],
     chatMessages, activeView, selectedTaskForReason, setActiveView, setSelectedTaskForReason, toggleTaskComplete,
     sendChatMessage, resetToDemoSeed: () => syncMock(),
     updateTaskPriority: (_id: string, _bucket: string) => setError('Edit task facts to recalculate priority. Buckets are assigned by the engine.'),
@@ -135,3 +174,4 @@ export const useApp = () => {
   if (!context) throw new Error('useApp must be used within AppProvider');
   return context;
 };
+

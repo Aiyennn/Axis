@@ -2,6 +2,57 @@
 @tailwind components;
 @tailwind utilities;
 
+.integration-action {
+  display: inline-flex;
+  align-items: center;
+  height: 40px;
+  padding: 0 11px;
+  border-width: 1px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 500;
+  transition: border-radius 300ms ease, background-color 200ms ease;
+}
+
+.integration-action > svg {
+  flex-shrink: 0;
+}
+
+.integration-action-label {
+  max-width: 0;
+  margin-left: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  opacity: 0;
+  transition: max-width 350ms ease, margin-left 350ms ease, opacity 200ms ease;
+}
+
+.integration-action:is(:hover, :focus-visible) {
+  border-radius: 0;
+}
+
+.integration-action:is(:hover, :focus-visible) .integration-action-label {
+  max-width: 240px;
+  margin-left: 8px;
+  opacity: 1;
+}
+
+.integration-action:focus-visible {
+  outline: 2px solid #93c5fd;
+  outline-offset: 3px;
+}
+
+.integration-action:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .integration-action, .integration-action-label {
+    transition: none;
+  }
+}
+
 @layer base {
   body {
     background-color: #09090b;
@@ -112,6 +163,56 @@
 
 .animate-modal-backdrop-out {
   animation: modalBackdropFadeOut 0.2s cubic-bezier(0.4, 0, 1, 1) both;
+}
+
+@keyframes assistantPanelEnter {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes focusCardEnter {
+  from { opacity: 0; transform: translateY(12px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes focusCardExit {
+  from { opacity: 1; transform: translateY(0) scale(1); }
+  to { opacity: 0; transform: translateY(-12px) scale(0.98); }
+}
+
+.focus-card-enter { animation: focusCardEnter 300ms ease-out both; }
+.focus-card-exit { animation: focusCardExit 300ms ease-in both; }
+
+@media (prefers-reduced-motion: reduce) {
+  .focus-card-enter, .focus-card-exit { animation-duration: 1ms; }
+}
+
+@keyframes assistantPanelExit {
+  from { transform: translateX(0); opacity: 1; }
+  to { transform: translateX(100%); opacity: 0; }
+}
+
+.assistant-panel-enter {
+  animation: assistantPanelEnter 300ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.assistant-panel-exit {
+  animation: assistantPanelExit 300ms cubic-bezier(0.4, 0, 1, 1) both;
+}
+
+.assistant-backdrop-enter {
+  animation: modalBackdropFadeIn 300ms ease-out both;
+}
+
+.assistant-backdrop-exit {
+  animation: modalBackdropFadeOut 300ms ease-in both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .assistant-panel-enter, .assistant-panel-exit,
+  .assistant-backdrop-enter, .assistant-backdrop-exit {
+    animation-duration: 1ms;
+  }
 }
 
 .animate-modal-enter {

@@ -1,3 +1,4 @@
+import { AxisLogo } from './components/shared/AxisLogo';
 import React, { useState } from 'react';
 import { useApp } from './context/AppContext';
 import { SignIn } from './components/SignIn';
@@ -12,11 +13,10 @@ import { AIEngineWidget } from './components/dashboard/AIEngineWidget';
 import { TaskReasonModal } from './components/dashboard/TaskReasonModal';
 import { AIAssistantDrawer } from './components/assistant/AIAssistantDrawer';
 import { ChatBubble } from './components/assistant/ChatBubble';
-import DailyBriefing from './components/dashboard/DailyBriefing';
 import TimelineView from './components/dashboard/TimelineView';
 import GraphView from './components/dashboard/GraphView';
 import { IntegrationsPage } from './components/integrations/IntegrationsPage';
-import { Sparkles } from 'lucide-react';
+
 
 export const App: React.FC = () => {
   const { user, activeView, loading } = useApp();
@@ -28,7 +28,7 @@ export const App: React.FC = () => {
     return (
       <div className="min-h-screen bg-[#09090b] flex items-center justify-center">
         <div className="flex flex-col items-center gap-4 text-zinc-400">
-          <Sparkles className="w-8 h-8 text-violet-400 animate-pulse" />
+          <AxisLogo className="w-8 h-8 text-violet-400 animate-pulse" />
           <p className="text-sm font-mono tracking-wide">Loading workspace…</p>
         </div>
       </div>
@@ -48,11 +48,12 @@ export const App: React.FC = () => {
       {/* Main Workspace Surface */}
       <div className="flex-1 flex flex-col h-full overflow-hidden">
         <main className="flex-1 overflow-y-auto p-8 max-w-7xl mx-auto w-full">
+          {/* Keep greeting and briefing state alive while navigating sections. */}
+          <div hidden={activeView !== 'dashboard'}>
+            <CalmHeader dashView={dashView} setDashView={setDashView} />
+          </div>
           {activeView === 'dashboard' ? (
             <>
-              {/* Calm Header containing top utility status, toggle, greeting & summary */}
-              <CalmHeader dashView={dashView} setDashView={setDashView} />
-
               {dashView === 'graph' ? (
                 /* ── Graph / orbit view ──────────────────────────────── */
                 <div className="animate-fade-scale">
@@ -61,11 +62,6 @@ export const App: React.FC = () => {
               ) : (
                 /* ── List view (default) ─────────────────────────────── */
                 <div className="flex flex-col">
-                  {/* Daily Briefing Banner — slide in */}
-                  <div className="animate-slide-left">
-                    <DailyBriefing />
-                  </div>
-
                   {/* 2-Column Dashboard Layout */}
                   <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
                     {/* Left Primary Focus & Task Lists Column */}

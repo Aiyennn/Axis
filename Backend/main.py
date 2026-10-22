@@ -1,9 +1,16 @@
 from contextlib import asynccontextmanager
+import logging
+from time import perf_counter
+from uuid import uuid4
+from Backend.observability import configure_logging, request_id
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from Backend.database import engine, Base
 from Backend.routers import auth, workspace, priority, integrations, chat
 from Backend.services.auth import allowed_origins
+
+configure_logging()
+logger = logging.getLogger(__name__)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -17,6 +24,30 @@ app = FastAPI(
     version="1.0.0",
     lifespan=lifespan
 )
+
+
+@app.middleware("http")
+async def log_requests(request, call_next):
+    token = request_id.set(uuid4().hex[:12])
+    started = perf_counter()
+    # Health polling stays quiet; API requests include auth/validation failures.
+    tracked = request.url.path.startswith("/api/")
+    try:
+        if tracked:
+            logger.info("request.received method=%s path=%s", request.method, request.url.path)
+        response = await call_next(request)
+        response.headers["X-Request-ID"] = request_id.get()
+        if tracked:
+            log = logger.warning if response.status_code >= 400 else logger.info
+            log("request.completed method=%s path=%s http_status=%s duration_ms=%.0f",
+                request.method, request.url.path, response.status_code, (perf_counter() - started) * 1000)
+        return response
+    except Exception as exc:
+        logger.error("request.failed method=%s path=%s error_type=%s duration_ms=%.0f",
+                     request.method, request.url.path, type(exc).__name__, (perf_counter() - started) * 1000)
+        raise
+    finally:
+        request_id.reset(token)
 
 # CORS setup for Vite frontend
 app.add_middleware(

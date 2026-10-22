@@ -42,6 +42,108 @@ class WorkspaceTests(unittest.TestCase):
         self.assertEqual(response.status_code, 200, response.text)
         return response.json()
 
+    def test_reset_restores_fixtures_and_replaces_selected_feeds(self):
+        self.register()
+        original = self.client.post('/api/workspace/sync-mock').json()
+        task = next(t for t in original['tasks'] if t['source'] == 'canvas')
+        response = self.client.patch(f"/api/workspace/tasks/{task['id']}", json={
+            'version': task['version'], 'status': 'completed', 'estimatedHours': 99,
+        })
+        self.assertEqual(response.status_code, 200, response.text)
+        replay = self.client.post('/api/workspace/sync-mock').json()
+        self.assertIn(task['id'], [t['id'] for t in replay['completedTasks']])
+        response = self.client.post('/api/workspace/sync-mock', json={
+            'integrations': ['canvas'], 'reset': True,
+        })
+        self.assertEqual(response.status_code, 200, response.text)
+        reset = response.json()
+        restored = next(t for t in reset['tasks'] if t['id'] == task['id'])
+        self.assertEqual(restored['estimatedHours'], task['estimatedHours'])
+        self.assertGreater(restored['version'], task['version'])
+        self.assertEqual(reset['completedTasks'], [])
+        self.assertEqual(reset['calendarEvents'], [])
+        self.assertTrue(all(t['source'] == 'canvas' for t in reset['tasks']))
+
+    def test_calendar_sync_removes_events_missing_from_latest_snapshot(self):
+        self.register()
+        original = self.client.post('/api/workspace/sync-mock').json()
+        self.assertTrue(original['calendarEvents'])
+        from Backend.ingestion.pipeline import load_fixtures
+        without_calendar = [e for e in load_fixtures() if e['integration'] != 'google_calendar']
+        with patch('Backend.routers.workspace.load_fixtures', return_value=without_calendar):
+            # Syncing another feed must not erase calendar data.
+            partial = self.client.post('/api/workspace/sync-mock', json={'integrations': ['canvas']})
+            self.assertEqual(partial.json()['calendarEvents'], original['calendarEvents'])
+            synced = self.client.post('/api/workspace/sync-mock', json={
+                'integrations': ['google_calendar'],
+            })
+        self.assertEqual(synced.status_code, 200, synced.text)
+        self.assertEqual(synced.json()['calendarEvents'], [])
+        self.assertEqual(self.client.post('/api/workspace/refresh').json()['calendarEvents'], [])
+        self.assertEqual(self.client.get('/api/workspace').json()['calendarEvents'], [])
+        self.assertEqual({t['id'] for t in synced.json()['tasks']},
+                         {t['id'] for t in original['tasks']})
+
+    def test_request_logs_correlate_route_service_and_fallback(self):
+        self.register()
+        with self.assertLogs('Backend', level='INFO') as captured:
+            response = self.client.post('/api/workspace/sync-mock')
+        self.assertEqual(response.status_code, 200)
+        request_id = response.headers['X-Request-ID']
+        messages = '\n'.join(captured.output)
+        for event in ('request.received', 'workspace.sync.started',
+                      'workspace.generation.started', 'explanation.fallback',
+                      'explanation.saved', 'request.completed'):
+            self.assertIn(event, messages)
+        # The context reaches synchronous route/service workers as well as middleware.
+        from Backend.observability import RequestFilter
+        # Filters run at emission time; attach one while capturing a second request.
+        with self.assertLogs('Backend', level='INFO') as correlated:
+            import logging
+            handler = logging.getLogger('Backend').handlers[0]
+            handler.addFilter(RequestFilter())
+            loaded = self.client.get('/api/workspace')
+        self.assertTrue(all(record.request_id == loaded.headers['X-Request-ID'] for record in correlated.records))
+        self.assertNotEqual(request_id, loaded.headers['X-Request-ID'])
+
+    def test_retry_briefing_regenerates_saved_fallback_without_reranking(self):
+        self.register()
+        original = self.client.post('/api/workspace/sync-mock').json()
+        self.assertEqual(original['status'], 'fallback')
+        from Backend.explanations.fallback import fallback_batch
+        def generate(snapshot):
+            batch = fallback_batch(snapshot)
+            batch.briefing.summary = 'Start with your exam preparation today.'
+            return batch
+        with patch.dict(os.environ, {'EXPLANATION_MODE': 'gemini'}):
+            with patch('Backend.explanations.service.GeminiExplanationProvider') as provider:
+                provider.return_value.model = 'test-model'
+                provider.return_value.generate.side_effect = generate
+                response = self.client.post('/api/workspace/briefing/retry')
+                self.assertEqual(response.status_code, 200, response.text)
+                provider.return_value.generate.assert_called_once()
+        updated = response.json()
+        self.assertEqual(updated['status'], 'ready')
+        self.assertEqual(updated['runId'], original['runId'])
+        self.assertEqual(updated['briefing']['summary'], 'Start with your exam preparation today.')
+        self.assertEqual([(t['id'], t['rank'], t['priorityScore']) for t in original['tasks']],
+                         [(t['id'], t['rank'], t['priorityScore']) for t in updated['tasks']])
+        self.assertEqual(self.client.get('/api/workspace').json()['briefing'], updated['briefing'])
+
+    def test_retry_reports_disabled_empty_and_provider_failure(self):
+        self.assertEqual(self.client.post('/api/workspace/briefing/retry').status_code, 401)
+        self.register()
+        self.assertEqual(self.client.post('/api/workspace/briefing/retry').status_code, 503)
+        with patch.dict(os.environ, {'EXPLANATION_MODE': 'gemini'}):
+            self.assertEqual(self.client.post('/api/workspace/briefing/retry').status_code, 409)
+        self.client.post('/api/workspace/sync-mock')
+        with patch.dict(os.environ, {'EXPLANATION_MODE': 'gemini'}):
+            with patch('Backend.explanations.service.GeminiExplanationProvider') as provider:
+                provider.return_value.generate.side_effect = TimeoutError('test failure')
+                response = self.client.post('/api/workspace/briefing/retry')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()['status'], 'fallback')
+
     def test_mock_import_only_selected_integrations(self):
         self.register()
         response = self.client.post('/api/workspace/sync-mock', json={'integrations': ['canvas']})

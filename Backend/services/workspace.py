@@ -1,5 +1,6 @@
 """Application pipeline for the mock workspace. No integration network calls."""
 import os
+import logging
 from datetime import datetime, time, timedelta
 from zoneinfo import ZoneInfo
 
@@ -11,6 +12,7 @@ from Backend.services.priority_store import create_priority_run
 from Backend.explanations.service import current_run_view, explain_run, explanation_context, assessments
 
 MOCK_NOW = datetime.fromisoformat("2026-10-20T08:00:00+08:00")
+logger = logging.getLogger(__name__)
 
 
 def calendar_intervals(db, user_id):
@@ -45,10 +47,15 @@ def rank_workspace(db, user_id):
 def finish_run(factory, user_id, run_id, *, retry=False):
     # Mock ingestion always uses recorded extraction. Explanations may use
     # Gemini only when explicitly enabled in server configuration.
-    explain_run(factory, user_id=user_id, run_id=run_id, retry=retry,
+    logger.info("workspace.generation.started run_id=%s mode=%s retry=%s",
+                run_id, os.getenv("EXPLANATION_MODE", "rules"), retry)
+    result = explain_run(factory, user_id=user_id, run_id=run_id, retry=retry,
                 use_ai=os.getenv("EXPLANATION_MODE", "rules") == "gemini")
     with factory() as db:
-        return workspace_view(db, user_id)
+        view = workspace_view(db, user_id)
+    logger.info("workspace.generation.completed run_id=%s result=%s returned_status=%s source=%s",
+                run_id, result, view.get("status"), view.get("briefingSource"))
+    return view
 
 
 def workspace_view(db, user_id):

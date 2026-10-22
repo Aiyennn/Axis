@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
+import { AxisLogo } from '../shared/AxisLogo';
+import { AIWaiting } from '../shared/AIWaiting';
+import React, { useEffect, useState } from 'react';
 import { useApp } from '../../context/AppContext';
-import { X, Send, Sparkles, AlertTriangle, Check, Loader2 } from 'lucide-react';
+import { X, Send, AlertTriangle, Check } from 'lucide-react';
 
 interface AIAssistantDrawerProps {
   isOpen: boolean;
@@ -10,8 +12,18 @@ interface AIAssistantDrawerProps {
 export const AIAssistantDrawer: React.FC<AIAssistantDrawerProps> = ({ isOpen, onClose }) => {
   const { chatMessages, sendChatMessage, applyPlanProposal, chatBusy } = useApp();
   const [inputText, setInputText] = useState('');
+  const [isMounted, setIsMounted] = useState(isOpen);
 
-  if (!isOpen) return null;
+  useEffect(() => {
+    if (isOpen) {
+      setIsMounted(true);
+      return;
+    }
+    const timeout = window.setTimeout(() => setIsMounted(false), 300);
+    return () => window.clearTimeout(timeout);
+  }, [isOpen]);
+
+  if (!isOpen && !isMounted) return null;
 
   const handleSend = (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,42 +38,32 @@ export const AIAssistantDrawer: React.FC<AIAssistantDrawerProps> = ({ isOpen, on
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-hidden bg-black/60 backdrop-blur-xs flex justify-end animate-fadeIn">
-      <div className="w-full max-w-md bg-[#121215] border-l border-[#27272a] h-full flex flex-col shadow-2xl">
+    <div ref={node => { if (node) node.inert = !isOpen; }} className={`fixed inset-0 z-50 overflow-hidden bg-black/60 backdrop-blur-xs flex justify-end ${isOpen ? 'assistant-backdrop-enter' : 'assistant-backdrop-exit pointer-events-none'}`}>
+      <div role="dialog" aria-modal="true" aria-label="Axis assistant" className={`w-full max-w-md bg-[#0d0d0f] border-l border-[#202024] h-full flex flex-col shadow-2xl ${isOpen ? 'assistant-panel-enter' : 'assistant-panel-exit'}`}>
         {/* Drawer Header */}
-        <div className="p-4 border-b border-[#27272a] flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-none bg-violet-600/20 border border-violet-500/40 flex items-center justify-center">
-              <Sparkles className="w-4 h-4 text-violet-400" />
-            </div>
-            <div>
-              <h3 className="text-sm font-bold text-white">Axis Copilot</h3>
-              <p className="text-[10px] text-zinc-400 font-mono">Priority & Workload AI Assistant</p>
-            </div>
-          </div>
-
+        <div className="px-4 py-3 flex items-center justify-end">
           <button
             onClick={onClose}
-            className="p-1.5 text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors"
+            className="group flex h-8 w-8 items-center justify-center rounded-full border border-transparent text-zinc-400 transition-all duration-300 hover:border-red-400/80 hover:bg-red-500/10 hover:text-red-400 focus-visible:border-red-400 focus-visible:text-red-400 focus-visible:outline-none active:scale-90 motion-reduce:transition-none"
             aria-label="Close Assistant"
           >
-            <X className="w-4 h-4" />
+            <X className="w-4 h-4 transition-transform duration-300 ease-out group-hover:rotate-90 group-focus-visible:rotate-90 motion-reduce:transition-none motion-reduce:transform-none" />
           </button>
         </div>
 
         {/* Chat Messages List */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        <div className="flex-1 min-h-0 overflow-y-auto p-4 space-y-4">
           {chatMessages.length === 0 ? (
-            <div className="h-full flex flex-col items-center justify-center text-center p-6 text-zinc-500">
-              <Sparkles className="w-8 h-8 text-zinc-700 mb-3" />
-              <p className="text-xs font-medium text-zinc-400">Ask Axis anything about your schedule.</p>
-              <p className="text-[11px] text-zinc-600 mt-1 max-w-[240px]">
+            <div className="h-full flex flex-col items-center justify-center text-center px-6 pb-10 text-zinc-500">
+              <AxisLogo className="w-10 h-10 text-white mb-5" />
+              <p className="text-sm font-semibold leading-5 text-zinc-200 max-w-[250px]">Ask Axis anything about your schedule.</p>
+              <p className="text-xs leading-5 text-zinc-500 mt-2 max-w-[280px]">
                 Ask which task to do next, challenge priorities, or check workload capacity.
               </p>
             </div>
           ) : (
             chatMessages.map(msg => {
-              const isOfflineFallback = msg.sender === 'assistant' && msg.text.includes('Oops Axis is not available');
+
               return (
                 <div
                   key={msg.id}
@@ -70,12 +72,10 @@ export const AIAssistantDrawer: React.FC<AIAssistantDrawerProps> = ({ isOpen, on
                   }`}
                 >
                   <div
-                    className={`max-w-[85%] rounded-none px-4 py-2.5 text-xs leading-relaxed ${
+                    className={`max-w-[85%] whitespace-pre-wrap break-words rounded-2xl px-4 py-3 text-base leading-relaxed ${
                       msg.sender === 'user'
-                        ? 'bg-violet-600 text-white'
-                        : isOfflineFallback
-                        ? 'bg-[#18181b] border border-amber-900/50 text-amber-300'
-                        : 'bg-[#18181b] border border-[#27272a] text-zinc-200'
+                        ? 'rounded-br-sm bg-blue-600 text-white'
+                        : 'rounded-bl-sm bg-zinc-800 border border-white text-white'
                     }`}
                   >
                     {msg.text}
@@ -142,7 +142,7 @@ export const AIAssistantDrawer: React.FC<AIAssistantDrawerProps> = ({ isOpen, on
                     </div>
                   )}
 
-                  <span className="text-[10px] text-zinc-600 mt-1 font-mono">
+                  <span className="text-xs text-zinc-500 mt-1.5 px-1 font-mono">
                     {msg.timestamp}
                   </span>
                 </div>
@@ -152,28 +152,25 @@ export const AIAssistantDrawer: React.FC<AIAssistantDrawerProps> = ({ isOpen, on
 
           {/* Typing Indicator */}
           {chatBusy && (
-            <div className="flex items-center gap-2 p-3 bg-[#18181b] border border-[#27272a] rounded-none w-fit animate-pulse">
-              <Loader2 className="w-3.5 h-3.5 text-violet-400 animate-spin" />
-              <span className="text-xs text-zinc-400">Axis is thinking…</span>
-            </div>
+            <AIWaiting />
           )}
         </div>
 
         {/* Quick Suggestion Chips */}
-        <div className="p-3 border-t border-[#27272a] bg-[#0c0c0e]">
-          <div className="text-[10px] text-zinc-500 uppercase font-mono tracking-wider mb-2">Suggested Questions:</div>
-          <div className="flex flex-wrap gap-1.5">
+        <div className="px-3.5 pt-3 pb-1.5">
+          <div className="text-xs text-zinc-500 uppercase tracking-wider mb-2">Suggested Questions :</div>
+          <div className="grid grid-cols-2 gap-2">
             <button
               onClick={() => handleQuickPrompt("What should I focus on first today and why?")}
               disabled={chatBusy}
-              className="text-[11px] text-left px-2.5 py-1.5 bg-[#18181b] hover:bg-violet-950/60 border border-[#27272a] hover:border-violet-700/50 text-zinc-300 hover:text-violet-200 transition-colors disabled:opacity-50"
+              className="text-sm text-left px-3 py-2 rounded-xl bg-[#131316] hover:bg-zinc-800 border border-[#222227] text-zinc-300 transition-colors disabled:opacity-50"
             >
               "What should I focus on first?"
             </button>
             <button
               onClick={() => handleQuickPrompt("Do I have enough free capacity today for all my deadlines?")}
               disabled={chatBusy}
-              className="text-[11px] text-left px-2.5 py-1.5 bg-[#18181b] hover:bg-violet-950/60 border border-[#27272a] hover:border-violet-700/50 text-zinc-300 hover:text-violet-200 transition-colors disabled:opacity-50"
+              className="text-sm text-left px-3 py-2 rounded-xl bg-[#131316] hover:bg-zinc-800 border border-[#222227] text-zinc-300 transition-colors disabled:opacity-50"
             >
               "Do I have enough capacity today?"
             </button>
@@ -181,25 +178,27 @@ export const AIAssistantDrawer: React.FC<AIAssistantDrawerProps> = ({ isOpen, on
         </div>
 
         {/* Input Bar */}
-        <form onSubmit={handleSend} className="p-3 border-t border-[#27272a] flex items-center gap-2">
+        <form onSubmit={handleSend} className="px-3.5 pt-2 pb-3 flex items-center gap-2">
           <input
             type="text"
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
             disabled={chatBusy}
             placeholder={chatBusy ? "Axis is responding..." : "Ask Axis about priorities, deadlines, or capacity..."}
-            className="flex-1 bg-[#18181b] border border-[#27272a] focus:border-violet-500 rounded-none px-3.5 py-2 text-xs text-white placeholder-zinc-500 focus:outline-none disabled:opacity-50"
+            aria-label="Message Axis"
+            className="flex-1 min-w-0 bg-[#131316] border border-[#27272a] focus:border-blue-500 rounded-xl px-3 py-3 text-base text-white placeholder-zinc-600 focus:outline-none disabled:opacity-50"
           />
           <button
             type="submit"
             disabled={!inputText.trim() || chatBusy}
-            className="p-2 bg-violet-600 hover:bg-violet-500 disabled:opacity-40 text-white transition-colors"
+            className="h-11 w-11 shrink-0 rounded-full flex items-center justify-center bg-blue-500 hover:bg-blue-400 disabled:cursor-not-allowed disabled:bg-blue-500/80 text-white transition-colors"
             aria-label="Send Message"
           >
-            <Send className="w-3.5 h-3.5" />
+            <Send className="w-4 h-4" />
           </button>
         </form>
       </div>
     </div>
   );
 };
+

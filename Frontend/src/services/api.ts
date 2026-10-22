@@ -32,8 +32,10 @@ export const api = {
   authenticate: (mode: 'login' | 'register', email: string, password: string) => request<User>(`/auth/${mode}`, 'POST', { email, password }),
   logout: () => request('/auth/logout', 'POST'),
   workspace: () => request<Workspace>('/workspace'),
-  sync: (integrations?: MockIntegration[]) => request<Workspace>('/workspace/sync-mock', 'POST', integrations ? { integrations } : undefined),
+  sync: (integrations?: MockIntegration[], reset = false) => request<Workspace>('/workspace/sync-mock', 'POST', integrations ? { integrations, reset } : undefined),
   refresh: () => request<Workspace>('/workspace/refresh', 'POST'),
+  retryBriefing: () => request<Workspace>('/workspace/briefing/retry', 'POST'),
   edit: (id: string, patch: object) => request<Workspace>(`/workspace/tasks/${encodeURIComponent(id)}`, 'PATCH', patch),
   chat: (message: string, tasks?: unknown[]) => request<{ reply: string; proposal?: unknown; engine?: string }>('/chat', 'POST', { message, tasks }),
 };
+

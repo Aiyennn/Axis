@@ -1,6 +1,7 @@
 import os
 import uuid
 import logging
+from time import perf_counter
 from datetime import datetime
 from typing import List, Optional
 from fastapi import APIRouter, Depends
@@ -47,6 +48,8 @@ def get_chat_history(db: Session = Depends(get_db)):
 
 @router.post("", response_model=ChatResponse)
 def post_chat_message(request: ChatRequest, db: Session = Depends(get_db)):
+    started = perf_counter()
+    logger.info("chat.received tasks=%s", len(request.tasks or []))
     now_str = datetime.now().strftime("%I:%M %p")
 
     # Persist user message
@@ -61,7 +64,8 @@ def post_chat_message(request: ChatRequest, db: Session = Depends(get_db)):
     db.add(user_msg)
     try:
         db.commit()
-    except Exception:
+    except Exception as exc:
+        logger.error("chat.user_message.save_failed error_type=%s", type(exc).__name__)
         db.rollback()
 
     raw_key = os.getenv("GEMINI_API_KEY")
@@ -71,6 +75,7 @@ def post_chat_message(request: ChatRequest, db: Session = Depends(get_db)):
 
     # If no LLM is embedded or configured, respond with fallback message immediately
     if not key or not model_name:
+        logger.warning("chat.fallback reason=missing_configuration key_present=%s model_present=%s", bool(key), bool(model_name))
         reply_text = FALLBACK_MESSAGE
         engine_mode = "offline"
     else:
@@ -101,6 +106,7 @@ def post_chat_message(request: ChatRequest, db: Session = Depends(get_db)):
             prompt_content = f"Active Workspace Tasks:\n{task_context}\n\nUser Question:\n{request.message}"
 
             with genai.Client(api_key=key, http_options=types.HttpOptions(timeout=15000)) as client:
+                logger.info("chat.provider.started model=%s tasks=%s", model_name, len(task_lines))
                 res = client.models.generate_content(
                     model=model_name,
                     contents=prompt_content,
@@ -111,8 +117,13 @@ def post_chat_message(request: ChatRequest, db: Session = Depends(get_db)):
                 )
                 reply_text = res.text.strip() if res.text else FALLBACK_MESSAGE
                 engine_mode = "gemini"
+                if reply_text == FALLBACK_MESSAGE:
+                    logger.warning("chat.provider.empty_response model=%s fallback=true", model_name)
+                else:
+                    logger.info("chat.provider.succeeded model=%s duration_ms=%.0f", model_name, (perf_counter() - started) * 1000)
         except Exception as e:
-            logger.error("Gemini generation failed: %s", e)
+            logger.error("chat.provider.failed model=%s error_type=%s provider_code=%s provider_status=%s fallback=true",
+                         model_name, type(e).__name__, getattr(e, "code", None), getattr(e, "status", None))
             reply_text = FALLBACK_MESSAGE
             engine_mode = "offline"
 
@@ -128,9 +139,12 @@ def post_chat_message(request: ChatRequest, db: Session = Depends(get_db)):
     db.add(assistant_msg)
     try:
         db.commit()
-    except Exception:
+    except Exception as exc:
+        logger.error("chat.assistant_message.save_failed error_type=%s", type(exc).__name__)
         db.rollback()
 
+    logger.info("chat.completed engine=%s fallback=%s duration_ms=%.0f", engine_mode,
+                reply_text == FALLBACK_MESSAGE, (perf_counter() - started) * 1000)
     return ChatResponse(
         reply=reply_text,
         proposal=None,

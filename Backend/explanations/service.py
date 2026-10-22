@@ -1,5 +1,7 @@
 """Persist rankings first; call the provider without holding a DB transaction."""
 import json
+import logging
+from time import perf_counter
 import uuid
 from datetime import datetime, timedelta, timezone
 from zoneinfo import ZoneInfo
@@ -15,6 +17,8 @@ from .provider import GeminiExplanationProvider, PROMPT_VERSION
 from Backend.models.priority import PriorityContext
 from Backend.engine.calendar import free_blocks, available_before
 from Backend.services.ownership import lock_owner
+
+logger = logging.getLogger(__name__)
 
 
 def calendar_revision(db, user_id):
@@ -95,6 +99,8 @@ def explain_run(session_factory, *, user_id, run_id, provider=None, retry=False,
     attempts cannot overwrite the newer one. The caller may run this in a worker.
     """
     token = str(uuid.uuid4())
+    started = perf_counter()
+    logger.info("explanation.started run_id=%s attempt=%s use_ai=%s retry=%s", run_id, token, use_ai, retry)
     with session_factory.begin() as db:
         lock_owner(db, user_id)
         run = db.get(PriorityRunModel, (user_id, run_id))
@@ -102,8 +108,10 @@ def explain_run(session_factory, *, user_id, run_id, provider=None, retry=False,
             raise ValueError("Run does not exist for this user")
         if not is_current(db, run):
             run.explanation_status = "stale"
+            logger.warning("explanation.skipped run_id=%s reason=stale", run_id)
             return "stale"
         if not retry and run.explanation_status in {"ready", "generating", "fallback"}:
+            logger.info("explanation.skipped run_id=%s reason=already_processed status=%s", run_id, run.explanation_status)
             return run.explanation_status
         rows = assessments(db, user_id, run_id)
         snapshot = explanation_context(run, rows)
@@ -115,21 +123,32 @@ def explain_run(session_factory, *, user_id, run_id, provider=None, retry=False,
         batch = fallback_batch(snapshot)
         status, model = "fallback", None
         if use_ai and snapshot["tasks"]:
+            logger.info("explanation.provider.started run_id=%s model=%s tasks=%s", run_id, provider.model, len(snapshot["tasks"]))
             batch = validate_batch(provider.generate(snapshot), snapshot)
             status, model = "ready", provider.model
+            logger.info("explanation.provider.validated run_id=%s model=%s explanations=%s", run_id, model, len(batch.taskExplanations))
+        else:
+            logger.info("explanation.fallback run_id=%s reason=%s", run_id, "ai_disabled" if not use_ai else "no_tasks")
     except Exception as exc:
+        logger.error("explanation.provider.failed run_id=%s model=%s error_type=%s provider_code=%s provider_status=%s fallback=true duration_ms=%.0f",
+                     run_id, provider.model, type(exc).__name__, getattr(exc, "code", None),
+                     getattr(exc, "status", None), (perf_counter() - started) * 1000)
         batch = fallback_batch(snapshot)
         status, model, error = "fallback", None, type(exc).__name__
     with session_factory.begin() as db:
         lock_owner(db, user_id)
         run = db.get(PriorityRunModel, (user_id, run_id))
         if run.explanation_attempt != token:
+            logger.warning("explanation.discarded run_id=%s reason=superseded", run_id)
             return "superseded"
         if not is_current(db, run):
             run.explanation_status = "stale"
+            logger.warning("explanation.discarded run_id=%s reason=stale", run_id)
             return "stale"
         apply_batch(run, assessments(db, user_id, run_id), batch, status=status, model=model)
         run.explanation_error = error
+    logger.info("explanation.saved run_id=%s status=%s model=%s error_type=%s duration_ms=%.0f",
+                run_id, status, model, error, (perf_counter() - started) * 1000)
     return status
 
 

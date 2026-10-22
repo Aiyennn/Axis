@@ -1,3 +1,4 @@
+import { AxisLogo } from '../shared/AxisLogo';
 /**
  * GraphView.tsx
  * Obsidian-style Force Graph with Interconnected Network Physics:
@@ -424,8 +425,8 @@ export const GraphView: React.FC = () => {
     <div className="relative w-full rounded-none overflow-hidden border border-zinc-800/80 bg-[#09090b] shadow-2xl select-none">
       {/* Top Header Mode Indicator */}
       <div className="absolute top-5 left-6 z-20 flex items-center gap-3 pointer-events-none">
-        <div className="flex items-center gap-2 px-3 py-1.5 rounded-none bg-[#121215]/85 backdrop-blur-md border border-zinc-800 text-xs text-zinc-300 shadow-md">
-          <span className="w-2 h-2 rounded-full bg-rose-500 animate-ping" />
+        <div className="flex items-center gap-2 py-1.5 text-xs text-zinc-200">
+          <span className="w-2.5 h-2.5 rounded-full bg-rose-300 shadow-[0_0_10px_#fda4af]" />
           <span className="font-semibold text-white">Proximity = Urgency</span>
           <span className="text-zinc-500">•</span>
           <span className="text-zinc-400">{activeTasks.length} Live Nodes</span>
@@ -436,27 +437,27 @@ export const GraphView: React.FC = () => {
       </div>
 
       {/* Interactive Controls Overlay (Zoom / Reset) */}
-      <div className="absolute top-5 right-6 z-20 flex items-center gap-1.5 p-1 rounded-none bg-[#121215]/85 backdrop-blur-md border border-zinc-800 shadow-md">
+      <div className="absolute top-5 right-6 z-20 flex items-center gap-1.5">
         <button
           onClick={() => handleZoom('in')}
           title="Zoom In"
-          className="p-2 rounded-none text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors"
+          className="p-2 rounded-full text-blue-300 hover:text-blue-100 hover:bg-blue-500/20 hover:scale-110 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 transition-all duration-200 motion-reduce:transform-none motion-reduce:transition-none"
         >
-          <ZoomIn size={15} />
+          <ZoomIn size={18} />
         </button>
         <button
           onClick={() => handleZoom('out')}
           title="Zoom Out"
-          className="p-2 rounded-none text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors"
+          className="p-2 rounded-full text-blue-300 hover:text-blue-100 hover:bg-blue-500/20 hover:scale-110 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 transition-all duration-200 motion-reduce:transform-none motion-reduce:transition-none"
         >
-          <ZoomOut size={15} />
+          <ZoomOut size={18} />
         </button>
         <button
           onClick={handleReset}
           title="Reset Graph"
-          className="p-2 rounded-none text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors"
+          className="p-2 rounded-full text-blue-300 hover:text-blue-100 hover:bg-blue-500/20 hover:scale-110 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 transition-all duration-200 motion-reduce:transform-none motion-reduce:transition-none"
         >
-          <RotateCcw size={15} />
+          <RotateCcw size={18} />
         </button>
       </div>
 
@@ -617,21 +618,9 @@ export const GraphView: React.FC = () => {
               filter="url(#softGlow)"
             />
 
-            {/* Glowing Sparkle ✦ in center */}
-            <text
-              x={0}
-              y={-4}
-              textAnchor="middle"
-              dominantBaseline="central"
-              fill="#c4b5fd"
-              fontSize={24}
-              fontWeight="bold"
-              className="pointer-events-none select-none"
-            >
-              ✦
-            </text>
+            <AxisLogo x={-19} y={-27} width={38} height={38} className="pointer-events-none" />
 
-            {/* AXIS Label Under Sparkle */}
+            {/* AXIS label under logo */}
             <text
               x={0}
               y={18}
@@ -823,18 +812,18 @@ export const GraphView: React.FC = () => {
       )}
 
       {/* Bottom Right Legend */}
-      <div className="absolute bottom-5 right-6 z-20 flex items-center gap-4 px-3.5 py-2 rounded-none bg-[#121215]/85 backdrop-blur-md border border-zinc-800/80 text-xs text-zinc-400 shadow-md">
+      <div className="absolute bottom-5 right-6 z-20 flex items-center gap-4 py-2 text-xs text-zinc-200">
         <div className="flex items-center gap-1.5">
-          <span className="w-2.5 h-2.5 rounded-full bg-rose-500 shadow-[0_0_8px_#ef4444]" />
+          <span className="w-2.5 h-2.5 rounded-full bg-rose-300 shadow-[0_0_10px_#fda4af]" />
           <span className="text-zinc-200 font-medium">Do Now (Closest)</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <span className="w-2.5 h-2.5 rounded-full bg-amber-500 shadow-[0_0_6px_#f59e0b]" />
+          <span className="w-2.5 h-2.5 rounded-full bg-amber-300 shadow-[0_0_10px_#fcd34d]" />
           <span className="text-zinc-300">Do Next</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-[0_0_6px_#10b981]" />
-          <span className="text-zinc-400">Later (Outer)</span>
+          <span className="w-2.5 h-2.5 rounded-full bg-emerald-300 shadow-[0_0_10px_#6ee7b7]" />
+          <span className="text-zinc-200">Later (Outer)</span>
         </div>
       </div>
     </div>
@@ -842,3 +831,4 @@ export const GraphView: React.FC = () => {
 };
 
 export default GraphView;
+

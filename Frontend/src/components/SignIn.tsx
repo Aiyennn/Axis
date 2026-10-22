@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { Sparkles, ArrowRight, Lock, Mail, AlertCircle, Loader2 } from 'lucide-react';
-import axisLogo from '../assets/logo.png';
+import { AxisLogo } from './shared/AxisLogo';
 
 export const SignIn: React.FC = () => {
   const { authenticate, busy, error } = useApp();
@@ -57,7 +57,7 @@ export const SignIn: React.FC = () => {
         {/* Header / Brand */}
         <div className="flex flex-col items-center text-center mb-6">
           <div className="w-12 h-12 mb-3 flex items-center justify-center">
-            <img src={axisLogo} alt="Axis Logo" className="w-full h-full object-contain filter drop-shadow-md" />
+            <AxisLogo className="w-full h-full drop-shadow-md" />
           </div>
           <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-white flex items-center gap-2">
             AXIS

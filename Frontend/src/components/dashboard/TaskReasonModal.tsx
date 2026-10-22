@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
 import { X, Clock, Calendar, ShieldCheck, Sparkles, AlertTriangle, ExternalLink, CheckCircle2 } from 'lucide-react';
 import { SourceLogo } from '../shared/SourceLogo';
-import axisLogo from '../../assets/logo.png';
+import { AxisLogo } from '../shared/AxisLogo';
 import type { SourceType, Task } from '../../types';
 
 interface AppThemeConfig {
@@ -204,11 +204,7 @@ export const TaskReasonModal: React.FC = () => {
           {/* Top row inside card: Axis Logo anchored at Top Left & Priority Score at Top Right */}
           <div className="flex items-start justify-between">
             <div className="w-12 h-12 sm:w-14 sm:h-14 shrink-0 -mt-1 -ml-1">
-              <img
-                src={axisLogo}
-                alt="Axis"
-                className="w-full h-full object-contain filter drop-shadow-md"
-              />
+              <AxisLogo className="w-full h-full drop-shadow-md" />
             </div>
             <div className="flex items-baseline gap-2 font-sans pt-1">
               <span className="text-xs sm:text-sm font-normal tracking-wide text-zinc-400 uppercase">
@@ -289,50 +285,51 @@ export const TaskReasonModal: React.FC = () => {
           </div>
 
           {/* Effort Calibration Input (when unknown or user wants to adjust) */}
-          <div className="p-3 bg-[#18181c] border border-[#2a2a30] space-y-2">
-            <div className="flex items-center justify-between text-xs">
-              <span className="font-medium text-zinc-300 uppercase tracking-wider font-mono text-[11px]">
+          <div className="pt-2 space-y-4">
+            <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
+              <span className="font-semibold text-zinc-300 uppercase tracking-wider font-mono text-[11px]">
                 Estimated Effort Calibration
               </span>
               <span className="text-zinc-400 font-mono">
                 {task.estimatedHours === null ? 'Effort Unknown' : `${task.estimatedHours}h allocated`}
               </span>
             </div>
-            <p className="text-xs text-zinc-400 leading-relaxed">
+            <p className="text-sm text-zinc-400 leading-relaxed">
               {task.estimatedHours === null
                 ? 'The priority engine cannot calculate calendar slack without an effort estimate. Provide an estimate to recalculate score:'
                 : 'Recalibrate this task duration to re-score deadline slack:'}
             </p>
-            <div className="flex flex-wrap items-center gap-2 pt-1">
+            <div className="flex flex-wrap items-center gap-2.5 pt-1">
               {[1, 2, 3].map((h) => (
                 <button
                   key={h}
                   type="button"
                   disabled={busy}
                   onClick={() => handleSaveEffort(h)}
-                  className="px-2.5 py-1 bg-[#232328] hover:bg-violet-900/40 hover:border-violet-700/60 border border-zinc-700 text-xs text-zinc-200 font-mono transition-colors"
+                  className="h-9 w-9 shrink-0 rounded-full bg-[#4263ff] hover:bg-blue-400 active:scale-95 disabled:opacity-50 text-xs text-blue-100 transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-300 focus-visible:ring-offset-2 focus-visible:ring-offset-[#141417]"
                 >
                   +{h}h
                 </button>
               ))}
-              <div className="flex items-center gap-1.5 ml-auto">
+              <div className="flex items-center gap-3 ml-auto">
                 <input
                   type="number"
                   step="0.5"
                   min="0.1"
                   max="24"
                   placeholder="Hours"
+                  aria-label="Estimated effort in hours"
                   value={effortInput}
                   onChange={(e) => setEffortInput(e.target.value)}
-                  className="w-20 px-2 py-1 bg-[#121215] border border-zinc-700 text-white text-xs font-mono focus:border-violet-500 focus:outline-none"
+                  className="h-9 w-16 rounded border border-zinc-700 bg-transparent px-3 text-sm text-white font-mono focus:border-blue-500 focus:outline-none"
                 />
                 <button
                   type="button"
                   disabled={busy || !effortInput}
                   onClick={() => handleSaveEffort(Number(effortInput))}
-                  className="px-3 py-1 bg-violet-600 hover:bg-violet-500 disabled:opacity-50 text-white text-xs font-semibold transition-colors flex items-center gap-1"
+                  className="h-9 px-4 rounded bg-blue-500 hover:bg-blue-400 active:scale-95 disabled:opacity-50 text-white text-sm transition-all duration-200 flex items-center justify-center gap-2"
                 >
-                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  <CheckCircle2 className="w-4 h-4" />
                   <span>{busy ? 'Scoring…' : 'Score Task'}</span>
                 </button>
               </div>

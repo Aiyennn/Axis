@@ -46,7 +46,7 @@ class GeminiExplanationProvider:
                 model=self.model, contents=payload,
                 config=types.GenerateContentConfig(
                     system_instruction=prompt, response_mime_type="application/json",
-                    response_schema=ExplanationBatch, max_output_tokens=16384,
+                    response_json_schema=ExplanationBatch.model_json_schema(), max_output_tokens=16384,
                 ),
             )
             return ExplanationBatch.model_validate_json(response.text)

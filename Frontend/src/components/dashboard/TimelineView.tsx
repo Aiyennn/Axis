@@ -1,5 +1,5 @@
 import React from 'react';
-import { Calendar, Clock, Sparkles, CheckCircle2, AlertTriangle, ArrowRight, BookOpen, Video } from 'lucide-react';
+import { Calendar, Clock, Sparkles, CheckCircle2, AlertTriangle, ArrowRight } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { DailyTimeline } from './DailyTimeline';
 import { generateDailyTimeline, formatHour } from '../../engine/scheduler';
@@ -79,111 +79,48 @@ export const TimelineView: React.FC = () => {
             </span>
           </div>
 
-          <div className="space-y-3 relative before:absolute before:left-3 before:top-2 before:bottom-2 before:w-[1.5px] before:bg-zinc-800/70">
-            {blocks.map((block) => {
-              if (block.type === 'event') {
-                const isLecture = block.event?.type === 'class';
-                return (
-                  <div
-                    key={block.id}
-                    className="relative pl-8 pr-3 py-2.5 bg-[#18181f] border border-zinc-700/80 hover:border-zinc-500 transition-all group"
-                  >
-                    <div className="absolute left-[9px] top-4 w-2 h-2 rounded-none bg-zinc-400 ring-4 ring-[#121215]"></div>
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs font-mono font-semibold text-zinc-300">
-                            {formatHour(block.startHour)} – {formatHour(block.endHour)}
-                          </span>
-                          <span className="text-[10px] font-mono px-1.5 py-0.2 bg-zinc-800 text-zinc-300 border border-zinc-700 uppercase">
-                            Fixed Commitment
-                          </span>
-                        </div>
-                        <div className="text-sm font-semibold text-white mt-1 flex items-center gap-1.5">
-                          {isLecture ? (
-                            <BookOpen className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
-                          ) : (
-                            <Video className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
-                          )}
-                          <span>{block.title}</span>
-                        </div>
-                        <p className="text-xs text-zinc-400 mt-0.5">
-                          {block.subtitle || 'Scheduled on Google / Apple Calendar'}
-                        </p>
-                      </div>
-                      <span className="text-xs font-mono text-zinc-500 shrink-0">
-                        {block.durationHours}h
-                      </span>
+          <ol className="pt-1">
+            {blocks.map((block, index) => (
+              <li key={block.id} className="relative flex gap-4 pb-7 last:pb-0">
+                {index < blocks.length - 1 && (
+                  <span aria-hidden="true" className="absolute left-3 top-6 bottom-0 w-px bg-zinc-800" />
+                )}
+                <span aria-hidden="true" className="relative z-10 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-zinc-600 bg-[#121215]">
+                  <span className="h-1.5 w-1.5 rounded-full bg-zinc-500" />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm leading-6 text-zinc-400 mb-2">
+                    {formatHour(block.startHour)} – {formatHour(block.endHour)}
+                  </p>
+                  {block.type === 'focus' && block.task ? (
+                    <button
+                      type="button"
+                      onClick={() => block.task && setSelectedTaskForReason(block.task)}
+                      className="flex items-center gap-3.5 text-left text-base font-semibold leading-snug text-zinc-100 transition-colors hover:text-blue-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 rounded-sm"
+                    >
+                      <SourceLogo source={block.task.source} size={32} className="shrink-0" />
+                      <span>{block.title}</span>
+                    </button>
+                  ) : (
+                    <div className={`flex items-center gap-3.5 text-base font-semibold leading-snug ${block.type === 'open' ? 'text-zinc-500' : 'text-zinc-100'}`}>
+                      {block.type === 'event' ? (
+                        <SourceLogo source="calendar" size={32} className="shrink-0" />
+                      ) : (
+                        <Clock size={32} strokeWidth={1.5} className="shrink-0" />
+                      )}
+                      <span>{block.type === 'open' ? 'Open Focus Window' : block.title}</span>
                     </div>
-                  </div>
-                );
-              }
-
-              if (block.type === 'focus') {
-                const task = block.task;
-                return (
-                  <div
-                    key={block.id}
-                    onClick={() => task && setSelectedTaskForReason(task)}
-                    className="relative pl-8 pr-3 py-2.5 bg-gradient-to-r from-violet-950/40 to-transparent border border-violet-800/50 hover:border-violet-500 hover:bg-violet-950/60 transition-all cursor-pointer group"
-                  >
-                    <div className="absolute left-[9px] top-4 w-2 h-2 rounded-none bg-violet-400 ring-4 ring-[#121215] group-hover:scale-125 transition-transform"></div>
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs font-mono font-semibold text-violet-300">
-                            {formatHour(block.startHour)} – {formatHour(block.endHour)}
-                          </span>
-                          <span className="text-[10px] font-mono px-1.5 py-0.2 bg-violet-900/60 text-violet-200 border border-violet-700/60 uppercase">
-                            Proposed Focus Slot
-                          </span>
-                          {task?.isHardDeadline && (
-                            <span className="text-[10px] font-mono px-1.5 py-0.2 bg-rose-950/60 text-rose-300 border border-rose-800/60">
-                              Hard Deadline
-                            </span>
-                          )}
-                        </div>
-                        <div className="text-sm font-semibold text-white group-hover:text-violet-100 mt-1 flex items-center gap-2">
-                          {task && <SourceLogo source={task.source} size={15} />}
-                          <span>{block.title}</span>
-                        </div>
-                        <div className="flex items-center gap-3 text-xs text-zinc-400 mt-1">
-                          <span>Source: {task?.sourceLabel}</span>
-                          <span>•</span>
-                          <span className="text-violet-400">Score: {task?.priorityScore}/100</span>
-                          <span>•</span>
-                          <span className="text-zinc-500 group-hover:text-zinc-300 transition-colors">
-                            Click to view explanation →
-                          </span>
-                        </div>
-                      </div>
-                      <span className="text-xs font-mono text-violet-400 font-semibold shrink-0">
-                        {block.durationHours}h
-                      </span>
-                    </div>
-                  </div>
-                );
-              }
-
-              // Open interval
-              return (
-                <div
-                  key={block.id}
-                  className="relative pl-8 pr-3 py-2 bg-zinc-900/20 border border-dashed border-zinc-800/60 text-zinc-500"
-                >
-                  <div className="absolute left-[10px] top-3.5 w-1.5 h-1.5 rounded-none bg-zinc-700 ring-4 ring-[#121215]"></div>
-                  <div className="flex items-center justify-between text-xs font-mono">
-                    <span>
-                      {formatHour(block.startHour)} – {formatHour(block.endHour)} • Open Focus Window
-                    </span>
-                    <span>{block.durationHours}h Free</span>
-                  </div>
+                  )}
+                  {block.type === 'focus' && block.task?.reasoning && (
+                    <p className="mt-2 text-xs leading-relaxed text-zinc-400 sm:pl-[46px]">
+                      {block.task.reasoning}
+                    </p>
+                  )}
                 </div>
-              );
-            })}
-          </div>
+              </li>
+            ))}
+          </ol>
         </div>
-
         {/* Right Column: Schedule Intelligence & Commitments (5 cols) */}
         <div className="lg:col-span-5 space-y-6">
           {/* Calendar Commitments Summary Card */}
