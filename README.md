@@ -127,6 +127,8 @@ Axis/
 
 ## How to run
 
+After cloning the repository, building, and starting the app with either option below, you can register your own user account in Axis. Each account has its own workspace.
+
 ### Option 1: Docker Compose
 
 Install Docker with Docker Compose, start Docker, and open a terminal in the repository root.
