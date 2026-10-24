@@ -1,43 +1,195 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Axis — Technical Specification</title><style>
-:root { color-scheme: dark; font-family: system-ui, sans-serif; background:#0b0f19; color:#e2e8f0; }
-body { margin:0; line-height:1.7; } nav { padding:1rem 2rem; border-bottom:1px solid #334155; background:#111827; }
-nav a { display:inline-block; margin-right:1.4rem; } a { color:#a5b4fc; } a[aria-current] { color:#fff; font-weight:700; }
-main { max-width:1000px; margin:auto; padding:2rem 1.5rem 5rem; } h1,h2,h3 { line-height:1.25; color:#f8fafc; }
-h1 { font-size:2.4rem; } h2 { margin-top:2.5rem; border-bottom:1px solid #334155; padding-bottom:.6rem; }
-pre { overflow:auto; padding:1.2rem; background:#111827; border:1px solid #334155; border-radius:8px; }
-code { font-family:ui-monospace,monospace; font-size:.9em; overflow-wrap:anywhere; } pre code { white-space:pre; }
-table { border-collapse:collapse; display:block; overflow:auto; width:100%; } th,td { padding:.7rem; border:1px solid #334155; text-align:left; }
-th { background:#1e293b; } li { margin:.35rem 0; } .meta { color:#94a3b8; } strong { color:#f1f5f9; }
-@media(max-width:600px) { main { padding:1rem; } h1 { font-size:1.9rem; } nav { padding:1rem; } }
-@media print { :root { color-scheme:light; background:white; color:black; } h1,h2,h3,strong { color:black; } nav { display:none; } pre,th { background:#eee; } }
-</style></head><body><nav aria-label="Planning documents"><a href="scope.html">SCOPE</a><a href="prd.html">PRD</a><a href="spec.html" aria-current="page">SPEC</a><a href="checklist.html">CHECKLIST</a></nav><main><p class="meta">Updated October 20, 2026 · User-requested backend architecture revision · <a href="spec.md">Markdown source</a></p><h1>Axis — Technical Specification</h1>
-<h2>User-Requested Architecture Update</h2>
-<p>On October 20, 2026, the user explicitly requested a backend architecture update: deterministic prioritization, AI for extraction and communication, separate task-fact/evidence and assessment storage, future login readiness, and an engine package at <strong><code>Backend/engine/</code></strong>, outside services.</p>
-<p>This supersedes the earlier browser-first storage and LLM-driven ranking design. This specification distinguishes the target architecture from current implementation.</p>
-<h2>Stack</h2>
-<ul>
-<li>Frontend: Vite, React, TypeScript, Tailwind, React Context and existing local cache.</li>
-<li>Backend: Python 3.12, FastAPI, Pydantic, SQLAlchemy and psycopg.</li>
-<li>Persistence: PostgreSQL; <code>docker-compose.yml</code> defines PostgreSQL 16 for local use.</li>
-<li>Optional extraction: <code>google-genai</code>, configured by <code>GEMINI_API_KEY</code> and <code>GEMINI_MODEL</code>.</li>
-<li>Testing: unittest, disposable SQLite persistence tests and HTTPX ASGI API tests.</li>
-<li>Time handling: offset-aware datetimes, <code>zoneinfo</code> and <code>tzdata</code>.</li>
-<li>Exact package requirements live in <code>Backend/requirements.txt</code>.</li>
-</ul>
-<h2>How This Works, In Plain Language</h2>
-<ol>
-<li>Source adapters map explicit fields from different provider shapes.</li>
-<li>Extraction proposes additional facts with quotes. Fixture mode uses recorded mock output; Gemini mode calls a real model.</li>
-<li>Validation checks shapes, field constraints and quote presence. Direct source fields win over extraction; unsupported dates remain unresolved.</li>
-<li>Accepted tasks are saved with source evidence as user-owned revisions.</li>
-<li>The deterministic engine computes metrics, applies ranking policy, repairs avoidable deadline ordering where its heuristic permits, and allocates capacity.</li>
-<li>Assessments store decisions against exact task revisions.</li>
-<li>Planned: AI generates explanations from finalized decisions, and the frontend reads the current assessment together with the task facts.</li>
-</ol>
-<p>AI does not control scores or order. Extraction can influence input facts, so retained extracted values are marked for confirmation.</p>
-<h2>Components and File Structure</h2>
-<pre><code class="language-text">Backend/
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Axis — Technical Specification</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      font-family: system-ui, sans-serif;
+      background: #0b0f19;
+      color: #e2e8f0;
+    }
+
+    body {
+      margin: 0;
+      line-height: 1.7;
+    }
+
+    nav {
+      padding: 1rem 2rem;
+      border-bottom: 1px solid #334155;
+      background: #111827;
+    }
+
+    nav a {
+      display: inline-block;
+      margin-right: 1.4rem;
+    }
+
+    a {
+      color: #a5b4fc;
+    }
+
+    a[aria-current] {
+      color: #fff;
+      font-weight: 700;
+    }
+
+    main {
+      max-width: 1000px;
+      margin: auto;
+      padding: 2rem 1.5rem 5rem;
+    }
+
+    h1,
+    h2,
+    h3 {
+      line-height: 1.25;
+      color: #f8fafc;
+    }
+
+    h1 {
+      font-size: 2.4rem;
+    }
+
+    h2 {
+      margin-top: 2.5rem;
+      border-bottom: 1px solid #334155;
+      padding-bottom: .6rem;
+    }
+
+    pre {
+      overflow: auto;
+      padding: 1.2rem;
+      background: #111827;
+      border: 1px solid #334155;
+      border-radius: 8px;
+    }
+
+    code {
+      font-family: ui-monospace, monospace;
+      font-size: .9em;
+      overflow-wrap: anywhere;
+    }
+
+    pre code {
+      white-space: pre;
+    }
+
+    table {
+      border-collapse: collapse;
+      display: block;
+      overflow: auto;
+      width: 100%;
+    }
+
+    th,
+    td {
+      padding: .7rem;
+      border: 1px solid #334155;
+      text-align: left;
+    }
+
+    th {
+      background: #1e293b;
+    }
+
+    li {
+      margin: .35rem 0;
+    }
+
+    .meta {
+      color: #94a3b8;
+    }
+
+    strong {
+      color: #f1f5f9;
+    }
+
+    @media(max-width:600px) {
+      main {
+        padding: 1rem;
+      }
+
+      h1 {
+        font-size: 1.9rem;
+      }
+
+      nav {
+        padding: 1rem;
+      }
+    }
+
+    @media print {
+      :root {
+        color-scheme: light;
+        background: white;
+        color: black;
+      }
+
+      h1,
+      h2,
+      h3,
+      strong {
+        color: black;
+      }
+
+      nav {
+        display: none;
+      }
+
+      pre,
+      th {
+        background: #eee;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <nav aria-label="Planning documents"><a href="scope.html">SCOPE</a><a href="prd.html">PRD</a><a href="spec.html"
+      aria-current="page">SPEC</a><a href="checklist.html">CHECKLIST</a></nav>
+  <main>
+    <p class="meta">Updated October 20, 2026 · User-requested backend architecture revision · <a href="spec.md">Markdown
+        source</a></p>
+    <h1>Axis — Technical Specification</h1>
+    <h2>User-Requested Architecture Update</h2>
+    <p>On October 20, 2026, the user explicitly requested a backend architecture update: deterministic prioritization,
+      AI for extraction and communication, separate task-fact/evidence and assessment storage, future login readiness,
+      and an engine package at <strong><code>Backend/engine/</code></strong>, outside services.</p>
+    <p>This supersedes the earlier browser-first storage and LLM-driven ranking design. This specification distinguishes
+      the target architecture from current implementation.</p>
+    <h2>Stack</h2>
+    <ul>
+      <li>Frontend: Vite, React, TypeScript, Tailwind, React Context and existing local cache.</li>
+      <li>Backend: Python 3.12, FastAPI, Pydantic, SQLAlchemy and psycopg.</li>
+      <li>Persistence: PostgreSQL; <code>docker-compose.yml</code> defines PostgreSQL 16 for local use.</li>
+      <li>AI Engine &amp; Extraction: <code>google-genai</code> (Gemini Flash), configured by <code>GEMINI_API_KEY</code> and <code>GEMINI_MODEL</code>, with offline fallback.</li>
+      <li>Testing: unittest, disposable SQLite persistence tests and HTTPX ASGI API tests.</li>
+      <li>Time handling: offset-aware datetimes, <code>zoneinfo</code> and <code>tzdata</code>.</li>
+      <li>Exact package requirements live in <code>Backend/requirements.txt</code>.</li>
+    </ul>
+    <h2>How This Works, In Plain Language</h2>
+    <ol>
+      <li>Source adapters map explicit fields from different provider shapes.</li>
+      <li>Extraction proposes additional facts with quotes. Fixture mode uses recorded mock output; Gemini mode calls a
+        real model.</li>
+      <li>Validation checks shapes, field constraints and quote presence. Direct source fields win over extraction;
+        unsupported dates remain unresolved.</li>
+      <li>Accepted tasks are saved with source evidence as user-owned revisions.</li>
+      <li>The deterministic engine computes metrics, applies ranking policy, repairs avoidable deadline ordering where
+        its heuristic permits, and allocates capacity.</li>
+      <li>Assessments store decisions against exact task revisions.</li>
+      <li>Planned: AI generates explanations from finalized decisions, and the frontend reads the current assessment
+        together with the task facts.</li>
+    </ol>
+    <p>AI does not control scores or order. Extraction can influence input facts, so retained extracted values are
+      marked for confirmation.</p>
+    <h2>Components and File Structure</h2>
+    <pre><code class="language-text">Backend/
   main.py
   database.py
   models/
@@ -79,172 +231,194 @@ th { background:#1e293b; } li { margin:.35rem 0; } .meta { color:#94a3b8; } stro
   tests/
   PRIORITY_ENGINE.md
 </code></pre>
-<p><code>Frontend/</code> retains its components, Context store, API client and local heuristic engine until the new backend flow is connected. The focus dashboard, briefing, timeline, rationale modal and approval card consume these legacy contracts today.</p>
-<h2>Ingestion Contracts and Validation</h2>
-<p>Sources: Gmail, Notion, GitHub, Canvas, Google Calendar and manual tasks. Integration APIs are not expected to share a shape. Adapters produce Axis-owned records; extraction and validation produce <code>NormalizedTask</code>.</p>
-<p>Source identity includes integration, account, source record and source item key. One email may yield zero or multiple tasks; structured task sources keep one primary task. Calendar events remain commitments, not tasks.</p>
-<p>Task facts include title, description, deadline timestamp or date, deadline strictness, effort, importance, consequences, status, dependencies and evidence. Unknown fields remain null. Source fields override conflicting extracted fields. Milestone dates, labels and assignment points do not automatically become task deadlines or importance.</p>
-<p>Every extracted non-null field needs a quote present in mapped source text. Quote presence is not proof of semantic correctness; retained extracted values require review. Relative Gmail dates use message time, not retrieval time. Adapter coverage and the explicit date grammar are documented in <a href="../Backend/ingestion/README.md">the ingestion guide</a>.</p>
-<p>No ingestion table or broker is needed for the current mock flow. Fixture files provide replayability. Accepted task snapshots retain raw source content, mapped fields, extractor mode and fingerprints. Same-content replay does not create a revision; changed facts or source content do. Fetch time alone is ignored. Real-source deletion reconciliation and stable LLM action matching remain pending.</p>
-<h2>Database Model</h2>
-<table>
-<thead>
-<tr>
-<th>Model/table</th>
-<th>Responsibility</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>UserModel</code> / <code>users</code></td>
-<td>Local identity and optional future provider/subject identity; no login endpoints or passwords</td>
-</tr>
-<tr>
-<td><code>TaskFactsModel</code> / <code>task_facts</code></td>
-<td>Composite key <code>(user_id, id, version)</code>; facts, source identity, evidence and source snapshot</td>
-</tr>
-<tr>
-<td><code>PriorityAssessmentModel</code> / <code>priority_assessments</code></td>
-<td>Composite FK to the exact owned task revision; run, rank, score, bucket, policy version, decision facts and explanation state</td>
-</tr>
-<tr>
-<td><code>CalendarSourceModel</code> / <code>calendar_sources</code></td>
-<td>Normalized calendar JSON scoped by user/account/source</td>
-</tr>
-<tr>
-<td>Legacy <code>tasks</code>, <code>calendar_events</code>, <code>chat_messages</code></td>
-<td>Existing demo routes and frontend</td>
-</tr>
-</tbody>
-</table>
-<p>An assessment cannot reference another user's task revision. Run/task and run/rank uniqueness are scoped by user. Model constraints do not replace API authentication or user-filtered queries.</p>
-<p>Task changes should insert new versions. Historical-row immutability, review confirmation and current-assessment selection require service/API wiring. Each assessment currently repeats its run input snapshot; a separate run table is a later storage improvement.</p>
-<h2>Deterministic Ranking Policy</h2>
-<p>Current versions: engine <code>2</code>, policy <code>slack-v2</code>.</p>
-<ol>
-<li>Exclude completed/cancelled tasks. Calculate working blocks in the chosen timezone, subtracting busy intervals once even when they overlap.</li>
-<li>Calculate slack: available working hours before deadline minus remaining effort. Date-only deadlines require an explicit time policy; unknown effort stays unknown.</li>
-<li>Choose tiers: deadline at risk, time-sensitive, normal, blocked. A hard deadline is at risk when overdue, slack is within the safety buffer, or unknown-effort work has a deadline within that buffer.</li>
-<li>Score using the fixed policy:</li>
-</ol>
-<table>
-<thead>
-<tr>
-<th>Factor</th>
-<th>Points</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Urgency</td>
-<td>Up to 50 using slack bands; overdue gets 50</td>
-</tr>
-<tr>
-<td>Explicit delay impact</td>
-<td>Critical 25, significant 15, minor 5, unknown 0</td>
-</tr>
-<tr>
-<td>Importance</td>
-<td>High 15, medium 10, low 5, unknown 0</td>
-</tr>
-<tr>
-<td>Waiting age</td>
-<td>One per elapsed day, capped at 10</td>
-</tr>
-</tbody>
-</table>
-<p>Sort initially by tier, descending score, deadline, creation time and task ID. Try earliest-deadline order for schedulable tasks only when it removes at least one projected miss and introduces none. Record changes as decision facts; final ranks follow the resulting order.</p>
-<p>Allocate split work without double-booking capacity. Now includes at-risk or time-sensitive work and work allocated today; Next includes other future allocations; Later includes blocked/unallocated work. Unknown-effort urgent tasks request an estimate without reserving imaginary time.</p>
-<p>Dependencies block tasks until prerequisites are completed. The current engine does not propagate urgency to prerequisites or schedule dependency chains. Review-required inputs are flagged but provisionally evaluated. Global optimization, sticky overrides and non-splittable work are not implemented.</p>
-<p>Full policy and request example: <a href="../Backend/PRIORITY_ENGINE.md">engine guide</a>.</p>
-<h2>Routes and Service Entry Points</h2>
-<table>
-<thead>
-<tr>
-<th>Entry</th>
-<th>Current behavior</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>POST /api/integrations/mock/preview</code></td>
-<td>Offline fixed-fixture ingestion preview; no DB or live LLM call</td>
-</tr>
-<tr>
-<td><code>python -m Backend.ingestion</code></td>
-<td>Preview; <code>--persist</code> saves accepted facts and calendar records</td>
-</tr>
-<tr>
-<td><code>POST /api/priority/preview</code></td>
-<td>Deterministic evaluation of submitted facts/context; no DB access</td>
-</tr>
-<tr>
-<td><code>create_priority_run(db, user_id=..., context=..., delay_impacts=...)</code></td>
-<td>Internal service loads latest owned revisions and flushes assessments; caller commits</td>
-</tr>
-<tr>
-<td><code>GET/POST /api/tasks</code></td>
-<td>Legacy list/create; creation still accepts client scores and reasoning</td>
-</tr>
-<tr>
-<td><code>PATCH /api/tasks/{id}/toggle</code></td>
-<td>Legacy completion toggle</td>
-</tr>
-<tr>
-<td><code>PATCH /api/tasks/{id}/bucket</code></td>
-<td>Legacy manual bucket change</td>
-</tr>
-<tr>
-<td><code>POST /api/tasks/reset</code></td>
-<td>Resets legacy tasks, calendar and chat; not new task facts/assessments</td>
-</tr>
-<tr>
-<td><code>GET /api/calendar</code></td>
-<td>Legacy decimal-hour calendar records</td>
-</tr>
-<tr>
-<td><code>GET /api/chat/history</code>, <code>POST /api/chat</code></td>
-<td>Legacy chat storage and scripted responses</td>
-</tr>
-<tr>
-<td><code>POST /api/plan/apply</code></td>
-<td>Applies submitted legacy bucket moves; no persisted approval verification</td>
-</tr>
-<tr>
-<td><code>GET /</code>, <code>GET /health</code></td>
-<td>Static service information; health does not execute a DB probe</td>
-</tr>
-</tbody>
-</table>
-<p>No login or authenticated assessment persistence route exists. New preview routes do not expose private database records. Legacy routes remain unscoped demo APIs and must not be treated as a deployed multi-user system.</p>
-<h2>AI Explanation and Conversational Changes — Planned</h2>
-<p>Save deterministic assessments first with explanation status pending. Generate short explanations from task evidence and finalized decision facts; store model/prompt version and generation time on that assessment. Handle failures explicitly and reject stale output for superseded decisions when selecting current results.</p>
-<p>For dialogue, AI translates requests into proposed constraints. Validated constraints go through the deterministic engine. The user approves a concrete change before application. Current scripted chat and legacy apply routes do not implement this complete behavior.</p>
-<h2>Run and Verify</h2>
-<p>From the repository root:</p>
-<pre><code class="language-powershell">pip install -r Backend/requirements.txt
+    <p><code>Frontend/</code> retains its components, Context store, API client and local heuristic engine until the new
+      backend flow is connected. The focus dashboard, briefing, timeline, rationale modal and approval card consume
+      these legacy contracts today.</p>
+    <h2>Ingestion Contracts and Validation</h2>
+    <p>Sources: Gmail, Notion, GitHub, Canvas, Google Calendar and manual tasks. Integration APIs are not expected to
+      share a shape. Adapters produce Axis-owned records; extraction and validation produce <code>NormalizedTask</code>.
+    </p>
+    <p>Source identity includes integration, account, source record and source item key. One email may yield zero or
+      multiple tasks; structured task sources keep one primary task. Calendar events remain commitments, not tasks.</p>
+    <p>Task facts include title, description, deadline timestamp or date, deadline strictness, effort, importance,
+      consequences, status, dependencies and evidence. Unknown fields remain null. Source fields override conflicting
+      extracted fields. Milestone dates, labels and assignment points do not automatically become task deadlines or
+      importance.</p>
+    <p>Every extracted non-null field needs a quote present in mapped source text. Quote presence is not proof of
+      semantic correctness; retained extracted values require review. Relative Gmail dates use message time, not
+      retrieval time. Adapter coverage and the explicit date grammar are documented in <a
+        href="../Backend/ingestion/README.md">the ingestion guide</a>.</p>
+    <p>No ingestion table or broker is needed for the current mock flow. Fixture files provide replayability. Accepted
+      task snapshots retain raw source content, mapped fields, extractor mode and fingerprints. Same-content replay does
+      not create a revision; changed facts or source content do. Fetch time alone is ignored. Real-source deletion
+      reconciliation and stable LLM action matching remain pending.</p>
+    <h2>Database Model</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Model/table</th>
+          <th>Responsibility</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>UserModel</code> / <code>users</code></td>
+          <td>Local identity and optional future provider/subject identity; no login endpoints or passwords</td>
+        </tr>
+        <tr>
+          <td><code>TaskFactsModel</code> / <code>task_facts</code></td>
+          <td>Composite key <code>(user_id, id, version)</code>; facts, source identity, evidence and source snapshot
+          </td>
+        </tr>
+        <tr>
+          <td><code>PriorityAssessmentModel</code> / <code>priority_assessments</code></td>
+          <td>Composite FK to the exact owned task revision; run, rank, score, bucket, policy version, decision facts
+            and explanation state</td>
+        </tr>
+        <tr>
+          <td><code>CalendarSourceModel</code> / <code>calendar_sources</code></td>
+          <td>Normalized calendar JSON scoped by user/account/source</td>
+        </tr>
+        <tr>
+          <td>Legacy <code>tasks</code>, <code>calendar_events</code>, <code>chat_messages</code></td>
+          <td>Existing demo routes and frontend</td>
+        </tr>
+      </tbody>
+    </table>
+    <p>An assessment cannot reference another user's task revision. Run/task and run/rank uniqueness are scoped by user.
+      Model constraints do not replace API authentication or user-filtered queries.</p>
+    <p>Task changes should insert new versions. Historical-row immutability, review confirmation and current-assessment
+      selection require service/API wiring. Each assessment currently repeats its run input snapshot; a separate run
+      table is a later storage improvement.</p>
+    <h2>Deterministic Ranking Policy</h2>
+    <p>Current versions: engine <code>2</code>, policy <code>slack-v2</code>.</p>
+    <ol>
+      <li>Exclude completed/cancelled tasks. Calculate working blocks in the chosen timezone, subtracting busy intervals
+        once even when they overlap.</li>
+      <li>Calculate slack: available working hours before deadline minus remaining effort. Date-only deadlines require
+        an explicit time policy; unknown effort stays unknown.</li>
+      <li>Choose tiers: deadline at risk, time-sensitive, normal, blocked. A hard deadline is at risk when overdue,
+        slack is within the safety buffer, or unknown-effort work has a deadline within that buffer.</li>
+      <li>Score using the fixed policy:</li>
+    </ol>
+    <table>
+      <thead>
+        <tr>
+          <th>Factor</th>
+          <th>Points</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Urgency</td>
+          <td>Up to 50 using slack bands; overdue gets 50</td>
+        </tr>
+        <tr>
+          <td>Explicit delay impact</td>
+          <td>Critical 25, significant 15, minor 5, unknown 0</td>
+        </tr>
+        <tr>
+          <td>Importance</td>
+          <td>High 15, medium 10, low 5, unknown 0</td>
+        </tr>
+        <tr>
+          <td>Waiting age</td>
+          <td>One per elapsed day, capped at 10</td>
+        </tr>
+      </tbody>
+    </table>
+    <p>Sort initially by tier, descending score, deadline, creation time and task ID. Try earliest-deadline order for
+      schedulable tasks only when it removes at least one projected miss and introduces none. Record changes as decision
+      facts; final ranks follow the resulting order.</p>
+    <p>Allocate split work without double-booking capacity. Now includes at-risk or time-sensitive work and work
+      allocated today; Next includes other future allocations; Later includes blocked/unallocated work. Unknown-effort
+      urgent tasks request an estimate without reserving imaginary time.</p>
+    <p>Dependencies block tasks until prerequisites are completed. The current engine does not propagate urgency to
+      prerequisites or schedule dependency chains. Review-required inputs are flagged but provisionally evaluated.
+      Global optimization, sticky overrides and non-splittable work are not implemented.</p>
+    <p>Full policy and request example: <a href="../Backend/PRIORITY_ENGINE.md">engine guide</a>.</p>
+    <h2>Routes and Service Entry Points</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Entry</th>
+          <th>Current behavior</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>POST /api/integrations/mock/preview</code></td>
+          <td>Offline fixed-fixture ingestion preview; no DB or live LLM call</td>
+        </tr>
+        <tr>
+          <td><code>python -m Backend.ingestion</code></td>
+          <td>Preview; <code>--persist</code> saves accepted facts and calendar records</td>
+        </tr>
+        <tr>
+          <td><code>POST /api/priority/preview</code></td>
+          <td>Deterministic evaluation of submitted facts/context; no DB access</td>
+        </tr>
+        <tr>
+          <td><code>create_priority_run(db, user_id=..., context=..., delay_impacts=...)</code></td>
+          <td>Internal service loads latest owned revisions and flushes assessments; caller commits</td>
+        </tr>
+        <tr>
+          <td><code>GET /api/chat/history</code>, <code>POST /api/chat</code></td>
+          <td>Legacy chat storage and scripted responses</td>
+        </tr>
+        <tr>
+          <td><code>GET /</code>, <code>GET /health</code></td>
+          <td>Static service information; health does not execute a DB probe</td>
+        </tr>
+      </tbody>
+    </table>
+    <p>No login or authenticated assessment persistence route exists. New preview routes do not expose private database
+      records. Legacy routes remain unscoped demo APIs and must not be treated as a deployed multi-user system.</p>
+    <h2>AI Explanation and Conversational Changes — Planned</h2>
+    <p>Save deterministic assessments first with explanation status pending. Generate short explanations from task
+      evidence and finalized decision facts; store model/prompt version and generation time on that assessment. Handle
+      failures explicitly and reject stale output for superseded decisions when selecting current results.</p>
+    <p>For dialogue, AI translates requests into proposed constraints. Validated constraints go through the
+      deterministic engine. The user approves a concrete change before application. The current chat route does not
+      implement this complete behavior.</p>
+    <h2>Run and Verify</h2>
+    <p>From the repository root:</p>
+    <pre><code class="language-powershell">pip install -r Backend/requirements.txt
 docker compose up -d
 uvicorn Backend.main:app --reload --port 8000
 </code></pre>
-<p>Frontend: run <code>npm install</code> and <code>npm run dev</code> in <code>Frontend/</code>; open localhost:5173.</p>
-<pre><code class="language-powershell">python -m Backend.ingestion
+    <p>Frontend: run <code>npm install</code> and <code>npm run dev</code> in <code>Frontend/</code>; open
+      localhost:5173.</p>
+    <pre><code class="language-powershell">python -m Backend.ingestion
 python -m Backend.ingestion --persist --user-id local-demo --create-user
 python -m Backend.ingestion --extractor gemini
 python -m unittest discover -s Backend/tests -v
 </code></pre>
-<p>Default preview requires no database or LLM. Gemini mode requires credentials/model and has not been verified against a live provider in this work. Persistence requires the configured database. <code>create_all()</code> creates missing tables but does not migrate existing schemas. Tests use disposable SQLite, not live PostgreSQL.</p>
-<h2>Important Failure Modes</h2>
-<ul>
-<li>Invalid extraction: reject that record and return an issue; preserve other accepted records. CLI exits nonzero when records are rejected.</li>
-<li>Unsupported deadline or missing effort: retain uncertainty rather than invent facts.</li>
-<li>Provider failure: explicit rejected-record issues; no silent mock substitution.</li>
-<li>Capacity conflict: projected deadline-miss warning; repair is not a guarantee that every feasible schedule will be found.</li>
-<li>Repeated import: compare fingerprints and preserve unchanged versions.</li>
-<li>Stale explanation: future current-assessment selection must check task versions and context.</li>
-<li>User identity: trusted ownership is required for internal writes; login remains pending.</li>
-</ul>
-<h2>Implementation Status and Remaining Work</h2>
-<p>Implemented and verified with 34 passing backend tests: source contracts, mock adapters, fixture extraction, validation, ingestion persistence behavior, user-owned database constraints, engine pipeline, previews and assessment storage.</p>
-<p>Remaining: migrations for existing installs; authenticated API wiring; review/confirmation UI; calendar-to-engine context mapping; new backend results on the frontend; AI explanations; engine-backed dialogue and durable approval/override behavior; end-to-end demo verification.</p>
-<p>The tests establish covered behavior, not optimal prioritization or live vendor integration correctness.</p>
-</main></body></html>
+    <p>Default preview requires no database or LLM. Gemini mode requires credentials/model and has not been verified
+      against a live provider in this work. Persistence requires the configured database. <code>create_all()</code>
+      creates missing tables but does not migrate existing schemas. Tests use disposable SQLite, not live PostgreSQL.
+    </p>
+    <h2>Important Failure Modes</h2>
+    <ul>
+      <li>Invalid extraction: reject that record and return an issue; preserve other accepted records. CLI exits nonzero
+        when records are rejected.</li>
+      <li>Unsupported deadline or missing effort: retain uncertainty rather than invent facts.</li>
+      <li>Provider failure: explicit rejected-record issues; no silent mock substitution.</li>
+      <li>Capacity conflict: projected deadline-miss warning; repair is not a guarantee that every feasible schedule
+        will be found.</li>
+      <li>Repeated import: compare fingerprints and preserve unchanged versions.</li>
+      <li>Stale explanation: future current-assessment selection must check task versions and context.</li>
+      <li>User identity: trusted ownership is required for internal writes; login remains pending.</li>
+    </ul>
+    <h2>Implementation Status and Remaining Work</h2>
+    <p>Implemented and verified with 34 passing backend tests: source contracts, mock adapters, fixture extraction,
+      validation, ingestion persistence behavior, user-owned database constraints, engine pipeline, previews and
+      assessment storage.</p>
+    <p>Remaining: migrations for existing installs; authenticated API wiring; review/confirmation UI; calendar-to-engine
+      context mapping; new backend results on the frontend; AI explanations; engine-backed dialogue and durable
+      approval/override behavior; end-to-end demo verification.</p>
+    <p>The tests establish covered behavior, not optimal prioritization or live vendor integration correctness.</p>
+  </main>
+</body>
+
+</html>

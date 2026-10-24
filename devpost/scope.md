@@ -51,7 +51,7 @@ Calendar events become availability constraints rather than task cards. Manual t
 - React/TypeScript frontend with the existing dark focus dashboard, timeline, task interactions, integration views and assistant.
 - Python FastAPI backend with PostgreSQL persistence and user-scoped models.
 - Mock ingestion for Gmail, Notion, GitHub, Canvas, Google Calendar and manual tasks.
-- Offline recorded extraction for repeatable demonstrations; optional Gemini extraction.
+- Gemini AI extraction with offline recorded fixtures for resilience and testing.
 - Versioned task facts, evidence and assessments; deterministic engine in its own package.
 - Future AI explanations grounded in engine outputs, with explicit pending/failure states.
 - A local user can own data before login is implemented. Login flows remain pending.

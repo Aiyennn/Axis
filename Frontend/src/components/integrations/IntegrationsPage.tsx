@@ -25,7 +25,7 @@ export function IntegrationsPage() {
     setHasRun(true);
   };
   return (
-    <section className="rounded-none border border-[#252630] bg-[#101115] p-5 space-y-5 animate-fade-scale" aria-labelledby="integrations-title">
+    <section className="space-y-5 animate-fade-scale" aria-labelledby="integrations-title">
       <header className="flex gap-3 items-start">
         <div>
           <h1 id="integrations-title" className="text-xl font-bold tracking-tight mb-2">Mock Integration Feeds</h1>

@@ -1,5 +1,4 @@
 import { AxisLogo } from '../shared/AxisLogo';
-import { AIWaiting } from '../shared/AIWaiting';
 import React, { useEffect, useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { X, Send, AlertTriangle, Check } from 'lucide-react';
@@ -75,7 +74,7 @@ export const AIAssistantDrawer: React.FC<AIAssistantDrawerProps> = ({ isOpen, on
                     className={`max-w-[85%] whitespace-pre-wrap break-words rounded-2xl px-4 py-3 text-base leading-relaxed ${
                       msg.sender === 'user'
                         ? 'rounded-br-sm bg-blue-600 text-white'
-                        : 'rounded-bl-sm bg-zinc-800 border border-white text-white'
+                        : 'rounded-bl-sm bg-zinc-800 border border-white/10 text-white'
                     }`}
                   >
                     {msg.text}
@@ -152,7 +151,14 @@ export const AIAssistantDrawer: React.FC<AIAssistantDrawerProps> = ({ isOpen, on
 
           {/* Typing Indicator */}
           {chatBusy && (
-            <AIWaiting />
+            <div role="status" className="flex w-fit items-center rounded-2xl rounded-bl-sm border border-white/10 bg-zinc-800 px-4 py-3">
+              <span className="sr-only">Axis is typing</span>
+              <span aria-hidden="true" className="flex h-5 items-center gap-1.5">
+                <span className="chat-typing-dot" />
+                <span className="chat-typing-dot" />
+                <span className="chat-typing-dot" />
+              </span>
+            </div>
           )}
         </div>
 

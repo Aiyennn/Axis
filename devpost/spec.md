@@ -140,13 +140,7 @@ Full policy and request example: [engine guide](../Backend/PRIORITY_ENGINE.md).
 | `python -m Backend.ingestion` | Preview; `--persist` saves accepted facts and calendar records |
 | `POST /api/priority/preview` | Deterministic evaluation of submitted facts/context; no DB access |
 | `create_priority_run(db, user_id=..., context=..., delay_impacts=...)` | Internal service loads latest owned revisions and flushes assessments; caller commits |
-| `GET/POST /api/tasks` | Legacy list/create; creation still accepts client scores and reasoning |
-| `PATCH /api/tasks/{id}/toggle` | Legacy completion toggle |
-| `PATCH /api/tasks/{id}/bucket` | Legacy manual bucket change |
-| `POST /api/tasks/reset` | Resets legacy tasks, calendar and chat; not new task facts/assessments |
-| `GET /api/calendar` | Legacy decimal-hour calendar records |
 | `GET /api/chat/history`, `POST /api/chat` | Legacy chat storage and scripted responses |
-| `POST /api/plan/apply` | Applies submitted legacy bucket moves; no persisted approval verification |
 | `GET /`, `GET /health` | Static service information; health does not execute a DB probe |
 
 No login or authenticated assessment persistence route exists. New preview routes do not expose private database records. Legacy routes remain unscoped demo APIs and must not be treated as a deployed multi-user system.
@@ -155,7 +149,7 @@ No login or authenticated assessment persistence route exists. New preview route
 
 Save deterministic assessments first with explanation status pending. Generate short explanations from task evidence and finalized decision facts; store model/prompt version and generation time on that assessment. Handle failures explicitly and reject stale output for superseded decisions when selecting current results.
 
-For dialogue, AI translates requests into proposed constraints. Validated constraints go through the deterministic engine. The user approves a concrete change before application. Current scripted chat and legacy apply routes do not implement this complete behavior.
+For dialogue, AI translates requests into proposed constraints. Validated constraints go through the deterministic engine. The user approves a concrete change before application. The current chat route does not implement this complete behavior.
 
 ## Run and Verify
 

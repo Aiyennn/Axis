@@ -1,35 +1,191 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Axis — Project Scope</title><style>
-:root { color-scheme: dark; font-family: system-ui, sans-serif; background:#0b0f19; color:#e2e8f0; }
-body { margin:0; line-height:1.7; } nav { padding:1rem 2rem; border-bottom:1px solid #334155; background:#111827; }
-nav a { display:inline-block; margin-right:1.4rem; } a { color:#a5b4fc; } a[aria-current] { color:#fff; font-weight:700; }
-main { max-width:1000px; margin:auto; padding:2rem 1.5rem 5rem; } h1,h2,h3 { line-height:1.25; color:#f8fafc; }
-h1 { font-size:2.4rem; } h2 { margin-top:2.5rem; border-bottom:1px solid #334155; padding-bottom:.6rem; }
-pre { overflow:auto; padding:1.2rem; background:#111827; border:1px solid #334155; border-radius:8px; }
-code { font-family:ui-monospace,monospace; font-size:.9em; overflow-wrap:anywhere; } pre code { white-space:pre; }
-table { border-collapse:collapse; display:block; overflow:auto; width:100%; } th,td { padding:.7rem; border:1px solid #334155; text-align:left; }
-th { background:#1e293b; } li { margin:.35rem 0; } .meta { color:#94a3b8; } strong { color:#f1f5f9; }
-@media(max-width:600px) { main { padding:1rem; } h1 { font-size:1.9rem; } nav { padding:1rem; } }
-@media print { :root { color-scheme:light; background:white; color:black; } h1,h2,h3,strong { color:black; } nav { display:none; } pre,th { background:#eee; } }
-</style></head><body><nav aria-label="Planning documents"><a href="scope.html" aria-current="page">SCOPE</a><a href="prd.html">PRD</a><a href="spec.html">SPEC</a><a href="checklist.html">CHECKLIST</a></nav><main><p class="meta">Updated October 20, 2026 · User-requested backend architecture revision · <a href="scope.md">Markdown source</a></p><h1>Axis</h1>
-<p>An AI-assisted productivity command center for student freelancers juggling coursework, client deliverables and personal commitments across disconnected apps.</p>
-<h2>User-Requested Architecture Update — October 20, 2026</h2>
-<p>The user explicitly requested an update to the backend architecture. They chose a <strong>deterministic engine to decide task order</strong>, with AI extracting supported facts and communicating decisions. They also requested separate storage for task facts/source evidence and priority assessments, preparation for future user login, and a dedicated <strong><code>Backend/engine/</code></strong> directory outside <code>services/</code>.</p>
-<p>This revision supersedes the earlier LLM-driven prioritization and browser-only persistence plan. The product audience, visual identity and human-approved plan-change experience remain the direction.</p>
-<h2>The Unique Kernel</h2>
-<p>Explainable deterministic prioritization based on deadlines, available working time, explicit impact, importance and waiting age. The engine returns rankings, Now/Next/Later buckets, proposed work blocks and decision facts. AI may explain these outputs but does not assign scores or change the order.</p>
-<h2>Who It's For</h2>
-<p>Student freelancers coordinating Gmail, Notion, GitHub, Canvas, Google Calendar and personal tasks. Axis helps them understand what needs attention and whether their commitments fit the available time.</p>
-<h2>The Core Loop</h2>
-<ol>
-<li><strong>Consolidate:</strong> Read different source formats through integration-specific adapters.</li>
-<li><strong>Validate:</strong> Map explicit fields; extract additional stated facts with evidence. Unknown values stay unknown and uncertain extraction requires review.</li>
-<li><strong>Prioritize:</strong> Run validated task facts and calendar constraints through the deterministic engine.</li>
-<li><strong>Understand:</strong> Show scores, capacity warnings and source evidence; attach an AI explanation when available.</li>
-<li><strong>Adapt and execute:</strong> Interpret user constraints, rerun the engine and present plan changes for approval before applying them.</li>
-</ol>
-<h2>Backend Data Flow</h2>
-<pre><code class="language-text">Mock fixtures / future integration APIs
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Axis — Project Scope</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      font-family: system-ui, sans-serif;
+      background: #0b0f19;
+      color: #e2e8f0;
+    }
+
+    body {
+      margin: 0;
+      line-height: 1.7;
+    }
+
+    nav {
+      padding: 1rem 2rem;
+      border-bottom: 1px solid #334155;
+      background: #111827;
+    }
+
+    nav a {
+      display: inline-block;
+      margin-right: 1.4rem;
+    }
+
+    a {
+      color: #a5b4fc;
+    }
+
+    a[aria-current] {
+      color: #fff;
+      font-weight: 700;
+    }
+
+    main {
+      max-width: 1000px;
+      margin: auto;
+      padding: 2rem 1.5rem 5rem;
+    }
+
+    h1,
+    h2,
+    h3 {
+      line-height: 1.25;
+      color: #f8fafc;
+    }
+
+    h1 {
+      font-size: 2.4rem;
+    }
+
+    h2 {
+      margin-top: 2.5rem;
+      border-bottom: 1px solid #334155;
+      padding-bottom: .6rem;
+    }
+
+    pre {
+      overflow: auto;
+      padding: 1.2rem;
+      background: #111827;
+      border: 1px solid #334155;
+      border-radius: 8px;
+    }
+
+    code {
+      font-family: ui-monospace, monospace;
+      font-size: .9em;
+      overflow-wrap: anywhere;
+    }
+
+    pre code {
+      white-space: pre;
+    }
+
+    table {
+      border-collapse: collapse;
+      display: block;
+      overflow: auto;
+      width: 100%;
+    }
+
+    th,
+    td {
+      padding: .7rem;
+      border: 1px solid #334155;
+      text-align: left;
+    }
+
+    th {
+      background: #1e293b;
+    }
+
+    li {
+      margin: .35rem 0;
+    }
+
+    .meta {
+      color: #94a3b8;
+    }
+
+    strong {
+      color: #f1f5f9;
+    }
+
+    @media(max-width:600px) {
+      main {
+        padding: 1rem;
+      }
+
+      h1 {
+        font-size: 1.9rem;
+      }
+
+      nav {
+        padding: 1rem;
+      }
+    }
+
+    @media print {
+      :root {
+        color-scheme: light;
+        background: white;
+        color: black;
+      }
+
+      h1,
+      h2,
+      h3,
+      strong {
+        color: black;
+      }
+
+      nav {
+        display: none;
+      }
+
+      pre,
+      th {
+        background: #eee;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <nav aria-label="Planning documents"><a href="scope.html" aria-current="page">SCOPE</a><a href="prd.html">PRD</a><a
+      href="spec.html">SPEC</a><a href="checklist.html">CHECKLIST</a></nav>
+  <main>
+    <p class="meta">Updated October 20, 2026 · User-requested backend architecture revision · <a
+        href="scope.md">Markdown source</a></p>
+    <h1>Axis</h1>
+    <p>An AI-assisted productivity command center for student freelancers juggling coursework, client deliverables and
+      personal commitments across disconnected apps.</p>
+    <h2>User-Requested Architecture Update — October 20, 2026</h2>
+    <p>The user explicitly requested an update to the backend architecture. They chose a <strong>deterministic engine to
+        decide task order</strong>, with AI extracting supported facts and communicating decisions. They also requested
+      separate storage for task facts/source evidence and priority assessments, preparation for future user login, and a
+      dedicated <strong><code>Backend/engine/</code></strong> directory outside <code>services/</code>.</p>
+    <p>This revision supersedes the earlier LLM-driven prioritization and browser-only persistence plan. The product
+      audience, visual identity and human-approved plan-change experience remain the direction.</p>
+    <h2>The Unique Kernel</h2>
+    <p>Explainable deterministic prioritization based on deadlines, available working time, explicit impact, importance
+      and waiting age. The engine returns rankings, Now/Next/Later buckets, proposed work blocks and decision facts. AI
+      may explain these outputs but does not assign scores or change the order.</p>
+    <h2>Who It's For</h2>
+    <p>Student freelancers coordinating Gmail, Notion, GitHub, Canvas, Google Calendar and personal tasks. Axis helps
+      them understand what needs attention and whether their commitments fit the available time.</p>
+    <h2>The Core Loop</h2>
+    <ol>
+      <li><strong>Consolidate:</strong> Read different source formats through integration-specific adapters.</li>
+      <li><strong>Validate:</strong> Map explicit fields; extract additional stated facts with evidence. Unknown values
+        stay unknown and uncertain extraction requires review.</li>
+      <li><strong>Prioritize:</strong> Run validated task facts and calendar constraints through the deterministic
+        engine.</li>
+      <li><strong>Understand:</strong> Show scores, capacity warnings and source evidence; attach an AI explanation when
+        available.</li>
+      <li><strong>Adapt and execute:</strong> Interpret user constraints, rerun the engine and present plan changes for
+        approval before applying them.</li>
+    </ol>
+    <h2>Backend Data Flow</h2>
+    <pre><code class="language-text">Mock fixtures / future integration APIs
   → source adapters and structured field mapping
   → extraction of additional facts
   → validation and normalization
@@ -39,46 +195,58 @@ th { background:#1e293b; } li { margin:.35rem 0; } .meta { color:#94a3b8; } stro
   → AI explanation attached to its assessment
   → frontend
 </code></pre>
-<p>Calendar events become availability constraints rather than task cards. Manual tasks map directly from user fields. Informational messages can produce no tasks.</p>
-<h2>The POC Boundary</h2>
-<ul>
-<li>React/TypeScript frontend with the existing dark focus dashboard, timeline, task interactions, integration views and assistant.</li>
-<li>Python FastAPI backend with PostgreSQL persistence and user-scoped models.</li>
-<li>Mock ingestion for Gmail, Notion, GitHub, Canvas, Google Calendar and manual tasks.</li>
-<li>Offline recorded extraction for repeatable demonstrations; optional Gemini extraction.</li>
-<li>Versioned task facts, evidence and assessments; deterministic engine in its own package.</li>
-<li>Future AI explanations grounded in engine outputs, with explicit pending/failure states.</li>
-<li>A local user can own data before login is implemented. Login flows remain pending.</li>
-</ul>
-<h2>Current Implementation Boundary</h2>
-<p>Backend schemas, user ownership, deterministic ranking, preview routes and mock ingestion with persistence support are implemented. The new ingestion fixtures produce five tasks, one calendar event and one ignored newsletter from seven records. Existing frontend seeds are a separate legacy demo dataset.</p>
-<p>The frontend still uses the legacy task API. It is not yet connected to the new task-fact/assessment flow. The current chat service is scripted. AI explanation generation, review UI, authenticated routes and engine-backed conversational overrides remain pending; they must not be presented as completed demo features.</p>
-<h2>Inspiration &amp; Identity</h2>
-<ul>
-<li><strong>Feel:</strong> Calm, focused and transparent.</li>
-<li><strong>Visual direction:</strong> Dark neutral surfaces, violet accents, clear source and priority labels, a prominent focus task and supporting schedule/capacity widgets.</li>
-<li><strong>Learning purpose:</strong> Build fluency in source normalization, deterministic decision systems, evidence-based AI assistance and explicit service boundaries.</li>
-</ul>
-<h2>What &quot;Working&quot; Looks Like</h2>
-<p>The target 60-second walkthrough, after the remaining wiring is complete:</p>
-<ol>
-<li>Show varied incoming mock sources and a validated task with supporting evidence.</li>
-<li>Run deterministic prioritization and inspect its score, time allocation and warnings.</li>
-<li>Ask for a change, inspect an engine-evaluated proposal and approve or reject it.</li>
-</ol>
-<p>Until then, demonstrate backend previews separately and label fixture extraction and scripted chat honestly.</p>
-<h2>Later</h2>
-<ul>
-<li>Live OAuth, vendor webhooks and complete vendor API clients.</li>
-<li>Login implementation, authenticated read/write routes and account settings.</li>
-<li>Queue workers, pub/sub and an ingestion-record table. Replayable fixture files are sufficient for this synchronous mock pipeline.</li>
-<li>Global schedule optimization, dependency urgency propagation and sticky overrides.</li>
-<li>Cross-device sync and native mobile apps.</li>
-</ul>
-<h2>Explicitly Cut</h2>
-<ul>
-<li>Autonomous external actions such as sending email or changing calendar events.</li>
-<li>Team collaboration and shared-account permissions for this individual-user POC.</li>
-<li>A broker solely to process mock fixtures.</li>
-</ul>
-</main></body></html>
+    <p>Calendar events become availability constraints rather than task cards. Manual tasks map directly from user
+      fields. Informational messages can produce no tasks.</p>
+    <h2>The POC Boundary</h2>
+    <ul>
+      <li>React/TypeScript frontend with the existing dark focus dashboard, timeline, task interactions, integration
+        views and assistant.</li>
+      <li>Python FastAPI backend with PostgreSQL persistence and user-scoped models.</li>
+      <li>Mock ingestion for Gmail, Notion, GitHub, Canvas, Google Calendar and manual tasks.</li>
+      <li>Gemini AI extraction with offline recorded fixtures for resilience and testing.</li>
+      <li>Versioned task facts, evidence and assessments; deterministic engine in its own package.</li>
+      <li>Future AI explanations grounded in engine outputs, with explicit pending/failure states.</li>
+      <li>A local user can own data before login is implemented. Login flows remain pending.</li>
+    </ul>
+    <h2>Current Implementation Boundary</h2>
+    <p>Backend schemas, user ownership, deterministic ranking, preview routes and mock ingestion with persistence
+      support are implemented. The new ingestion fixtures produce five tasks, one calendar event and one ignored
+      newsletter from seven records. Existing frontend seeds are a separate legacy demo dataset.</p>
+    <p>The frontend still uses the legacy task API. It is not yet connected to the new task-fact/assessment flow. The
+      current chat service is scripted. AI explanation generation, review UI, authenticated routes and engine-backed
+      conversational overrides remain pending; they must not be presented as completed demo features.</p>
+    <h2>Inspiration &amp; Identity</h2>
+    <ul>
+      <li><strong>Feel:</strong> Calm, focused and transparent.</li>
+      <li><strong>Visual direction:</strong> Dark neutral surfaces, violet accents, clear source and priority labels, a
+        prominent focus task and supporting schedule/capacity widgets.</li>
+      <li><strong>Learning purpose:</strong> Build fluency in source normalization, deterministic decision systems,
+        evidence-based AI assistance and explicit service boundaries.</li>
+    </ul>
+    <h2>What &quot;Working&quot; Looks Like</h2>
+    <p>The target 60-second walkthrough, after the remaining wiring is complete:</p>
+    <ol>
+      <li>Show varied incoming mock sources and a validated task with supporting evidence.</li>
+      <li>Run deterministic prioritization and inspect its score, time allocation and warnings.</li>
+      <li>Ask for a change, inspect an engine-evaluated proposal and approve or reject it.</li>
+    </ol>
+    <p>Until then, demonstrate backend previews separately and label fixture extraction and scripted chat honestly.</p>
+    <h2>Later</h2>
+    <ul>
+      <li>Live OAuth, vendor webhooks and complete vendor API clients.</li>
+      <li>Login implementation, authenticated read/write routes and account settings.</li>
+      <li>Queue workers, pub/sub and an ingestion-record table. Replayable fixture files are sufficient for this
+        synchronous mock pipeline.</li>
+      <li>Global schedule optimization, dependency urgency propagation and sticky overrides.</li>
+      <li>Cross-device sync and native mobile apps.</li>
+    </ul>
+    <h2>Explicitly Cut</h2>
+    <ul>
+      <li>Autonomous external actions such as sending email or changing calendar events.</li>
+      <li>Team collaboration and shared-account permissions for this individual-user POC.</li>
+      <li>A broker solely to process mock fixtures.</li>
+    </ul>
+  </main>
+</body>
+
+</html>

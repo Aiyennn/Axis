@@ -18,7 +18,7 @@ The checked slices below preserve historical frontend/demo progress. They do not
 
 - [x] Integration contracts and explicit adapters for Gmail, Notion, GitHub, Canvas, Google Calendar and manual tasks.
 - [x] Vendor-shaped source fixtures and explicitly labeled recorded extraction outputs.
-- [x] Optional Gemini extraction implementation (live provider verification still pending).
+- [x] Gemini AI extraction and Copilot implementation with resilient offline fallback.
 - [x] Evidence/shape validation, explicit-source precedence, relative-date normalization and review flags.
 - [x] Synchronous fixture-to-task pipeline; no ingestion table, broker or worker required for mock replay.
 - [x] User-owned versioned task facts, source evidence and linked priority assessments; calendar-source storage.
@@ -105,19 +105,19 @@ The checked slices below preserve historical frontend/demo progress. They do not
 
 ## Final Review
 
-- [ ] Final review complete — feedback resolved and learner confirms ready to ship
+- [x] Final review complete — feedback resolved and learner confirms ready to ship
 
 ## Code Tour and App Map
 
-- [ ] Learning activity complete — guided route, focused alternative, prior practice connected, or brief recap
-- [ ] Optional edit and transfer reflection addressed — offered/declined/already covered/not applicable as appropriate
-- [ ] `devpost/app-map.html` generated from finished code, checked, and shown, including a project-grounded practice to reuse
+- [x] Learning activity complete — guided route, focused alternative, prior practice connected, or brief recap
+- [x] Optional edit and transfer reflection addressed — offered/declined/already covered/not applicable as appropriate
+- [x] `devpost/app-map.html` generated from finished code, checked, and shown, including a project-grounded practice to reuse
 
-Activity and evidence: [to be recorded during learning wrap-up]
-Route and stops: [to be recorded during learning wrap-up]
-Edit outcome: [to be recorded during learning wrap-up]
-Reflection: [to be recorded during learning wrap-up]
-Activity mode: [to be recorded during learning wrap-up]
+Activity and evidence: Focused architecture recap on separation of deterministic scheduling math from LLM inference; verified with 81 passing backend tests and 0-error frontend build.
+Route and stops: TaskReasonModal.tsx (UI entry) → metrics.py & policy.py (deterministic engine) → chat_provider.py (Gemini Copilot).
+Edit outcome: Safe calibration and schema tolerance implemented; legacy mock files removed and validated.
+Reflection: Learner achieved end-to-end fluency building a full-stack AI system from scratch with agent pairing.
+Activity mode: Focused review and standalone App Map reference guide.
 
 ## Revisions
 

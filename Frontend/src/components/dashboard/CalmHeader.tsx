@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useApp } from '../../context/AppContext';
 import { AIWaiting } from '../shared/AIWaiting';
+import { BriefingPanel } from './BriefingPanel';
 
 import { CheckCircle2, AlertTriangle, Sparkles, LayoutList, Network } from 'lucide-react';
 
@@ -50,36 +51,12 @@ const Cursor: React.FC = () => (
 );
 
 export const CalmHeader: React.FC<CalmHeaderProps> = ({ dashView, setDashView }) => {
-  const { capacity, user, briefing, capacitySummary, busy, status, briefingBusy, briefingError, retryBriefing } = useApp();
-  const briefingPending = busy || briefingBusy || status === 'generating';
-  const briefingUnavailable = status === 'fallback' || status === 'pending';
-
-
-
-
+  const { capacity, user, briefing, capacitySummary, busy, status, briefingBusy, briefingError, retryBriefing, aiBriefingsEnabled } = useApp();
   const greeting = `Welcome back, ${user?.name || "there"}.`;
-  const aiMessage = status === 'ready' ? (briefing.summary || '') :
-    status === 'stale' ? 'Your tasks have changed. Refresh priorities to prepare a new briefing.' :
-    'Import tasks to prepare your briefing.';
 
   // Phase 1: type greeting (starts immediately)
   const { displayed: greetingDisplayed, done: greetingDone } = useTypewriter(greeting, 30, 300);
 
-  // Phase 2: type AI message (starts only after greeting finishes)
-  const [aiStarted, setAiStarted] = useState(false);
-
-  useEffect(() => {
-    if (greetingDone && !aiStarted) {
-      const t = setTimeout(() => setAiStarted(true), 350);
-      return () => clearTimeout(t);
-    }
-  }, [greetingDone, aiStarted]);
-
-  const { displayed: aiDisplayed, done: aiDone } = useTypewriter(
-    aiStarted ? aiMessage : '',
-    22,
-    0
-  );
 
 
   return (
@@ -163,41 +140,20 @@ export const CalmHeader: React.FC<CalmHeaderProps> = ({ dashView, setDashView })
         )}
       </h1>
 
-      {/* Conversational AI Briefing — typewriter phase 2 */}
-      {greetingDone && (
+      {/* Saved briefing stays visible independently of greeting animation. */}
         <div className="pl-12 flex flex-col gap-2">
-          {briefingPending ? <AIWaiting /> : briefingUnavailable ? (
-            <div className="flex flex-col items-start gap-2">
-              <p role="status" className="text-sm text-zinc-400">
-                {status === 'pending' ? 'Your AI briefing has not been generated yet.' : 'AI briefing unavailable. Please try again.'}
-              </p>
-              {briefingError && <p role="alert" className="text-sm text-rose-400">{briefingError}</p>}
-              <button type="button" onClick={() => void retryBriefing()} disabled={busy || briefingBusy}
-                className="px-3 py-2 text-sm text-zinc-200 border border-zinc-700 hover:bg-zinc-800 disabled:opacity-50 transition-colors">
-                {status === 'pending' ? 'Generate briefing' : 'Retry briefing'}
-              </button>
-            </div>
-          ) : <>
-          <p className="text-sm text-zinc-300 max-w-3xl leading-relaxed font-normal">
-            {aiDisplayed}
-            {/* Keep cursor blinking throughout (during typing and after) */}
-            {(aiStarted || aiDone) && <Cursor />}
-          </p>
-          {status === 'ready' && aiDone && aiStarted && (
-            <>
-              {briefing.tradeOffs?.map((text, i) => (
-                <p className="text-sm text-zinc-400 max-w-3xl leading-relaxed" key={i}>{text}</p>
-              ))}
-            </>
+          {busy && !briefingBusy && (
+            <p role="status" className="text-xs text-zinc-500">Updating workspace…</p>
           )}
-          </>}
+          <BriefingPanel briefing={briefing} status={status} busy={busy}
+            aiBriefingsEnabled={aiBriefingsEnabled} briefingBusy={briefingBusy}
+            error={briefingError} retry={retryBriefing} waiting={<AIWaiting />} />
           {status !== 'empty' && status !== 'stale' && (
             <p className="text-xs text-zinc-500 leading-relaxed" aria-label="Workload statistics">
               Workload: {capacitySummary.knownRemainingHours || 0}h · Unestimated tasks: {capacitySummary.unknownEffortTaskCount || 0} · Available today: {(capacitySummary.availableWorkingHoursToday || 0).toFixed(1)}h
             </p>
           )}
         </div>
-      )}
     </div>
   );
 };

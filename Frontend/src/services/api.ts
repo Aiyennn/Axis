@@ -8,6 +8,8 @@ export interface Workspace {
   completedTasks?: { id: string; title: string; version: number }[];
   calendarEvents: CalendarEvent[];
   briefing: { summary?: string; tradeOffs?: string[] };
+  briefingSource?: 'ai' | 'rules';
+  aiBriefingsEnabled?: boolean;
   status: string;
   mockNow: string;
   capacitySummary: { knownRemainingHours?: number; unknownEffortTaskCount?: number; availableWorkingHoursToday?: number };

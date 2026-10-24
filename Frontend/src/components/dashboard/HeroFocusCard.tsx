@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import type { Task } from '../../types';
 import { useApp } from '../../context/AppContext';
-import { Check, CheckCircle2, Play, Sparkles } from 'lucide-react';
+import { ArrowDown, Check, CheckCircle2, Play, Sparkles } from 'lucide-react';
 import { SourceLogo } from '../shared/SourceLogo';
 
 export const HeroFocusCard: React.FC = () => {
@@ -125,15 +125,15 @@ export const HeroFocusCard: React.FC = () => {
         </button>
       </div>
 
-      {/* Dedicated Button replacing previous dropdown accordion */}
-      <div className="mt-5 pt-4 border-t border-zinc-800/80">
+      <div className="mt-5 flex flex-col items-center gap-1">
+        <span className="text-sm font-semibold text-zinc-300">Priority Breakdown</span>
         <button
           type="button"
+          aria-label="View priority breakdown"
           onClick={() => setSelectedTaskForReason(focusTask)}
-          className="w-full py-3 px-4 bg-[#18181d] hover:bg-[#202026] text-zinc-300 hover:text-white border border-[#27272a] hover:border-zinc-700 text-xs sm:text-sm font-semibold rounded-none transition-all duration-150 flex items-center justify-center gap-2 group"
+          className="flex h-10 w-10 items-center justify-center rounded-full text-violet-400 transition-colors duration-150 hover:text-violet-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400"
         >
-          <Sparkles className="w-4 h-4 text-violet-400 group-hover:scale-110 transition-transform" />
-          <span>View details & priority breakdown</span>
+          <ArrowDown className="h-5 w-5" aria-hidden="true" />
         </button>
       </div>
     </div>

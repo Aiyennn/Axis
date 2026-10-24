@@ -1,8 +1,18 @@
-"""Application pipeline for the mock workspace. No integration network calls."""
-import os
+"""Workspace workflows and presentation of persisted priority runs."""
 import logging
+from Backend.observability import log_stage
 from datetime import datetime, time, timedelta
 from zoneinfo import ZoneInfo
+
+from Backend.config import WorkspaceSettings, workspace_settings
+from Backend.models.workspace import MockSyncRequest, TaskEdit
+from Backend.ingestion.pipeline import preview_import, load_fixtures
+from Backend.ingestion.extraction import GeminiExtractor
+from Backend.ingestion.store import persist_import
+from Backend.services.calendar import reconcile_calendar
+from Backend.services.task_versions import revise_task
+from Backend.services.ownership import lock_owner
+from Backend.services.errors import BriefingUnavailable, WorkspaceConflict
 
 from sqlalchemy import select
 from Backend.models.db_models import CalendarSourceModel, PriorityRunModel
@@ -37,6 +47,8 @@ def calendar_intervals(db, user_id):
 
 
 def rank_workspace(db, user_id):
+    # Read calendar inputs under the same lock used to snapshot tasks and runs.
+    lock_owner(db, user_id)
     intervals, _ = calendar_intervals(db, user_id)
     return create_priority_run(db, user_id=user_id, context=PriorityContext(
         now=MOCK_NOW, timezone="Asia/Shanghai", busyIntervals=intervals,
@@ -44,18 +56,19 @@ def rank_workspace(db, user_id):
     ))[0]
 
 
-def finish_run(factory, user_id, run_id, *, retry=False):
-    # Mock ingestion always uses recorded extraction. Explanations may use
-    # Gemini only when explicitly enabled in server configuration.
+def finish_run(factory, user_id, run_id, *, retry=False, settings=None):
+    settings = settings or workspace_settings()
+    # Generation runs after the caller has committed the ranking.
     logger.info("workspace.generation.started run_id=%s mode=%s retry=%s",
-                run_id, os.getenv("EXPLANATION_MODE", "rules"), retry)
-    result = explain_run(factory, user_id=user_id, run_id=run_id, retry=retry,
-                use_ai=os.getenv("EXPLANATION_MODE", "rules") == "gemini")
-    with factory() as db:
+                run_id, settings.explanation_mode, retry)
+    with log_stage(logger, "workspace.briefing.generate", run_id=run_id, mode=settings.explanation_mode):
+        result = explain_run(factory, user_id=user_id, run_id=run_id, retry=retry,
+                    use_ai=settings.ai_briefings_enabled)
+    with log_stage(logger, "workspace.database.load_result"), factory() as db:
         view = workspace_view(db, user_id)
     logger.info("workspace.generation.completed run_id=%s result=%s returned_status=%s source=%s",
                 run_id, result, view.get("status"), view.get("briefingSource"))
-    return view
+    return {**view, "aiBriefingsEnabled": settings.ai_briefings_enabled}
 
 
 def workspace_view(db, user_id):
@@ -96,3 +109,72 @@ def workspace_view(db, user_id):
     summary = explanation_context(run, assessments(db, user_id, run.id))["capacitySummary"]
     return {**view, "tasks": cards, "completedTasks": completed, "calendarEvents": events,
             "mockNow": MOCK_NOW.isoformat(), "capacitySummary": summary}
+
+
+class WorkspaceService:
+    """Coordinate workspace operations and own their transaction boundaries.
+
+    Extraction happens before writes; explanations run only after commit.
+    Revision/import and ranking are atomic and share the existing owner lock.
+    """
+
+    def __init__(self, factory, settings: WorkspaceSettings):
+        self.factory = factory
+        self.settings = settings
+
+    def read(self, user_id):
+        with log_stage(logger, "workspace.database.read"), self.factory() as db:
+            view = workspace_view(db, user_id)
+        logger.info("workspace.loaded run_id=%s status=%s source=%s tasks=%s generation_requested=false",
+                    view.get("runId"), view.get("status"), view.get("briefingSource"), len(view.get("tasks", [])))
+        return {**view, "aiBriefingsEnabled": self.settings.ai_briefings_enabled}
+
+    def finish(self, user_id, run_id, *, retry=False):
+        return finish_run(self.factory, user_id, run_id, retry=retry, settings=self.settings)
+
+    def retry_briefing(self, user_id):
+        logger.info("workspace.briefing.retry.started")
+        if not self.settings.ai_briefings_enabled:
+            raise BriefingUnavailable("AI briefings are disabled in the server configuration.")
+        with log_stage(logger, "workspace.database.check_briefing"), self.factory() as db:
+            view = current_run_view(db, user_id=user_id)
+        if not view:
+            raise WorkspaceConflict("Import tasks before generating a briefing.")
+        if view["status"] == "stale":
+            raise WorkspaceConflict("Your tasks have changed. Refresh priorities before retrying.")
+        if view["status"] == "generating":
+            # Explicit retries replace the attempt token. A request interrupted by
+            # a server restart must not permanently prevent future generation.
+            logger.warning("workspace.briefing.retry.superseding run_id=%s", view["runId"])
+        return self.finish(user_id, view["runId"], retry=True)
+
+    def sync_mock(self, user_id, body: MockSyncRequest | None = None):
+        logger.info("workspace.sync.started extraction_mode=%s integrations=%s",
+                    self.settings.extraction_mode, body.integrations if body else "all")
+        extractor = GeminiExtractor() if self.settings.extraction_mode == "gemini" else None
+        envelopes = None if body is None else [
+            envelope for envelope in load_fixtures() if envelope["integration"] in body.integrations
+        ]
+        with log_stage(logger, "workspace.ingestion.extract", mode=self.settings.extraction_mode):
+            preview = preview_import(envelopes, user_id=user_id, extractor=extractor)
+        with log_stage(logger, "workspace.database.import_and_rank"), self.factory.begin() as db:
+            reconcile_calendar(db, user_id, preview,
+                               selected=body is None or "google_calendar" in body.integrations)
+            counts = persist_import(db, user_id=user_id, preview=preview, reset=body.reset if body else False)
+            run_id = rank_workspace(db, user_id)
+        logger.info("workspace.sync.imported run_id=%s issues=%s", run_id, len(preview.issues))
+        return {**self.finish(user_id, run_id),
+                "importResult": {**counts, "issues": preview.issues, "mode": preview.extractionMode}}
+
+    def refresh(self, user_id):
+        logger.info("workspace.refresh.started")
+        with log_stage(logger, "workspace.database.refresh_and_rank"), self.factory.begin() as db:
+            run_id = rank_workspace(db, user_id)
+        return self.finish(user_id, run_id)
+
+    def edit_task(self, user_id, task_id: str, body: TaskEdit):
+        logger.info("workspace.edit.started task_id=%s fields=%s", task_id, sorted(body.model_fields_set))
+        with log_stage(logger, "workspace.database.edit_and_rank"), self.factory.begin() as db:
+            revise_task(db, user_id, task_id, body)
+            run_id = rank_workspace(db, user_id)
+        return self.finish(user_id, run_id)

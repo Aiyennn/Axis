@@ -1,4 +1,6 @@
 import unittest
+from unittest.mock import patch
+from google.genai.errors import ClientError
 from sqlalchemy import create_engine, event
 from sqlalchemy.orm import sessionmaker
 from Backend.database import Base
@@ -83,6 +85,40 @@ class ExplanationTests(unittest.TestCase):
                 with self.sessions() as db:
                     view = current_run_view(db, user_id="u1")
                     self.assertTrue(all(t["reasoning"] and t["explanationSource"] == "rules" for t in view["tasks"]))
+
+    def test_provider_rejection_logs_message_without_key_or_response_body(self):
+        class Rejected(FakeProvider):
+            def generate(inner, snapshot):
+                raise ClientError(400, {"error": {
+                    "status": "INVALID_ARGUMENT",
+                    "message": "Invalid schema\nfor test-secret-key",
+                    "details": [{"private": "response-body-only"}],
+                }})
+
+        with patch.dict("os.environ", {"GEMINI_API_KEY": "test-secret-key"}):
+            with self.assertLogs("Backend.explanations.service", level="ERROR") as logs:
+                result = explain_run(self.sessions, user_id="u1", run_id=self.run_id, provider=Rejected())
+        self.assertEqual(result, "fallback")
+        output = " ".join(logs.output)
+        self.assertIn("provider_message='Invalid schema for [REDACTED]'", output)
+        self.assertIn("provider_status=INVALID_ARGUMENT", output)
+        self.assertNotIn("test-secret-key", output)
+        self.assertNotIn("response-body-only", output)
+
+    def test_validation_logs_failed_fields_without_generated_content(self):
+        from Backend.explanations.contracts import ExplanationBatch
+
+        class InvalidOutput(FakeProvider):
+            def generate(inner, snapshot):
+                return ExplanationBatch.model_validate({"briefing": "private-generated-content"})
+
+        with self.assertLogs("Backend.explanations.service", level="ERROR") as logs:
+            result = explain_run(self.sessions, user_id="u1", run_id=self.run_id, provider=InvalidOutput())
+        self.assertEqual(result, "fallback")
+        output = " ".join(logs.output)
+        self.assertIn('"validation_schema": "ExplanationBatch"', output)
+        self.assertIn('"loc": ["taskExplanations"], "type": "missing"', output)
+        self.assertNotIn("private-generated-content", output)
 
     def test_new_run_during_generation_discards_old_response(self):
         parent = self

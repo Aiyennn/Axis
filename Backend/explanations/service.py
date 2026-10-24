@@ -1,11 +1,14 @@
 """Persist rankings first; call the provider without holding a DB transaction."""
 import json
 import logging
+from Backend.observability import log_stage
+import os
 from time import perf_counter
 import uuid
 from datetime import datetime, timedelta, timezone
 from zoneinfo import ZoneInfo
 
+from pydantic import ValidationError
 from sqlalchemy import func, select
 from Backend.models.db_models import (
     TaskFactsModel, PriorityRunModel, PriorityAssessmentModel,
@@ -19,6 +22,27 @@ from Backend.engine.calendar import free_blocks, available_before
 from Backend.services.ownership import lock_owner
 
 logger = logging.getLogger(__name__)
+
+
+def provider_error_message(exc):
+    # Avoid str(exc): SDK exceptions include the entire response body, while
+    # validation exceptions can include task content. Keep only provider messages.
+    if isinstance(exc, ValidationError):
+        # Report the failed contract and field paths without generated text or
+        # Pydantic's input/context values (which can contain private task data).
+        return json.dumps({
+            "validation_schema": exc.title,
+            "errors": [{"loc": item["loc"], "type": item["type"]}
+                       for item in exc.errors(include_input=False, include_context=False,
+                                              include_url=False)[:20]],
+        })[:2000]
+    message = getattr(exc, "message", None)
+    if not isinstance(message, str):
+        return None
+    key = os.getenv("GEMINI_API_KEY", "").strip("'\" \t\r\n")
+    if key:
+        message = message.replace(key, "[REDACTED]")
+    return " ".join(message.split())[:2000]
 
 
 def calendar_revision(db, user_id):
@@ -101,7 +125,7 @@ def explain_run(session_factory, *, user_id, run_id, provider=None, retry=False,
     token = str(uuid.uuid4())
     started = perf_counter()
     logger.info("explanation.started run_id=%s attempt=%s use_ai=%s retry=%s", run_id, token, use_ai, retry)
-    with session_factory.begin() as db:
+    with log_stage(logger, "briefing.database.prepare", run_id=run_id), session_factory.begin() as db:
         lock_owner(db, user_id)
         run = db.get(PriorityRunModel, (user_id, run_id))
         if run is None:
@@ -124,18 +148,21 @@ def explain_run(session_factory, *, user_id, run_id, provider=None, retry=False,
         status, model = "fallback", None
         if use_ai and snapshot["tasks"]:
             logger.info("explanation.provider.started run_id=%s model=%s tasks=%s", run_id, provider.model, len(snapshot["tasks"]))
-            batch = validate_batch(provider.generate(snapshot), snapshot)
+            with log_stage(logger, "briefing.gemini.generate", model=provider.model):
+                generated = provider.generate(snapshot)
+            with log_stage(logger, "briefing.validate"):
+                batch = validate_batch(generated, snapshot)
             status, model = "ready", provider.model
             logger.info("explanation.provider.validated run_id=%s model=%s explanations=%s", run_id, model, len(batch.taskExplanations))
         else:
             logger.info("explanation.fallback run_id=%s reason=%s", run_id, "ai_disabled" if not use_ai else "no_tasks")
     except Exception as exc:
-        logger.error("explanation.provider.failed run_id=%s model=%s error_type=%s provider_code=%s provider_status=%s fallback=true duration_ms=%.0f",
+        logger.error("explanation.provider.failed run_id=%s model=%s error_type=%s provider_code=%s provider_status=%s provider_message=%r fallback=true duration_ms=%.0f",
                      run_id, provider.model, type(exc).__name__, getattr(exc, "code", None),
-                     getattr(exc, "status", None), (perf_counter() - started) * 1000)
+                     getattr(exc, "status", None), provider_error_message(exc), (perf_counter() - started) * 1000)
         batch = fallback_batch(snapshot)
         status, model, error = "fallback", None, type(exc).__name__
-    with session_factory.begin() as db:
+    with log_stage(logger, "briefing.database.save", run_id=run_id), session_factory.begin() as db:
         lock_owner(db, user_id)
         run = db.get(PriorityRunModel, (user_id, run_id))
         if run.explanation_attempt != token:

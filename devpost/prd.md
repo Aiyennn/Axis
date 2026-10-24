@@ -1,7 +1,7 @@
 ---
 doc: prd
 status: approved
-updated: 2026-10-20
+updated: 2026-10-23
 ---
 
 # Axis — Product Requirements Document (PRD)
@@ -63,8 +63,8 @@ A three-part desktop layout with a responsive left navigation sidebar, central w
   - Flags high-risk tasks at jeopardy of missing hard deadlines.
   - Surfaces AI suggestions on which flexible items to defer to "Do Later".
 - *Acceptance Criteria:*
-  - [ ] Briefing calculates total workload and free time dynamically based on active tasks and calendar events.
-  - [ ] If free time is exceeded, the Overload warning banner appears with deficit hours and risk tags.
+  - [x] Briefing calculates total workload and free time dynamically based on active tasks and calendar events.
+  - [x] If free time is exceeded, the Overload warning banner appears with deficit hours and risk tags.
 
 ### 2. Prioritized Task Columns (Do Now / Do Next / Do Later)
 - Tasks are ordered by deterministic tiers and scores, followed by conservative deadline-order repair and capacity allocation. Scoring uses urgency/slack (0–50), explicit impact (0–25), importance (0–15), and waiting age (0–10). Buckets reflect urgency and allocation, rather than score thresholds. Unknown input values produce warnings; the engine does not infer impact from prose.
@@ -74,10 +74,10 @@ A three-part desktop layout with a responsive left navigation sidebar, central w
   - Quick priority selector dropdown/button to manually move a task between columns.
   - "Ask AI" shortcut button that pre-fills the assistant chat with a query about this task.
 - *Acceptance Criteria:*
-  - [ ] Each card clearly displays title, source badge (Email, Canvas, etc.), duration, and deadline.
-  - [ ] Completing a task updates the briefing hours count immediately.
-  - [ ] Expanding a card reveals the explicit rationale behind its priority assignment.
-  - [ ] Manually changing priority shifts the card between columns without silent overrides.
+  - [x] Each card clearly displays title, source badge (Email, Canvas, etc.), duration, and deadline.
+  - [x] Completing a task updates the briefing hours count immediately.
+  - [x] Expanding a card reveals the explicit rationale behind its priority assignment.
+  - [x] Manually changing priority shifts the card between columns without silent overrides.
 
 ### 3. Daily Timeline Visualizer
 - Visual 8:00 AM – 10:00 PM horizontal timeline showing:
@@ -85,8 +85,8 @@ A three-part desktop layout with a responsive left navigation sidebar, central w
   - Engine-proposed focus blocks for "Do Now" tasks slotted into open intervals.
   - Breaks and open unstructured time.
 - *Acceptance Criteria:*
-  - [ ] Fixed calendar events are visually distinct from allocated task focus blocks.
-  - [ ] Reordering or completing tasks updates the timeline allocations accordingly.
+  - [x] Fixed calendar events are visually distinct from allocated task focus blocks.
+  - [x] Reordering or completing tasks updates the timeline allocations accordingly.
 
 ### 4. AI Assistant Dialogue & "Approve Plan Changes" Flow
 - Conversational chat panel understanding natural user constraints (e.g., *"I want to study for the CS exam first"* or *"I only have 1 hour before my lecture"*).
@@ -95,8 +95,8 @@ A three-part desktop layout with a responsive left navigation sidebar, central w
   - Details: (1) Proposed movements, (2) Tasks affected, (3) Explicit trade-offs (e.g., *"Client revisions moved to 3:00 PM — warning: 1 hour buffer before deadline"*).
   - Actions: **Approve Changes** (applies new plan to columns and timeline) and **Reject** (discards proposal and keeps current plan).
 - *Acceptance Criteria:*
-  - [ ] Challenging the schedule in chat triggers a structured review card before modifying the board.
-  - [ ] Clicking "Approve" moves the target cards and updates the timeline; clicking "Reject" preserves the existing state.
+  - [x] Challenging the schedule in chat triggers a structured review card before modifying the board.
+  - [x] Clicking "Approve" moves the target cards and updates the timeline; clicking "Reject" preserves the existing state.
 
 ### 5. Mock Integrations Manager & Demo Controls
 - Dedicated Integrations view displaying the status and simulated item feeds for:
@@ -109,9 +109,9 @@ A three-part desktop layout with a responsive left navigation sidebar, central w
 - **"Reset Demo Data" Action:** A prominent button with confirmation dialog that resets all tasks, calendar events, completion states, and chat history back to the default seed state for seamless 60-second walkthrough rehearsals.
 - **"Add Mock Task" Form:** Simple modal form allowing the user to create a custom task (Title, Source, Deadline, Duration, Importance) which is immediately ingested and scored by the prioritization engine.
 - *Acceptance Criteria:*
-  - [ ] Integrations page displays cards for each of the mock sources (Email, Notion, GitHub, Canvas, Calendar, Tasks) with live item counts.
-  - [ ] Clicking "Reset Demo Data" restores the initial state cleanly after confirmation.
-  - [ ] Adding a custom mock task updates the dashboard columns and briefing immediately.
+  - [x] Integrations page displays cards for each of the mock sources (Email, Notion, GitHub, Canvas, Calendar, Tasks) with live item counts.
+  - [x] Clicking "Reset Demo Data" restores the initial state cleanly after confirmation.
+  - [x] Adding a custom mock task updates the dashboard columns and briefing immediately.
 
 ### 6. Validated Source Facts and Assessment Lifecycle
 - Different source shapes map into a common task contract; explicit API fields take precedence over extraction.
@@ -127,10 +127,10 @@ A three-part desktop layout with a responsive left navigation sidebar, central w
   - [x] Direct source deadlines take precedence; invalid quote evidence is rejected.
   - [x] Replays preserve unchanged revisions and writes enforce owner scope in tested persistence flows.
   - [x] Deterministic preview returns ranks, buckets, warnings and decision facts.
-  - [ ] Frontend shows fact-review states and supports confirmation before trusting uncertain inputs.
-  - [ ] Frontend reads current task facts and matching assessments, including pending/failed explanations.
-  - [ ] Verified authentication supplies ownership for protected API operations.
-  - [ ] Calendar-source records are converted into engine availability context automatically.
+  - [x] Frontend shows fact-review states and supports confirmation before trusting uncertain inputs.
+  - [x] Frontend reads current task facts and matching assessments, including pending/failed explanations.
+  - [x] Verified authentication supplies ownership for protected API operations.
+  - [x] Calendar-source records are converted into engine availability context automatically.
 
 ## States and Boundaries
 
@@ -142,7 +142,7 @@ A three-part desktop layout with a responsive left navigation sidebar, central w
 ## Product Decisions
 - **Pre-approval for AI Plan Changes:** The AI never silently alters the user's schedule; every major re-weighting surfaces an "Approve Plan Changes" card with explicit trade-off explanations.
 - **Deterministic Decisions, AI Communication:** The engine calculates priorities and decision facts. AI extracts supported source facts and explains finalized decisions. AI output cannot directly change scores or ordering. Retained extracted fields require confirmation; matching quotes alone do not establish semantic correctness.
-- **Mock Over Real OAuth:** Use replayable provider-shaped fixtures and explicitly labeled recorded extraction for offline demonstrations. Optional Gemini extraction is a separate mode with explicit failure reporting.
+- **Mock Over Real OAuth:** Use replayable provider-shaped fixtures and explicitly labeled recorded extraction for offline demonstrations. Gemini AI extraction is the live intelligence provider, paired with recorded fixtures for offline resilience and failure recovery.
 - **Capacity Deficit Transparency:** Overload situations are directly communicated as capacity gaps rather than compressing impossible tasks into unavailable time.
 - **`Frontend/` + `Backend/` Directory Split:** The codebase is organized into two clear top-level directories — `Frontend/` for the Vite + React + TypeScript client and `Backend/` for the Python FastAPI service — so each side has independent dependencies and can be run, tested, and iterated on without interfering with the other.
 
@@ -172,4 +172,3 @@ A three-part desktop layout with a responsive left navigation sidebar, central w
 - How to select current assessments when calendar context changes, and reject stale explanations.
 
 These are remaining decisions; the implemented engine does not yet solve dependency-chain scheduling, global optimization or persistent overrides.
-

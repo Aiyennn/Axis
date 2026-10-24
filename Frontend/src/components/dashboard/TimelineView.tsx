@@ -2,7 +2,7 @@ import React from 'react';
 import { Calendar, Clock, Sparkles, CheckCircle2, AlertTriangle, ArrowRight } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { DailyTimeline } from './DailyTimeline';
-import { generateDailyTimeline, formatHour } from '../../engine/scheduler';
+import { generateDailyTimeline, formatHour, TOTAL_DAY_HOURS } from '../../engine/scheduler';
 import { SourceLogo } from '../shared/SourceLogo';
 
 export const TimelineView: React.FC = () => {
@@ -16,54 +16,35 @@ export const TimelineView: React.FC = () => {
 
   return (
     <div className="space-y-6 animate-slide-left">
-      {/* Top Header & Overview */}
-      <div className="bg-[#121215] border border-[#27272a] p-6 shadow-lg">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="px-2 py-0.5 text-[10px] font-mono uppercase tracking-wider bg-violet-950 text-violet-300 border border-violet-800">
-                Schedule Engine
-              </span>
-              <span className="text-xs font-mono text-zinc-500">Tuesday, Oct 20, 2026 · Mock clock</span>
-            </div>
-            <h1 className="text-2xl font-bold text-white mt-1 tracking-tight">Timeline & Daily Schedule</h1>
-            <p className="text-sm text-zinc-400 mt-1 max-w-2xl">
-              Proposed work blocks within the 9:00 AM–6:00 PM workday, calculated by the deterministic engine around stored calendar events.
-            </p>
+      <header className="schedule-header">
+        <div className="schedule-heading">
+          <p className="schedule-date">Tuesday, Oct 20, 2026 <span>·</span> Mock clock</p>
+          <h1>Timeline &amp; Daily Schedule</h1>
+          <p className="schedule-description">
+            Proposed work blocks within the 9:00 AM–6:00 PM workday, calculated by the deterministic engine around stored calendar events.
+          </p>
+        </div>
+        <div className="schedule-metrics" aria-label="Schedule overview">
+          <div className="schedule-metric">
+            <span>Window</span>
+            <strong>{TOTAL_DAY_HOURS.toFixed(1)}h</strong>
           </div>
-
-          {/* Quick Metrics Bar */}
-          <div className="flex items-center gap-2 flex-wrap font-mono text-xs">
-            <div className="px-3 py-2 bg-[#18181d] border border-zinc-800">
-              <div className="text-[10px] text-zinc-500 uppercase">Window</div>
-              <div className="text-sm font-semibold text-white">14.0h</div>
-            </div>
-            <div className="px-3 py-2 bg-[#18181d] border border-zinc-800">
-              <div className="text-[10px] text-zinc-500 uppercase">Fixed Events</div>
-              <div className="text-sm font-semibold text-zinc-200">{eventBlocks.length} ({calendarEvents.reduce((acc, ev) => acc + (ev.endHour - ev.startHour), 0)}h)</div>
-            </div>
-            <div className="px-3 py-2 bg-[#18181d] border border-zinc-800">
-              <div className="text-[10px] text-zinc-500 uppercase">Focus Slots</div>
-              <div className="text-sm font-semibold text-violet-300">{focusBlocks.length} Sessions</div>
-            </div>
-            <div className={`px-3 py-2 border ${
-              capacity.isOverloaded
-                ? 'bg-rose-950/40 border-rose-800/60 text-rose-300'
-                : 'bg-emerald-950/30 border-emerald-800/50 text-emerald-300'
-            }`}>
-              <div className="text-[10px] uppercase">{capacity.isOverloaded ? 'Overload' : 'Capacity'}</div>
-              <div className="text-sm font-semibold">
-                {capacity.isOverloaded ? `+${capacity.deficitHours}h Deficit` : `${capacity.availableFreeHours}h Free`}
-              </div>
-            </div>
+          <div className="schedule-metric">
+            <span>Fixed events</span>
+            <strong>{eventBlocks.length} <small>({eventBlocks.reduce((total, block) => total + block.durationHours, 0)}h)</small></strong>
+          </div>
+          <div className="schedule-metric schedule-metric-focus">
+            <span>Focus slots</span>
+            <strong>{focusBlocks.length} Sessions</strong>
+          </div>
+          <div className={`schedule-metric ${capacity.isOverloaded ? 'schedule-metric-overload' : 'schedule-metric-capacity'}`}>
+            <span>{capacity.isOverloaded ? 'Overload' : 'Capacity'}</span>
+            <strong>{capacity.isOverloaded ? `+${capacity.deficitHours}h Deficit` : `${capacity.availableFreeHours}h Free`}</strong>
           </div>
         </div>
-      </div>
+      </header>
 
-      {/* Main Interactive Daily Timeline Bar */}
-      <div>
-        <DailyTimeline />
-      </div>
+      <DailyTimeline />
 
       {/* Two-Column Deep-Dive Breakdown */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">

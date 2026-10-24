@@ -95,6 +95,74 @@ background jobs, and live integrations are outside this mock implementation.
 Legacy demo routers and tables are preserved for historical data but are no
 longer mounted. No legacy demo records are automatically seeded.
 
+## Workspace architecture
+
+`routers/workspace.py` handles HTTP requests and authenticated identity only.
+`dependencies.py` composes `WorkspaceService` with a session factory and the
+provider modes from `config.py`; tests can override either dependency.
+`models/workspace.py` defines the unchanged request contracts. Expected
+application errors live in `services/errors.py` and map to HTTP responses in
+`main.py`.
+
+`services/workspace.py` owns workflow transactions. Task edits and ranking commit
+atomically; imports reconcile calendars, persist facts, and rank in one transaction.
+`services/task_versions.py` appends revisions and updates evidence without changing
+historical facts. `services/calendar.py` reconciles complete, accepted calendar
+snapshots. These helpers flush but never commit. Owner locks serialize writes on
+PostgreSQL, including reading calendar inputs for ranking. Extraction runs before
+writes, and explanation generation runs after commit; existing attempt tokens and
+snapshot checks prevent stale provider responses from overwriting newer state.
+
+## Auth and chat architecture
+
+`services/auth.py` owns credential checks, account/session transactions, password
+hashing, and the local login limiter. Auth routes set or delete cookies only after
+successful service calls. `dependencies.py` handles HTTP origin/header checks,
+extracts session tokens, and injects services and configuration. Application
+failures map to the existing HTTP errors in `main.py`. `config.py` centralizes
+origins, secure-cookie settings, and chat provider configuration.
+
+`services/chat.py` reads history and coordinates best-effort message persistence
+and replies. `services/chat_provider.py` contains Gemini prompt construction and
+SDK calls. User and assistant messages retain separate transactions, and no
+transaction spans a provider call. Missing configuration, empty responses, and
+provider/storage failures preserve the existing chat behavior. Chat and its
+history retain their existing unauthenticated, shared-history API contract.
+
+Workspace responses include `aiBriefingsEnabled` so the dashboard can hide AI
+retry controls when explanations use rules. Saved briefing text remains visible
+for fallback and interrupted generation states. Only a briefing request active
+in the current page shows a waiting animation. An explicit briefing retry may
+replace a saved `generating` attempt after a server restart; attempt tokens
+prevent the older result from overwriting its replacement. Gemini briefing calls
+use a 20-second request timeout and one attempt, then retain the rule-based
+briefing on failure. Loading the workspace still does not call Gemini.
+
+## Reading backend logs
+
+Application logs use this layout:
+
+```text
+15:04:01.123 | INFO    | req=abc123 | POST /api/chat |    +0.002s | START | chat.database.save_user | elapsed_s=0.000
+15:04:01.140 | INFO    | req=abc123 | POST /api/chat |    +0.019s | DONE  | chat.database.save_user | elapsed_s=0.017
+15:04:01.141 | INFO    | req=abc123 | POST /api/chat |    +0.020s | START | chat.gemini.generate | model=... elapsed_s=0.000
+15:04:06.142 | WARNING | req=abc123 | POST /api/chat |    +5.021s | WAIT  | chat.gemini.generate | model=... elapsed_s=5.001
+```
+
+Follow one `req` ID (also returned in the `X-Request-ID` response header).
+The `+...s` column measures time since the request arrived; `elapsed_s` measures
+only the named stage. `START`, `DONE`, and `FAIL` identify operation boundaries.
+Stages still running emit `WAIT` every five seconds, retaining the originating
+request ID even from worker threads. Startup work uses `background` instead of
+an HTTP route. Existing dotted event names remain searchable.
+
+Chat stages distinguish each database save, Gemini client initialization,
+generation, and task tool use. The Gemini generation stage covers SDK requests,
+automatic tool round trips, and any internal retries; it does not claim to time
+individual network attempts. Authentication, workspace reads/imports/ranking,
+and briefing preparation/generation/validation/saving also have stage markers.
+Logs contain operation metadata and exception types, not chat bodies or keys.
+
 ## Tests
 
 ```bash

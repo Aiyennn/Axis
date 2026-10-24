@@ -12,13 +12,19 @@ from Backend.database import Base
 from Backend.models.db_models import UserModel, TaskFactsModel, CalendarSourceModel
 from Backend.integrations.adapters import adapt
 from Backend.ingestion.extraction import FixtureExtractor, GeminiExtractor
-from Backend.ingestion.pipeline import load_fixtures, preview_import
+from Backend.ingestion.pipeline import preview_import
 from Backend.ingestion.store import persist_import
 from Backend.ingestion.validation import normalize
 from Backend.routers.integrations import router
+from Backend.tests.fixtures import fixtures_with_calendar as load_fixtures
 
 
 class IngestionTests(unittest.TestCase):
+    def setUp(self):
+        fixture_patch = patch('Backend.ingestion.pipeline.load_fixtures', side_effect=load_fixtures)
+        fixture_patch.start()
+        self.addCleanup(fixture_patch.stop)
+
     def test_all_sources_and_unknowns(self):
         result = preview_import(user_id="u1")
         self.assertEqual(result.issues, [])
