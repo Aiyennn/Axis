@@ -46,13 +46,18 @@ def calendar_intervals(db, user_id):
     return intervals, events
 
 
-def rank_workspace(db, user_id):
+def rank_workspace(db, user_id, bucket_overrides=None):
     # Read calendar inputs under the same lock used to snapshot tasks and runs.
     lock_owner(db, user_id)
+    previous = db.scalar(select(PriorityRunModel).where(PriorityRunModel.user_id == user_id)
+                         .order_by(PriorityRunModel.generation.desc()).limit(1))
+    overrides = dict(previous.context_snapshot['context'].get('bucketOverrides', {})) if previous else {}
+    overrides.update(bucket_overrides or {})
     intervals, _ = calendar_intervals(db, user_id)
     return create_priority_run(db, user_id=user_id, context=PriorityContext(
         now=MOCK_NOW, timezone="Asia/Shanghai", busyIntervals=intervals,
         dateOnlyDeadlineTime=time(23, 59),
+        bucketOverrides=overrides,
     ))[0]
 
 
@@ -128,6 +133,22 @@ class WorkspaceService:
         logger.info("workspace.loaded run_id=%s status=%s source=%s tasks=%s generation_requested=false",
                     view.get("runId"), view.get("status"), view.get("briefingSource"), len(view.get("tasks", [])))
         return {**view, "aiBriefingsEnabled": self.settings.ai_briefings_enabled}
+
+    def apply_plan(self, user_id, proposal):
+        with self.factory.begin() as db:
+            lock_owner(db, user_id)
+            view = workspace_view(db, user_id)
+            if not proposal.runId or proposal.runId != view.get('runId') or view['status'] == 'stale':
+                raise WorkspaceConflict('The schedule has changed. Ask Axis for a new proposal.')
+            tasks = {t['id']: t for t in view['tasks']}
+            if len({m.taskId for m in proposal.moves}) != len(proposal.moves):
+                raise WorkspaceConflict('The proposal must contain unique task moves.')
+            for move in proposal.moves:
+                task = tasks.get(move.taskId)
+                if not task or task['priorityBucket'] != move.fromBucket:
+                    raise WorkspaceConflict('The task has changed. Ask Axis for a new proposal.')
+            run_id = rank_workspace(db, user_id, {m.taskId: m.toBucket for m in proposal.moves})
+        return self.finish(user_id, run_id)
 
     def finish(self, user_id, run_id, *, retry=False):
         return finish_run(self.factory, user_id, run_id, retry=retry, settings=self.settings)

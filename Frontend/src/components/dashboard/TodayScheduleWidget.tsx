@@ -2,6 +2,7 @@ import { useApp } from '../../context/AppContext';
 import { generateDailyTimeline, formatHour } from '../../engine/scheduler';
 import { Check, ArrowUpRight } from 'lucide-react';
 import { SourceLogo } from '../shared/SourceLogo';
+import { UpcomingSchedule } from './UpcomingSchedule';
 export function TodayScheduleWidget() {
   const { scheduleTasks, calendarEvents, setActiveView, setSelectedTaskForReason } = useApp();
   const blocks = generateDailyTimeline(scheduleTasks, calendarEvents).filter(b => b.type !== 'open');
@@ -28,6 +29,7 @@ export function TodayScheduleWidget() {
         </li>
       ))}
     </ol>
+    <UpcomingSchedule />
     <button className="mt-4 inline-flex items-center gap-1 text-xs text-zinc-500 hover:text-blue-300 transition-colors" onClick={() => setActiveView('timeline')}>Full timeline <ArrowUpRight size={13} /></button>
   </section>;
 }

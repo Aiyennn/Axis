@@ -30,6 +30,23 @@ def request(tasks, **context):
 
 
 class EngineTests(unittest.TestCase):
+    def test_deferred_task_is_ranked_after_work_allocated_today(self):
+        normal = task('today', isHardDeadline=False, importance='low', deadlineAt=None)
+        normal['delayImpact'] = 'minor'
+        rows = rank_tasks(request([task('exam'), normal], bucketOverrides={'exam': 'next'})).rankings
+        self.assertEqual([(row.taskId, row.priorityBucket, row.rank) for row in rows],
+                         [('today', 'now', 1), ('exam', 'next', 2)])
+        self.assertEqual(rows[0].plannedWork[0].start.day, 20)
+        self.assertEqual(rows[1].plannedWork[0].start.day, 21)
+
+    def test_user_move_reallocates_work_and_keeps_deadline_warnings(self):
+        result = rank_tasks(request([task('exam'), task('other')], bucketOverrides={'exam': 'next'}))
+        rows = {row.taskId: row for row in result.rankings}
+        self.assertEqual(rows['exam'].priorityBucket, 'next')
+        self.assertEqual(rows['exam'].plannedWork[0].start.day, 21)
+        self.assertEqual(rows['other'].plannedWork[0].start.day, 20)
+        self.assertIn('PROJECTED_DEADLINE_MISS', rows['exam'].warnings)
+
     def test_reorders_work_when_both_deadlines_can_be_met(self):
         a = task("A", estimatedHours=6, deadlineAt="2026-10-20T16:00:00+08:00")
         b = task("B", estimatedHours=1, importance="low", deadlineAt="2026-10-20T11:00:00+08:00")

@@ -72,8 +72,12 @@ rule-based explanations. Refresh priorities retries by creating a new run.
 The UI always labels the explanation source. Mock extraction is not an AI call.
 
 The frontend reads saved backend state; it no longer uses seeded localStorage,
-client scoring, or independently generated schedules. The assistant displays
-saved explanations and does not generate chat-based priority changes.
+client scoring, or independently generated schedules. The assistant can propose
+moving task preparation to Now, Next (tomorrow or later), or Later (in two days
+or later). Approving a proposal saves the preference and rebuilds focus blocks;
+refreshes retain it. Actual exam dates and calendar events are unchanged.
+Deadline and capacity warnings remain visible. Proposals from older runs are
+rejected so they cannot overwrite a newer plan.
 
 ## HTTP routes
 
@@ -82,6 +86,7 @@ saved explanations and does not generate chat-based priority changes.
 - `GET /api/workspace`: current saved cards, briefing, capacity, and calendar.
 - `POST /api/workspace/sync-mock`: import fixtures and run the complete pipeline.
 - `POST /api/workspace/refresh`: recalculate saved facts and explanations.
+- `POST /api/workspace/plan`: apply a run-checked chat proposal and rebuild.
 - `PATCH /api/workspace/tasks/{id}`: version-checked effort, importance, status,
   and evidence-confirmation changes.
 - Priority and integration preview routes remain stateless fixture tools.

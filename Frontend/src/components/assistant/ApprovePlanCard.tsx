@@ -39,16 +39,16 @@ export const ApprovePlanCard: React.FC<ApprovePlanCardProps> = ({
   };
 
   return (
-    <div className="mt-3 p-4 bg-[#141419] border border-violet-500/50 rounded-none shadow-xl space-y-3">
+    <div className="mt-3 p-4 bg-[#131316] border border-zinc-700/60 rounded-xl space-y-3">
       {/* Header */}
       <div className="flex items-center justify-between pb-2 border-b border-zinc-800">
         <div className="flex items-center gap-2">
-          <Sparkles className="w-4 h-4 text-violet-400" />
+          <Sparkles className="w-4 h-4 text-zinc-400" />
           <h4 className="text-xs font-bold text-white uppercase tracking-wider font-mono">
             Proposed Plan Changes
           </h4>
         </div>
-        <span className="text-[10px] font-mono px-2 py-0.5 bg-violet-950 text-violet-300 border border-violet-800">
+        <span className="text-[10px] font-mono px-2 py-0.5 bg-zinc-800 text-zinc-300 border border-zinc-700 rounded">
           Approval Required
         </span>
       </div>
@@ -59,7 +59,7 @@ export const ApprovePlanCard: React.FC<ApprovePlanCardProps> = ({
         {proposal.moves.map((move, idx) => (
           <div
             key={idx}
-            className="p-2.5 bg-[#1a1a22] border border-zinc-800 flex items-center justify-between gap-2"
+            className="p-2.5 bg-zinc-900/60 border border-zinc-800 rounded-lg flex items-center justify-between gap-2"
           >
             <span className="text-xs font-medium text-white truncate max-w-[200px]">
               {move.taskTitle}
@@ -68,8 +68,8 @@ export const ApprovePlanCard: React.FC<ApprovePlanCardProps> = ({
               <span className="px-1.5 py-0.5 bg-zinc-800 text-zinc-400">
                 {bucketLabel(move.fromBucket)}
               </span>
-              <ArrowRight className="w-3 h-3 text-violet-400" />
-              <span className="px-1.5 py-0.5 bg-violet-900/80 text-violet-200 border border-violet-700 font-semibold">
+              <ArrowRight className="w-3 h-3 text-zinc-500" />
+              <span className="px-1.5 py-0.5 bg-zinc-800 text-zinc-200 border border-zinc-700 rounded font-semibold">
                 {bucketLabel(move.toBucket)}
               </span>
             </div>
@@ -102,7 +102,7 @@ export const ApprovePlanCard: React.FC<ApprovePlanCardProps> = ({
         <div className="flex items-center gap-2 pt-2 border-t border-zinc-800">
           <button
             onClick={handleApprove}
-            className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 bg-violet-600 hover:bg-violet-500 text-white text-xs font-semibold shadow-md transition-colors"
+            className="flex-1 flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-lg bg-zinc-100 hover:bg-white text-zinc-950 text-xs font-semibold transition-colors"
           >
             <Check className="w-3.5 h-3.5" />
             <span>Approve Plan Changes</span>

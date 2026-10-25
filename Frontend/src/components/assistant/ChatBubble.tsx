@@ -47,7 +47,7 @@ export const ChatBubble: React.FC<ChatBubbleProps> = ({ isOpen, onToggle }) => {
             : 'bg-[#121215]/95 hover:bg-[#18181b] border-white/50 hover:border-white text-white shadow-black/40 backdrop-blur-md'
         }`}
       >
-        <AxisLogo className="h-6 w-6 text-violet-400 transition-transform group-hover:scale-110" />
+        <AxisLogo className="h-6 w-6 text-zinc-200 transition-transform group-hover:scale-110" />
       </button>
     </div>
   );

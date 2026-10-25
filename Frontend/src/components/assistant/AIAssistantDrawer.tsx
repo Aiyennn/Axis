@@ -9,7 +9,7 @@ interface AIAssistantDrawerProps {
 }
 
 export const AIAssistantDrawer: React.FC<AIAssistantDrawerProps> = ({ isOpen, onClose }) => {
-  const { chatMessages, sendChatMessage, applyPlanProposal, chatBusy } = useApp();
+  const { chatMessages, sendChatMessage, applyPlanProposal, chatBusy, busy, error, setActiveView } = useApp();
   const [inputText, setInputText] = useState('');
   const [isMounted, setIsMounted] = useState(isOpen);
 
@@ -82,23 +82,25 @@ export const AIAssistantDrawer: React.FC<AIAssistantDrawerProps> = ({ isOpen, on
 
                   {/* Inline Structured Approve Plan Changes Card if proposal attached */}
                   {msg.proposal && (
-                    <div className="mt-3 w-full bg-[#161224] border border-violet-700/60 rounded-none p-4 shadow-xl text-xs space-y-3">
-                      <div className="flex items-center justify-between border-b border-violet-900/50 pb-2">
-                        <span className="font-bold text-violet-300 uppercase tracking-wider text-[11px]">
-                          Approve Plan Changes?
+                    <div className="mt-3 w-full rounded-xl border border-zinc-700/60 bg-[#131316] p-4 text-xs space-y-4">
+                      <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
+                        <span className="font-semibold text-zinc-100 text-sm">
+                          {msg.proposal.requiresApproval ? 'Review schedule changes' : 'Schedule updated'}
                         </span>
-                        <span className="text-[10px] text-zinc-400 font-mono">
+                        <span className="text-[11px] text-zinc-500">
                           {msg.proposal.requiresApproval ? 'Action Required' : 'Approved'}
                         </span>
                       </div>
 
                       <div>
-                        <span className="text-zinc-400 text-[11px] font-medium block mb-1">Proposed Movements:</span>
+                        <span className="text-zinc-400 text-[11px] font-medium block mb-1">
+                          {msg.proposal.moves.length ? (msg.proposal.requiresApproval ? 'Changes' : 'Changes applied') : 'Rebuild focus blocks using current priorities.'}
+                        </span>
                         <div className="space-y-1">
                           {msg.proposal.moves.map(m => (
-                            <div key={m.taskId} className="flex items-center justify-between bg-[#111019] p-2 rounded-none border border-violet-900/30">
-                              <span className="text-zinc-200 font-medium truncate max-w-[200px]">{m.taskTitle}</span>
-                              <span className="font-mono text-[10px] px-1.5 py-0.5 bg-violet-950 text-violet-300 border border-violet-800/40">
+                            <div key={m.taskId} className="flex items-center justify-between gap-3 rounded-lg border border-zinc-800 bg-zinc-900/60 p-3">
+                              <span className="min-w-0 text-zinc-200 font-medium leading-relaxed">{m.taskTitle}</span>
+                              <span className="shrink-0 rounded border border-zinc-700/70 bg-zinc-800 px-2 py-1 font-mono text-[10px] text-zinc-300">
                                 {m.fromBucket.toUpperCase()} → {m.toBucket.toUpperCase()}
                               </span>
                             </div>
@@ -111,7 +113,7 @@ export const AIAssistantDrawer: React.FC<AIAssistantDrawerProps> = ({ isOpen, on
                           <span className="text-zinc-400 text-[11px] font-medium block mb-1">Trade-offs & Warnings:</span>
                           <div className="space-y-1">
                             {msg.proposal.tradeOffs.map((warning, i) => (
-                              <div key={i} className="flex items-start gap-1.5 text-amber-300/90 text-[11px] bg-amber-950/30 border border-amber-900/30 p-2">
+                              <div key={i} className="flex items-start gap-2 rounded-lg border border-amber-900/30 bg-amber-950/10 p-3 text-xs leading-relaxed text-amber-200/80">
                                 <AlertTriangle className="w-3.5 h-3.5 text-amber-400 shrink-0 mt-0.5" />
                                 <span>{warning}</span>
                               </div>
@@ -120,23 +122,29 @@ export const AIAssistantDrawer: React.FC<AIAssistantDrawerProps> = ({ isOpen, on
                         </div>
                       )}
 
-                      {msg.proposal.requiresApproval && (
+                      {msg.proposal.requiresApproval ? (
                         <div className="flex items-center gap-2 pt-1">
                           <button
+                            disabled={busy}
                             onClick={() => applyPlanProposal(msg.proposal!)}
-                            className="flex-1 py-2 bg-violet-600 hover:bg-violet-500 text-white font-semibold flex items-center justify-center gap-1.5 transition-colors"
+                            className="flex-1 rounded-lg bg-zinc-100 py-2.5 text-zinc-950 font-semibold flex items-center justify-center gap-1.5 transition-colors hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 disabled:opacity-50"
                           >
                             <Check className="w-3.5 h-3.5" />
-                            <span>Approve Changes</span>
+                            <span>{busy ? 'Rebuilding...' : 'Approve & Rebuild Schedule'}</span>
                           </button>
 
                           <button
                             onClick={onClose}
-                            className="py-2 px-3 border border-zinc-700 hover:bg-zinc-800 text-zinc-400 text-xs transition-colors"
+                            className="rounded-lg py-2.5 px-3 border border-zinc-700 hover:bg-zinc-800 text-zinc-400 text-xs transition-colors"
                           >
                             Keep Current
                           </button>
                         </div>
+                      ) : (
+                        <button onClick={() => { setActiveView('timeline'); onClose(); }}
+                          className="w-full rounded-lg bg-zinc-100 py-2.5 text-zinc-950 font-semibold transition-colors hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400">
+                          View updated schedule
+                        </button>
                       )}
                     </div>
                   )}
@@ -150,6 +158,7 @@ export const AIAssistantDrawer: React.FC<AIAssistantDrawerProps> = ({ isOpen, on
           )}
 
           {/* Typing Indicator */}
+          {error && <p role="alert" className="text-sm text-red-300">{error}</p>}
           {chatBusy && (
             <div role="status" className="flex w-fit items-center rounded-2xl rounded-bl-sm border border-white/10 bg-zinc-800 px-4 py-3">
               <span className="sr-only">Axis is typing</span>

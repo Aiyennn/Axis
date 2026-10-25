@@ -3,6 +3,7 @@ import type { Task } from '../../types';
 import { useApp } from '../../context/AppContext';
 import { ArrowDown, Check, CheckCircle2, Play, Sparkles } from 'lucide-react';
 import { SourceLogo } from '../shared/SourceLogo';
+import { currentFocusTask } from '../../engine/scheduleDisplay';
 
 export const HeroFocusCard: React.FC = () => {
   const { tasks, busy, error, toggleTaskComplete, setSelectedTaskForReason } = useApp();
@@ -32,8 +33,7 @@ export const HeroFocusCard: React.FC = () => {
     setCompletionPhase('idle');
   }, [completionPhase]);
 
-  // The primary focus is the highest-scoring pending task in "now", or the top pending task
-  const focusTask = completedCard || tasks.find(t => t.status === 'pending');
+  const focusTask = completedCard || currentFocusTask(tasks);
   const cardAnimation = completionPhase === 'exit' || completionPhase === 'replace'
     ? 'focus-card-exit' : 'focus-card-enter';
 
@@ -42,8 +42,8 @@ export const HeroFocusCard: React.FC = () => {
       <div className="focus-card-enter bg-[#121215] border border-[#27272a] rounded-none p-8 text-center text-zinc-400">
         {error && <p role="alert" className="mb-3 text-sm text-rose-400">{error}</p>}
         <Sparkles className="w-8 h-8 text-emerald-400 mx-auto mb-2" />
-        <h3 className="text-lg font-semibold text-white">No pending tasks</h3>
-        <p className="text-sm text-zinc-500">Import mock feeds to populate your workspace.</p>
+        <h3 className="text-lg font-semibold text-white">{tasks.some(task => task.status === 'pending') ? 'Nothing to focus on now' : 'No pending tasks'}</h3>
+        <p className="text-sm text-zinc-500">{tasks.some(task => task.status === 'pending') ? 'Your upcoming work is listed below with its planned time.' : 'Import mock feeds to populate your workspace.'}</p>
       </div>
     );
   }

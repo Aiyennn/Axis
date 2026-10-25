@@ -168,7 +168,47 @@ class AuthChatTests(unittest.TestCase):
             self.assertNotIn('Task 12', kwargs['contents'])
             self.assertEqual(kwargs['config'].max_output_tokens, 1024)
             self.assertEqual(kwargs['config'].tool_config.function_calling_config.mode, 'AUTO')
-            self.assertEqual(kwargs['config'].automatic_function_calling.maximum_remote_calls, 2)
+            self.assertEqual(kwargs['config'].automatic_function_calling.maximum_remote_calls, 4)
+
+    def test_gemini_schedule_request_requires_structured_action(self):
+        with patch('google.genai.Client') as client:
+            generate = client.return_value.__enter__.return_value.models.generate_content
+            generate.return_value.text = '{"action":"move","moves":[{"taskId":"exam-1","bucket":"next"}],"reply":"Done"}'
+            result = GeminiChatProvider(ChatSettings('key', 'model')).generate(ChatRequest(
+                message="can we move CS-401? I don't feel like studying now", runId='run-1',
+                tasks=[{'id': 'exam-1', 'title': 'CS-401 Midterm Exam Preparation', 'priorityBucket': 'now'}]))
+            self.assertTrue(result.proposal.requiresApproval)
+            self.assertEqual(result.proposal.runId, 'run-1')
+            self.assertEqual(result.proposal.moves[0].toBucket, 'next')
+            self.assertNotIn('Done', result.reply)
+            self.assertEqual(generate.call_args.kwargs['config'].response_mime_type, 'application/json')
+            self.assertIsNone(generate.call_args.kwargs['config'].tools)
+
+    def test_schedule_decision_unknown_task_or_ambiguity_has_no_fake_proposal(self):
+        with patch('google.genai.Client') as client:
+            generate = client.return_value.__enter__.return_value.models.generate_content
+            provider = GeminiChatProvider(ChatSettings('key', 'model'))
+            request = ChatRequest(message='Move the exam next', runId='run-1',
+                                  tasks=[{'id': 'exam-1', 'title': 'Exam', 'priorityBucket': 'now'}])
+            generate.return_value.text = '{"action":"move","moves":[{"taskId":"invented","bucket":"next"}],"reply":"Approve below"}'
+            response = provider.generate(request)
+            self.assertIsNone(response.proposal)
+            self.assertNotIn('Approve below', response.reply)
+            generate.return_value.text = '{"action":"clarify","moves":[],"reply":"Which exam?"}'
+            response = provider.generate(request)
+            self.assertIsNone(response.proposal)
+            self.assertEqual(response.reply, 'Which exam?')
+
+    def test_chat_endpoint_keeps_structured_proposal(self):
+        from Backend.models.schemas import ChatResponse, PlanChangeProposalSchema
+        proposal = PlanChangeProposalSchema(id='plan-1', runId='run-1', requestedPrompt='Move exam next',
+            moves=[dict(taskId='exam-1', taskTitle='Exam', fromBucket='now', toBucket='next')], tradeOffs=[])
+        provider = Mock()
+        provider.generate.return_value = ChatResponse(reply='Review the change below.', proposal=proposal)
+        self.enable_provider(provider)
+        response = self.client.post('/api/chat', json={'message': 'Move exam next', 'runId': 'run-1'})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()['proposal'], proposal.model_dump())
 
     def test_gemini_workspace_tool_supplies_context_only_when_called(self):
         with patch('google.genai.Client') as client:

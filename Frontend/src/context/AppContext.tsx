@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { Task, ChatMessage, PlanChangeProposal } from '../types';
 import { api, ApiError, User, Workspace, MockIntegration } from '../services/api';
+import { plannedLabel } from '../engine/scheduleDisplay';
 
 const empty: Workspace = { tasks: [], calendarEvents: [], briefing: {}, status: 'empty', mockNow: '', capacitySummary: {} };
 function useWorkspace() {
@@ -119,7 +120,7 @@ function useWorkspace() {
         importance: t.importance,
         reasoning: t.reasoning,
       }));
-      const res = await api.chat(text, taskContext);
+      const res = await api.chat(text, taskContext, workspace.runId);
       const reply = res.reply || "Oops Axis is not available at the moment please try again later";
       setChatMessages(previous => [
         ...previous,
@@ -162,7 +163,17 @@ function useWorkspace() {
     chatMessages, activeView, selectedTaskForReason, setActiveView, setSelectedTaskForReason, toggleTaskComplete,
     sendChatMessage, resetToDemoSeed: () => syncMock(),
     updateTaskPriority: (_id: string, _bucket: string) => setError('Edit task facts to recalculate priority. Buckets are assigned by the engine.'),
-    applyPlanProposal: async (_proposal: PlanChangeProposal) => setError('Legacy bucket proposals are unavailable. Edit task facts instead.'),
+    applyPlanProposal: (proposal: PlanChangeProposal) => run(async () => {
+      const data = await api.applyPlan(proposal);
+      accept(data);
+      const changes = proposal.moves.map(move => {
+        const task = data.tasks.find(item => item.id === move.taskId);
+        return task ? `${task.title}: ${task.priorityBucket.toUpperCase()} · Planned ${plannedLabel(task, data.mockNow)}.` : '';
+      }).filter(Boolean);
+      setChatMessages(previous => previous.map(message => message.proposal?.id === proposal.id
+        ? { ...message, text: ['Schedule rebuilt and saved.', ...changes].join('\n'), proposal: { ...proposal, requiresApproval: false } }
+        : message));
+    }),
   };
 }
 

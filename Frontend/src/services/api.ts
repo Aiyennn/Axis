@@ -1,9 +1,10 @@
-import type { Task, CalendarEvent } from '../types';
+import type { Task, CalendarEvent, PlanChangeProposal } from '../types';
 
 export type MockIntegration = 'canvas' | 'google_calendar' | 'gmail' | 'github' | 'notion' | 'manual';
 
 export interface User { id: string; email: string; name: string }
 export interface Workspace {
+  runId?: string;
   tasks: Task[];
   completedTasks?: { id: string; title: string; version: number }[];
   calendarEvents: CalendarEvent[];
@@ -38,6 +39,7 @@ export const api = {
   refresh: () => request<Workspace>('/workspace/refresh', 'POST'),
   retryBriefing: () => request<Workspace>('/workspace/briefing/retry', 'POST'),
   edit: (id: string, patch: object) => request<Workspace>(`/workspace/tasks/${encodeURIComponent(id)}`, 'PATCH', patch),
-  chat: (message: string, tasks?: unknown[]) => request<{ reply: string; proposal?: unknown; engine?: string }>('/chat', 'POST', { message, tasks }),
+  applyPlan: (proposal: PlanChangeProposal) => request<Workspace>('/workspace/plan', 'POST', proposal),
+  chat: (message: string, tasks?: unknown[], runId?: string) => request<{ reply: string; proposal?: PlanChangeProposal; engine?: string }>('/chat', 'POST', { message, tasks, runId }),
 };
 

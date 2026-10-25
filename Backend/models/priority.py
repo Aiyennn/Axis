@@ -30,6 +30,7 @@ class PriorityContext(IngestionModel):
     horizonDays: int = Field(default=30, ge=1, le=90)
     # None leaves date-only deadlines unresolved. Set a time explicitly to use them.
     dateOnlyDeadlineTime: time | None = None
+    bucketOverrides: dict[str, Literal['now', 'next', 'later']] = Field(default_factory=dict)
 
     @field_validator("timezone")
     @classmethod

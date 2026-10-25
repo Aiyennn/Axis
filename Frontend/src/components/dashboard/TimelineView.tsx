@@ -4,6 +4,7 @@ import { useApp } from '../../context/AppContext';
 import { DailyTimeline } from './DailyTimeline';
 import { generateDailyTimeline, formatHour, TOTAL_DAY_HOURS } from '../../engine/scheduler';
 import { SourceLogo } from '../shared/SourceLogo';
+import { UpcomingSchedule } from './UpcomingSchedule';
 
 export const TimelineView: React.FC = () => {
   const { tasks, calendarEvents, capacity, setSelectedTaskForReason, setActiveView } = useApp();
@@ -101,6 +102,7 @@ export const TimelineView: React.FC = () => {
               </li>
             ))}
           </ol>
+          <UpcomingSchedule />
         </div>
         {/* Right Column: Schedule Intelligence & Commitments (5 cols) */}
         <div className="lg:col-span-5 space-y-6">

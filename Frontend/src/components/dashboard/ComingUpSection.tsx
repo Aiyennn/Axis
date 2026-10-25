@@ -3,31 +3,33 @@ import { useApp } from '../../context/AppContext';
 import { ChevronRight, ChevronDown } from 'lucide-react';
 import { SourceLogo } from '../shared/SourceLogo';
 import { Task } from '../../types';
+import { currentFocusTask, firstPlannedStart, plannedLabel, scheduleDayLabel } from '../../engine/scheduleDisplay';
 
 // Helper to format time & duration like '9:00 AM - 3 Hours' or '5:00 PM - 0.5 Hours'
-function formatTaskSubtitle(task: Task): string {
+function formatTaskSubtitle(task: Task, now: string): string {
   const timeStr = task.deadline;
 
   const durationStr = task.estimatedHours === null ? "Estimate needed" : `${task.estimatedHours} hours`;
-  return `${timeStr} - ${durationStr}`;
+  return `${task.priorityBucket.toUpperCase()} · Planned ${plannedLabel(task, now)} · Due ${timeStr} · ${durationStr}`;
 }
 
 export const ComingUpSection: React.FC = () => {
-  const { tasks, setSelectedTaskForReason } = useApp();
+  const { tasks, mockNow, setSelectedTaskForReason } = useApp();
   const [isExpanded, setIsExpanded] = useState(true);
 
   // Filter tasks belonging to "next" priority bucket that are pending
-  const comingUpTasks = tasks.slice(1).filter(t => t.priorityBucket !== 'later' && t.status === 'pending');
+  const focusId = currentFocusTask(tasks)?.id;
+  const comingUpTasks = tasks.filter(t => t.id !== focusId && t.priorityBucket !== 'later' && t.status === 'pending');
 
-  // Group into Today and Tomorrow based on deadline string
+  // Group by allocated work, since a deadline is not the planned study time.
   const todayTasks = comingUpTasks.filter(t => {
-    const d = t.deadline.toLowerCase();
-    return d.includes('today') || (!d.includes('tomorrow') && !d.includes('friday') && !d.includes('thursday'));
+    const start = firstPlannedStart(t);
+    return start && scheduleDayLabel(start, mockNow) === 'Today';
   });
 
   const tomorrowTasks = comingUpTasks.filter(t => {
-    const d = t.deadline.toLowerCase();
-    return d.includes('tomorrow');
+    const start = firstPlannedStart(t);
+    return start && scheduleDayLabel(start, mockNow) === 'Tomorrow';
   });
 
   const otherTasks = comingUpTasks.filter(t => !todayTasks.includes(t) && !tomorrowTasks.includes(t));
@@ -112,7 +114,7 @@ export const ComingUpSection: React.FC = () => {
                               {task.title}
                             </h4>
                             <p className="text-xs text-zinc-400 group-hover:text-zinc-300 mt-0.5 font-normal transition-colors">
-                              {formatTaskSubtitle(task)}
+                              {formatTaskSubtitle(task, mockNow)}
                             </p>
                           </div>
                         </div>
@@ -146,7 +148,7 @@ export const ComingUpSection: React.FC = () => {
                               {task.title}
                             </h4>
                             <p className="text-xs text-zinc-400 group-hover:text-zinc-300 mt-0.5 font-normal transition-colors">
-                              {formatTaskSubtitle(task)}
+                              {formatTaskSubtitle(task, mockNow)}
                             </p>
                           </div>
                         </div>
@@ -162,7 +164,7 @@ export const ComingUpSection: React.FC = () => {
               {otherTasks.length > 0 && (
                 <div className="flex flex-col pt-5 border-t border-zinc-800/80">
                   <span className="text-lg font-medium text-zinc-200 mb-3 block tracking-tight">
-                    Later This Week
+                    Upcoming / unscheduled
                   </span>
                   <div className="flex flex-col pl-4 gap-1">
                     {otherTasks.map(task => (
@@ -180,7 +182,7 @@ export const ComingUpSection: React.FC = () => {
                               {task.title}
                             </h4>
                             <p className="text-xs text-zinc-400 group-hover:text-zinc-300 mt-0.5 font-normal transition-colors">
-                              {formatTaskSubtitle(task)}
+                              {formatTaskSubtitle(task, mockNow)}
                             </p>
                           </div>
                         </div>

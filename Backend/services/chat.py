@@ -44,6 +44,7 @@ class ChatService:
         timestamp = datetime.now().strftime("%I:%M %p")
         self._save_message("user", request.message, timestamp)
         reply, engine = FALLBACK_MESSAGE, "offline"
+        proposal = None
         if not self.settings.configured:
             logger.warning("chat.fallback reason=missing_configuration key_present=%s model_present=%s",
                            bool(self.settings.api_key), bool(self.settings.model))
@@ -52,6 +53,8 @@ class ChatService:
             try:
                 with log_stage(logger, "chat.gemini.generate", model=self.settings.model):
                     reply = self.provider.generate(request)
+                if isinstance(reply, ChatResponse):
+                    proposal, reply = reply.proposal, reply.reply
                 engine = "gemini"
                 if reply == FALLBACK_MESSAGE:
                     logger.warning("chat.provider.empty_response model=%s fallback=true", self.settings.model)
@@ -65,4 +68,4 @@ class ChatService:
         self._save_message("assistant", reply, timestamp)
         logger.info("chat.completed engine=%s fallback=%s duration_ms=%.0f", engine,
                     reply == FALLBACK_MESSAGE, (perf_counter() - started) * 1000)
-        return ChatResponse(reply=reply, proposal=None, engine=engine)
+        return ChatResponse(reply=reply, proposal=proposal, engine=engine)

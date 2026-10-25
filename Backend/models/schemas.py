@@ -48,9 +48,11 @@ class PlanChangeProposalSchema(BaseModel):
     moves: List[PlanMoveSchema]
     tradeOffs: List[str]
     requiresApproval: bool = True
+    runId: Optional[str] = None
 
 class ChatRequest(BaseModel):
     message: str
+    runId: Optional[str] = None
     tasks: Optional[List[dict]] = Field(default_factory=list)
     calendarEvents: Optional[List[dict]] = Field(default_factory=list)
 

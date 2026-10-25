@@ -18,6 +18,27 @@ from datetime import timedelta
 
 
 class WorkspaceTests(unittest.TestCase):
+    def test_plan_move_persists_rebuilds_and_rejects_stale_or_foreign_run(self):
+        self.register()
+        original = self.client.post('/api/workspace/sync-mock').json()
+        task = original['tasks'][0]
+        proposal = dict(id='proposal', requestedPrompt='Move exam next', runId=original['runId'],
+                        moves=[dict(taskId=task['id'], taskTitle=task['title'],
+                                    fromBucket=task['priorityBucket'], toBucket='next')], tradeOffs=[])
+        response = self.client.post('/api/workspace/plan', json=proposal)
+        self.assertEqual(response.status_code, 200, response.text)
+        updated = next(t for t in response.json()['tasks'] if t['id'] == task['id'])
+        self.assertEqual(updated['priorityBucket'], 'next')
+        self.assertNotEqual(updated['plannedWork'], task['plannedWork'])
+        self.assertTrue(all(b['start'][:10] > original['mockNow'][:10] for b in updated['plannedWork']))
+        self.assertEqual(self.client.post('/api/workspace/plan', json=proposal).status_code, 409)
+        refreshed = self.client.post('/api/workspace/refresh').json()
+        self.assertEqual(next(t for t in refreshed['tasks'] if t['id'] == task['id'])['priorityBucket'], 'next')
+        self.client.post('/api/auth/logout')
+        self.register('other@example.com')
+        self.client.post('/api/workspace/sync-mock')
+        self.assertEqual(self.client.post('/api/workspace/plan', json=proposal).status_code, 409)
+
     def setUp(self):
         for target in ('Backend.ingestion.pipeline.load_fixtures', 'Backend.services.workspace.load_fixtures'):
             fixture_patch = patch(target, side_effect=fixtures_with_calendar)

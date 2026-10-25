@@ -3,20 +3,21 @@ import { useApp } from '../../context/AppContext';
 import { ChevronRight, ChevronDown } from 'lucide-react';
 import { SourceLogo } from '../shared/SourceLogo';
 import { Task } from '../../types';
+import { plannedLabel } from '../../engine/scheduleDisplay';
 
-function formatTaskSubtitle(task: Task): string {
+function formatTaskSubtitle(task: Task, now: string): string {
   const timeStr = task.deadline;
 
   const durationStr = task.estimatedHours === null ? "Estimate needed" : `${task.estimatedHours} hours`;
-  return `${timeStr} - ${durationStr}`;
+  return `LATER · Planned ${plannedLabel(task, now)} · Due ${timeStr} · ${durationStr}`;
 }
 
 export const LaterSection: React.FC = () => {
-  const { tasks, setSelectedTaskForReason } = useApp();
+  const { tasks, mockNow, setSelectedTaskForReason } = useApp();
   const [isExpanded, setIsExpanded] = useState(true);
 
   // Filter tasks belonging to "later" priority bucket that are pending
-  const laterTasks = tasks.slice(1).filter(t => t.priorityBucket === 'later' && t.status === 'pending');
+  const laterTasks = tasks.filter(t => t.priorityBucket === 'later' && t.status === 'pending');
 
   // Group into Thursday, Friday, and others
   const thursdayTasks = laterTasks.filter(t => t.deadline.toLowerCase().includes('thursday'));
@@ -103,7 +104,7 @@ export const LaterSection: React.FC = () => {
                               {task.title}
                             </h4>
                             <p className="text-xs text-zinc-400 group-hover:text-zinc-300 mt-0.5 font-normal transition-colors">
-                              {formatTaskSubtitle(task)}
+                              {formatTaskSubtitle(task, mockNow)}
                             </p>
                           </div>
                         </div>
@@ -137,7 +138,7 @@ export const LaterSection: React.FC = () => {
                               {task.title}
                             </h4>
                             <p className="text-xs text-zinc-400 group-hover:text-zinc-300 mt-0.5 font-normal transition-colors">
-                              {formatTaskSubtitle(task)}
+                              {formatTaskSubtitle(task, mockNow)}
                             </p>
                           </div>
                         </div>
@@ -171,7 +172,7 @@ export const LaterSection: React.FC = () => {
                               {task.title}
                             </h4>
                             <p className="text-xs text-zinc-400 group-hover:text-zinc-300 mt-0.5 font-normal transition-colors">
-                              {formatTaskSubtitle(task)}
+                              {formatTaskSubtitle(task, mockNow)}
                             </p>
                           </div>
                         </div>

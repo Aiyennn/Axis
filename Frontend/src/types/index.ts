@@ -39,6 +39,7 @@ export interface CalendarEvent {
 
 export interface PlanChangeProposal {
   id: string;
+  runId?: string;
   requestedPrompt: string;
   moves: Array<{
     taskId: string;

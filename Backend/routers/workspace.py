@@ -2,10 +2,17 @@ from fastapi import APIRouter, Depends
 
 from Backend.dependencies import workspace_service
 from Backend.models.workspace import MockSyncRequest, TaskEdit
+from Backend.models.schemas import PlanChangeProposalSchema
 from Backend.dependencies import current_user
 from Backend.services.workspace import WorkspaceService
 
 router = APIRouter(prefix="/api/workspace", tags=["workspace"])
+
+
+@router.post('/plan')
+def apply_plan(body: PlanChangeProposalSchema, user=Depends(current_user),
+               service: WorkspaceService = Depends(workspace_service)):
+    return service.apply_plan(user.id, body)
 
 
 @router.get("")
